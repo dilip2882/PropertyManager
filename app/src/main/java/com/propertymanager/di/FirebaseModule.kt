@@ -8,6 +8,7 @@ import com.propertymanager.domain.usecase.AuthenticationUseCases
 import com.propertymanager.domain.usecase.auth.CreateUserWithPhoneUseCase
 import com.propertymanager.domain.usecase.auth.FirebaseAuthStateUseCase
 import com.propertymanager.domain.usecase.auth.IsUserAuthenticatedUseCase
+import com.propertymanager.domain.usecase.auth.ResendOtpUseCase
 import com.propertymanager.domain.usecase.auth.SignInWithCredentialUseCase
 import com.propertymanager.domain.usecase.auth.SignOutUseCase
 import dagger.Module
@@ -39,6 +40,7 @@ object FirebaseModule {
     fun providesAuthenticationUseCases(repository: AuthRepository) = AuthenticationUseCases(
         createUserWithPhoneUseCase = CreateUserWithPhoneUseCase(repository),
         signInWithCredentialUseCase = SignInWithCredentialUseCase(repository),
+        resendOtpUseCase = ResendOtpUseCase(repository),
         signOutUseCase = SignOutUseCase(repository),
         firebaseAuthStateUseCase = FirebaseAuthStateUseCase(repository),
         isUserAuthenticatedUseCase = IsUserAuthenticatedUseCase(repository)

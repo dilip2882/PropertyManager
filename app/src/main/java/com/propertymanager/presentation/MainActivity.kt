@@ -18,6 +18,7 @@ import com.propertymanager.presentation.ui.auth.PhoneScreen
 import com.propertymanager.presentation.ui.main.HomeScreen
 import com.propertymanager.presentation.ui.main.SettingsScreen
 import com.propertymanager.presentation.ui.theme.PropertyManagerTheme
+import com.propertymanager.presentation.ui.userprofile.OnboardingFormScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -48,6 +49,9 @@ fun PropertyManagerApp(navController: NavHostController, authViewModel: AuthView
                 phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
             )
         }
+        composable(route = Destinations.OnboardingFormScreen.route) {
+            OnboardingFormScreen(navController = navController)
+        }
         composable(route = Destinations.SplashScreen.route) {
             SplashScreen(navController = navController, viewModel = authViewModel)
         }
@@ -57,5 +61,8 @@ fun PropertyManagerApp(navController: NavHostController, authViewModel: AuthView
         composable(route = Destinations.SettingsScreen.route) {
             SettingsScreen(navController)
         }
+//        composable(route = Destinations.ProfileScreen.route) {
+//             ProfileScreen(navController)
+//        }
     }
 }

@@ -1,5 +1,6 @@
 package com.propertymanager.presentation.ui.auth
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,7 +39,7 @@ import androidx.navigation.NavController
 import com.propertymanager.R
 import com.propertymanager.presentation.components.ShowToast
 import com.propertymanager.presentation.navigation.Destinations
-import com.propertymanager.utils.CommonDialog
+import com.propertymanager.presentation.components.CommonDialog
 import com.propertymanager.utils.Response
 
 @Composable
@@ -53,17 +55,17 @@ fun OtpScreen(
 
     // State for OTP verification state
     val otpVerificationState = viewModel.otpVerificationState.value
+    val otpResendState = viewModel.otpResendState.value
 
     // State to handle error message
     var errorMessage by remember { mutableStateOf("") }
 
-    // Handle OTP verification response
     LaunchedEffect(otpVerificationState, hasSubmittedOtp) {
         if (hasSubmittedOtp) {
             when (otpVerificationState) {
                 is Response.Success -> {
                     isDialogVisible = false
-                    navController.navigate(Destinations.HomeScreen.route)
+                    navController.navigate(Destinations.OnboardingFormScreen.route)
                     hasSubmittedOtp = false
                 }
                 is Response.Error -> {
@@ -73,6 +75,19 @@ fun OtpScreen(
                 }
                 else -> {}
             }
+        }
+    }
+
+    // Handle OTP resend response
+    LaunchedEffect(otpResendState) {
+        when (otpResendState) {
+            is Response.Success -> {
+                errorMessage = "OTP Sent Again!"
+            }
+            is Response.Error -> {
+                errorMessage = otpResendState.message
+            }
+            else -> {}
         }
     }
 
@@ -160,7 +175,6 @@ fun OtpScreen(
                     hasSubmittedOtp = true
                     isDialogVisible = true
                     viewModel.signInWithCredential(otpInput)
-                } else {
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -170,10 +184,17 @@ fun OtpScreen(
         ) {
             Text(text = "Verify OTP", color = Color.White)
         }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        TextButton(onClick = {
+            viewModel.resendOtp(phoneNumber, context as Activity)
+        }) {
+            Text(text = "Resend OTP", color = Color(0xFF2b472b))
+        }
     }
 
     if (isDialogVisible) {
         CommonDialog()
     }
 }
-

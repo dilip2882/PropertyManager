@@ -1,37 +1,45 @@
 package com.propertymanager.domain.model
 
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.GeoPoint
+import java.util.Date
 
 data class User(
-    val userid: String = "",
-    var name: String = "",
+    val userId: String = "",
+    val name: String = "",
     var username: String = "",
     var imageUrl: String = "",
     var bio: String = "",
     var url: String = "",
-    var following: List<String> = emptyList(),
-    var followers: List<String> = emptyList(),
-    var totalPosts: String = "",
-    var email: String = "",
-    var phone: String = "",
-    var role: Role = Role.MANAGER,
-    var address: String = "",
-    var location: GeoPoint? = null,
-    var properties: List<String> = emptyList(),
-    var createdAt: Timestamp = Timestamp.now(),
-    var updatedAt: Timestamp = Timestamp.now(),
+    val phone: String = "",
+    val email: String = "",
+    val role: Role = Role.MANAGER,
+    val address: String = "",
+    val location: GeoPoint = GeoPoint(0.0, 0.0),
+    val properties: List<String> = emptyList(),
+    val createdAt: Date = Date(),
+    val updatedAt: Date = Date(),
     var profileImage: String? = null
-)
+) {
+    // No-argument constructor for Firestore
+    constructor() : this(
+        userId = "",
+        name = "",
+        username = "",
+        imageUrl = "",
+        bio = "",
+        url = "",
+        phone = "",
+        email = "",
+        role = Role.MANAGER,
+        address = "",
+        location = GeoPoint(0.0, 0.0),
+        properties = emptyList(),
+        createdAt = Date(),
+        updatedAt = Date(),
+        profileImage = null
+    )
+}
 
-enum class Role(val roleName: String) {
-    TENANT("tenant"),
-    LANDLORD("landlord"),
-    MANAGER("manager");
-
-    companion object {
-        fun fromString(value: String): Role? {
-            return entries.find { it.roleName == value }
-        }
-    }
+enum class Role {
+    TENANT, LANDLORD, MANAGER
 }

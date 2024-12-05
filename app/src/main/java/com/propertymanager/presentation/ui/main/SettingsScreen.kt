@@ -17,5 +17,6 @@ fun SettingsScreen(navController: NavController) {
         }
 
         BottomNavigationMenu(selectedItem = BottomNavigationItem.SETTINGS, navController = navController)
+
     }
 }

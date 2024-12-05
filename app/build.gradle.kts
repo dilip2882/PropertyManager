@@ -41,6 +41,7 @@ android {
     buildFeatures {
         compose = true
     }
+
 }
 
 dependencies {
@@ -61,6 +62,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // image picker
+//    implementation(libs.google.accompanist.imagepicker)
+
+
+    // geolocation
+    implementation(libs.play.services.location)
 
     //firebase
     implementation(platform(libs.firebase.bom))
@@ -86,4 +94,8 @@ dependencies {
 
     // country code picker
     implementation("com.hbb20:ccp:2.7.3")
+
+    // coil
+    implementation(libs.coil.compose)
+
 }

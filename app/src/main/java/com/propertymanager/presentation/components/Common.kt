@@ -1,4 +1,4 @@
-package com.propertymanager.utils
+package com.propertymanager.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

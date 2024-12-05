@@ -6,10 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.propertymanager.domain.usecase.AuthenticationUseCases
-import com.propertymanager.domain.usecase.auth.CreateUserWithPhoneUseCase
-import com.propertymanager.domain.usecase.auth.FirebaseAuthStateUseCase
-import com.propertymanager.domain.usecase.auth.SignInWithCredentialUseCase
-import com.propertymanager.domain.usecase.auth.SignOutUseCase
 import com.propertymanager.utils.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -29,6 +25,10 @@ class AuthViewModel @Inject constructor(
 
     private val _otpVerificationState = mutableStateOf<Response<String>>(Response.Loading)
     val otpVerificationState: State<Response<String>> = _otpVerificationState
+
+    // OTP resend state
+    private val _otpResendState = mutableStateOf<Response<String>>(Response.Loading)
+    val otpResendState: State<Response<String>> = _otpResendState
 
     private val _signOutState = mutableStateOf<Response<Boolean>>(Response.Loading)
     val signOutState: State<Response<Boolean>> = _signOutState
@@ -58,6 +58,14 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             authUseCases.signInWithCredentialUseCase(otp).collect { result ->
                 _otpVerificationState.value = result
+            }
+        }
+    }
+
+    fun resendOtp(phone: String, activity: Activity) {
+        viewModelScope.launch {
+            authUseCases.resendOtpUseCase(phone, activity).collect { result ->
+                _otpResendState.value = result
             }
         }
     }
