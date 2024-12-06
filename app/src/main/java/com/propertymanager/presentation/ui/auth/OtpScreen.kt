@@ -65,7 +65,7 @@ fun OtpScreen(
             when (otpVerificationState) {
                 is Response.Success -> {
                     isDialogVisible = false
-                    navController.navigate(Destinations.OnboardingFormScreen.route)
+                    navController.navigate(Destinations.ProfileScreen.route)
                     hasSubmittedOtp = false
                 }
                 is Response.Error -> {
@@ -97,7 +97,6 @@ fun OtpScreen(
         }
     }
 
-    // Show the error toast if errorMessage is not empty
     if (errorMessage.isNotEmpty()) {
         ShowToast(message = errorMessage)
     }
@@ -145,7 +144,7 @@ fun OtpScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 repeat(6) { index ->

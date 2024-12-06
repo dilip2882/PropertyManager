@@ -19,6 +19,7 @@ import com.propertymanager.presentation.ui.main.HomeScreen
 import com.propertymanager.presentation.ui.main.SettingsScreen
 import com.propertymanager.presentation.ui.theme.PropertyManagerTheme
 import com.propertymanager.presentation.ui.userprofile.OnboardingFormScreen
+import com.propertymanager.presentation.ui.userprofile.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -61,8 +62,8 @@ fun PropertyManagerApp(navController: NavHostController, authViewModel: AuthView
         composable(route = Destinations.SettingsScreen.route) {
             SettingsScreen(navController)
         }
-//        composable(route = Destinations.ProfileScreen.route) {
-//             ProfileScreen(navController)
-//        }
+        composable(route = Destinations.ProfileScreen.route) {
+             ProfileScreen(navController)
+        }
     }
 }

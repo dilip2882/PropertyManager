@@ -130,9 +130,10 @@ fun PhoneScreen(
                     }
                 },
                 modifier = Modifier
-                    .width(100.dp)
+                    .width(70.dp)
                     .height(56.dp)
-                    .padding(top = 10.dp)
+                    .padding(top = 5.dp)
+                    .weight(.2f)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -147,9 +148,10 @@ fun PhoneScreen(
                     keyboardType = KeyboardType.Number
                 ),
                 modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                textStyle = TextStyle(color = Color(0xFF2b472b))
+                    .fillMaxWidth()
+                    .weight(.5f),
+                textStyle = TextStyle(color = Color(0xFF2b472b)),
+                singleLine = true
             )
         }
 

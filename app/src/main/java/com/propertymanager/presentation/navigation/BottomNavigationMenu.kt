@@ -27,23 +27,25 @@ enum class BottomNavigationItem(val icon: ImageVector, val route: Destinations) 
 
 @Composable
 fun BottomNavigationMenu(selectedItem: BottomNavigationItem, navController: NavController) {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .background(Color.White)
     ) {
-        for (item in BottomNavigationItem.entries) {
+        BottomNavigationItem.entries.forEach { item ->
             Image(
                 imageVector = item.icon,
-                contentDescription = "ImageItem",
+                contentDescription = "Bottom Nav Item",
                 modifier = Modifier
                     .size(40.dp)
                     .weight(1f)
                     .padding(5.dp)
                     .clickable {
-                        navController.navigate(item.route.route)
+                        navController.navigate(item.route.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     },
                 colorFilter = if (item == selectedItem) ColorFilter.tint(Color.Black)
                 else ColorFilter.tint(Color.Gray)
