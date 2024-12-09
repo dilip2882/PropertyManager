@@ -2,6 +2,7 @@
 A feature-rich Android application designed to streamline property maintenance management for tenants, landlords, and agency staff. 
 
 ## Modularization
+```
 PropertyManager/
 ├── app/                    # Application module for app initialization and navigation
 ├── core/
@@ -21,3 +22,4 @@ PropertyManager/
 │       ├── data/           # Data layer for staff feature
 │       ├── domain/         # Domain layer for staff feature
 │       ├── presentation/   # Presentation/UI for staff feature
+```
