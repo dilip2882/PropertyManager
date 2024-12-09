@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Mihon</string>
+    <string name="app_name" translatable="false">PropertyManager</string>
 
+    <string name="txt_search">Search in App</string>
     <!-- Generic strings -->
     <string name="on">On</string>
     <string name="off">Off</string>

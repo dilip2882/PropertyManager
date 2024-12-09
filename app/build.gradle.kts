@@ -76,9 +76,17 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.i18n)
 
+    implementation(project(":feature:auth"))
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.androidx.compiler)
+
+    // navigation
+    implementation(androidx.navigation.compose)
+    implementation(androidx.kotlinx.serialization.json)
 
     // Compose
     implementation(compose.activity)
