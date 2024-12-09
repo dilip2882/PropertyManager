@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Mihon</string>
+
+    <!-- Generic strings -->
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="selected">Selected</string>
+    <string name="not_selected">Not selected</string>
+    <string name="action_menu_overflow_description">More options</string>
+    <string name="action_bar_up_description">Navigate up</string>
+
+    <!-- Models -->
+    <string name="name">Name</string>
+
+
+    <!-- Screen titles -->
+
+    <!-- Shared labels -->
+    <string name="label_started">Started</string>
+    <string name="label_local">Local</string>
+    <string name="label_downloaded">Downloaded</string>
+
+    <string name="unlock_app_title">Unlock %s</string>
+    <string name="confirm_lock_change">Authenticate to confirm change</string>
+
+    <!-- Actions -->
+    <string name="action_settings">Settings</string>
+    <string name="action_menu">Menu</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_set_interval">Set interval</string>
+    <string name="action_filter_bookmarked">Bookmarked</string>
+    <string name="action_filter_tracked">Tracked</string>
+    <string name="action_filter_unread">Unread</string>
+    <string name="action_filter_interval_custom">Customized update frequency</string>
+    <!-- reserved for #4048 -->
+    <string name="action_filter_empty">Remove filter</string>
+    <string name="action_sort_alpha">Alphabetically</string>
+    <string name="action_sort_count">Total entries</string>
+    <string name="action_sort_total">Total chapters</string>
+    <string name="action_sort_last_read">Last read</string>
+    <string name="action_sort_last_manga_update">Last update check</string>
+    <string name="action_sort_unread_count">Unread count</string>
+    <string name="action_sort_next_updated">Next expected update</string>
+    <string name="action_sort_latest_chapter">Latest chapter</string>
+    <string name="action_sort_chapter_fetch_date">Chapter fetch date</string>
+    <string name="action_sort_date_added">Date added</string>
+    <string name="action_sort_tracker_score">Tracker score</string>
+    <string name="action_search">Search</string>
+    <string name="action_search_hint">Search…</string>
+    <string name="action_search_settings">Search settings</string>
+    <string name="action_global_search">Global search</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_select_inverse">Select inverse</string>
+    <string name="action_mark_as_read">Mark as read</string>
+    <string name="action_mark_as_unread">Mark as unread</string>
+    <string name="action_mark_previous_as_read">Mark previous as read</string>
+    <string name="action_download">Download</string>
+    <string name="action_bookmark">Bookmark chapter</string>
+    <string name="action_remove_bookmark">Unbookmark chapter</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_update_library">Update library</string>
+    <string name="action_enable_all">Enable all</string>
+    <string name="action_disable_all">Disable all</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_add">Add</string>
+    <string name="action_update_category">Update category</string>
+    <string name="action_open_random_manga">Open random entry</string>
+    <string name="action_add_category">Add category</string>
+    <string name="action_edit_categories">Edit categories</string>
+    <string name="action_rename_category">Rename category</string>
+    <string name="action_move_category">Set categories</string>
+    <string name="delete_category_confirmation">Do you wish to delete the category \"%s\"?</string>
+    <string name="delete_category">Delete category</string>
+    <string name="action_sort_category">Sort categories</string>
+    <string name="sort_category_confirmation">Would you like to sort the categories
+        alphabetically?
+    </string>
+    <string name="action_edit_cover">Edit cover</string>
+    <string name="action_view_chapters">View chapters</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_previous_chapter">Previous chapter</string>
+    <string name="action_next_chapter">Next chapter</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_remove_everything">Remove everything</string>
+    <string name="action_start">Start</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_open_in_browser">Open in browser</string>
+    <string name="action_show_manga">Show entry</string>
+    <string name="action_copy_to_clipboard">Copy to clipboard</string>
+    <string name="action_copy_link">Copy link</string>
+    <!-- Do not translate "WebView" -->
+    <string name="action_open_in_web_view">Open in WebView</string>
+    <string name="action_web_view" translatable="false">WebView</string>
+    <string name="action_migrate">Migrate</string>
+    <string name="action_display_mode">Display mode</string>
+    <string name="action_display">Display</string>
+    <string name="action_display_grid">Compact grid</string>
+    <string name="action_display_comfortable_grid">Comfortable grid</string>
+    <string name="action_display_list">List</string>
+    <string name="action_display_cover_only_grid">Cover-only grid</string>
+    <string name="action_display_download_badge">Downloaded chapters</string>
+    <string name="action_display_local_badge">Local source</string>
+    <string name="action_display_language_badge">Language</string>
+    <string name="action_display_show_tabs">Show category tabs</string>
+    <string name="action_display_show_number_of_items">Show number of items</string>
+    <string name="action_display_show_continue_reading_button">Continue reading button</string>
+    <string name="action_disable">Disable</string>
+    <string name="action_pin">Pin</string>
+    <string name="action_unpin">Unpin</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel_all">Cancel all</string>
+    <string name="cancel_all_for_series">Cancel all for this series</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_order_by_upload_date">By upload date</string>
+    <string name="action_order_by_chapter_number">By chapter number</string>
+    <string name="action_newest">Newest</string>
+    <string name="action_oldest">Oldest</string>
+    <string name="action_asc">Ascending</string>
+    <string name="action_desc">Descending</string>
+    <string name="action_move_to_top">Move to top</string>
+    <string name="action_move_to_top_all_for_series">Move series to top</string>
+    <string name="action_move_to_bottom">Move to bottom</string>
+    <string name="action_move_to_bottom_all_for_series">Move series to bottom</string>
+    <string name="action_install">Install</string>
+    <string name="action_share">Share</string>
+    <string name="action_save">Save</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_revert_to_default">Revert to default</string>
+    <!-- missing undo feature after Compose rewrite #7454 -->
+    <string name="action_undo">Undo</string>
+    <string name="action_close">Close</string>
+    <string name="action_open_log">Open log</string>
+    <string name="action_show_errors">Tap to see details</string>
+    <string name="action_restore">Restore</string>
+    <string name="action_webview_back">Back</string>
+    <string name="action_webview_forward">Forward</string>
+    <string name="action_webview_refresh">Refresh</string>
+    <string name="action_start_downloading_now">Start downloading now</string>
+    <string name="action_not_now">Not now</string>
+    <string name="action_add_anyway">Add anyway</string>
+    <string name="action_migrate_duplicate">Migrate existing entry</string>
+
+    <!-- Operations -->
+    <string name="loading">Loading…</string>
+    <string name="internal_error">InternalError: Check crash logs for further information</string>
+
+    <!-- Shortcuts-->
+    <string name="app_not_available">App not available</string>
+
+    <!-- Onboarding -->
+    <string name="pref_onboarding_guide">Onboarding guide</string>
+    <string name="onboarding_heading">Welcome!</string>
+    <string name="onboarding_description">Let\'s set some things up first. You can always change
+        these in the settings later too.
+    </string>
+    <string name="onboarding_action_next">Next</string>
+    <string name="onboarding_action_finish">Get started</string>
+    <string name="onboarding_action_skip">Skip</string>
+    <string name="onboarding_storage_info">Select a folder where %1$s will store chapter downloads,
+        backups, and more.\n\nA dedicated folder is recommended.\n\nSelected folder: %2$s
+    </string>
+    <string name="onboarding_storage_action_select">Select a folder</string>
+    <string name="onboarding_storage_selection_required">A folder must be selected</string>
+    <string name="onboarding_storage_help_info">Updating from an older version and not sure what to
+        select? Refer to the storage guide for more information.
+    </string>
+    <string name="onboarding_storage_help_action">Storage guide</string>
+    <string name="onboarding_permission_install_apps">Install apps permission</string>
+    <string name="onboarding_permission_install_apps_description">To install source extensions.
+    </string>
+    <string name="onboarding_permission_notifications">Notification permission</string>
+    <string name="onboarding_permission_notifications_description">Get notified for library updates
+        and more.
+    </string>
+    <string name="onboarding_permission_ignore_battery_opts">Background battery usage</string>
+    <string name="onboarding_permission_ignore_battery_opts_description">Avoid interruptions to
+        long-running library updates, downloads, and backup restores.
+    </string>
+    <string name="onboarding_permission_action_grant">Grant</string>
+    <string name="onboarding_guides_new_user">New to %s? We recommend checking out the getting
+        started guide.
+    </string>
+    <string name="onboarding_guides_returning_user">Reinstalling %s?</string>
+
+    <!-- About section -->
+    <string name="website">Website</string>
+    <string name="version">Version</string>
+    <string name="whats_new">What\'s new</string>
+    <string name="help_translate">Help translate</string>
+    <string name="licenses">Open source licenses</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="updated_version">Updated to v%1$s</string>
+
+    <!-- ACRA -->
+    <string name="pref_enable_acra">Send crash reports</string>
+    <string name="pref_acra_summary">Helps fix any bugs. No sensitive data will be sent</string>
+
+
+    <!-- More -->
+    <string name="fdroid_warning">F-Droid builds are not officially supported.\nTap to learn more.
+    </string>
+    <string name="label_downloaded_only">Downloaded only</string>
+    <string name="pref_incognito_mode">Incognito mode</string>
+    <string name="pref_incognito_mode_summary">Pauses reading history</string>
+    <string name="notification_incognito_text">Disable incognito mode</string>
+    <string name="downloaded_only_summary">Filters all entries in your library</string>
+
+
+    <!-- Login dialog -->
+    <string name="login_title">Log in to %1$s</string>
+    <string name="username">Username</string>
+    <string name="email">Email address</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="login_success">Logged in</string>
+    <string name="logout_title">Log out from %1$s?</string>
+    <string name="logout">Log out</string>
+    <string name="logout_success">You are now logged out</string>
+    <string name="unknown_error">Unknown error</string>
+
+    <!-- Crash screen -->
+    <string name="crash_screen_title">Whoops!</string>
+    <string name="crash_screen_description">%s ran into an unexpected error. We suggest you share
+        the crash logs in our support channel on Discord.
+    </string>
+    <string name="crash_screen_restart_application">Restart the application</string>
+
+</resources>

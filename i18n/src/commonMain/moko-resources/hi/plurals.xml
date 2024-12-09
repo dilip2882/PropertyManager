@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="lock_after_mins">
+        <item quantity="one">%1$s मिनट के बाद</item>
+        <item quantity="other">%1$s मिनटो के बाद</item>
+    </plurals>
+</resources>
