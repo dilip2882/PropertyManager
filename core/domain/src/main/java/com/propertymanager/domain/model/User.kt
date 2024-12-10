@@ -1,4 +1,4 @@
-package propertymanager.feature.auth.domain.model
+package com.propertymanager.domain.model
 
 import com.google.firebase.firestore.GeoPoint
 import java.util.Date
@@ -18,7 +18,7 @@ data class User(
     val properties: List<String> = emptyList(),
     val createdAt: Date = Date(),
     val updatedAt: Date = Date(),
-    var profileImage: String? = null,
+    var profileImage: String? = null
 ) {
     // No-argument constructor for Firestore
     constructor() : this(
@@ -36,7 +36,7 @@ data class User(
         properties = emptyList(),
         createdAt = Date(),
         updatedAt = Date(),
-        profileImage = null,
+        profileImage = null
     )
 }
 

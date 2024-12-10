@@ -23,3 +23,5 @@ PropertyManager/
 │       ├── domain/         # Domain layer for staff feature
 │       ├── presentation/   # Presentation/UI for staff feature
 ```
+
+## 

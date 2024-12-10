@@ -74,9 +74,14 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.data)
     implementation(projects.core.domain)
+    implementation(projects.core.presentation)
     implementation(projects.i18n)
 
     implementation(project(":feature:auth"))
+    implementation(project(":feature:staff"))
+    implementation(project(":feature:tenant"))
+    implementation(project(":feature:landlord"))
+
 
     // Hilt
     implementation(libs.hilt.android)

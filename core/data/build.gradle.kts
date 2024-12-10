@@ -18,8 +18,19 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.domain)
 
+    //firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.google.firebase.auth.ktx)
+
     implementation(libs.retrofit)
     implementation(libs.logging.interceptor)
+
+    // geolocation
+    implementation(libs.play.services.location)
+
 
     // Hilt
     implementation(libs.hilt.android)

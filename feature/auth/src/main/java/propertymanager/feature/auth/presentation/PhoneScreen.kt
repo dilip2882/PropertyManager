@@ -2,6 +2,7 @@ package propertymanager.feature.auth.presentation
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -27,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.hbb20.CountryCodePicker
+import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
 import propertymanager.presentation.screens.LoadingScreen
 
@@ -73,19 +77,33 @@ fun PhoneScreen(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
+        Image(
+            painter = painterResource(id = R.drawable.mail_box_img),
+            contentDescription = null,
+            modifier = Modifier.size(150.dp)
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
         Text(
             text = "OTP Verification",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF2b472b),
+            color = Color(0xFF2b472b)
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "We will send you a One Time Password on this mobile number",
+            text = "We will send you a One Time Password",
             color = Color.Gray,
-            fontSize = 16.sp,
+            fontSize = 16.sp
+        )
+
+        Text(
+            text = "on this mobile number",
+            color = Color.Gray,
+            fontSize = 16.sp
         )
 
         Spacer(modifier = Modifier.height(20.dp))

@@ -57,7 +57,11 @@ class AuthViewModel @Inject constructor(
             authUseCases.signInWithCredentialUseCase(otp).collect { result ->
                 when (result) {
                     is Response.Success -> mutableEffect.emit(AuthContract.AuthEffect.NavigateToHome)
-                    is Response.Error -> mutableState.value = AuthContract.AuthState.Error(result.message)
+                    is Response.Error -> {
+                        // Update state to show error
+                        mutableState.value = AuthContract.AuthState.Error(result.message)
+                        mutableEffect.emit(AuthContract.AuthEffect.ShowToast(result.message))
+                    }
                     Response.Loading -> mutableState.value = AuthContract.AuthState.Loading
                 }
             }

@@ -2,6 +2,10 @@ plugins {
     id("propertymanager.library")
     id("propertymanager.library.compose")
     kotlin("android")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+    kotlin("plugin.serialization")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -15,7 +19,30 @@ android {
 
 dependencies {
     api(projects.core.common)
+    api(projects.core.domain)
     api(projects.i18n)
+
+    // geolocation
+    implementation(libs.play.services.location)
+
+    //firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.google.firebase.auth.ktx)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.play.services.location)
+    implementation(libs.google.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.auth.ktx)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.androidx.compiler)
+
+    implementation(libs.coil.compose)
 
     // Compose
     implementation(compose.activity)

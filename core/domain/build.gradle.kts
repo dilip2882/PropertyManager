@@ -3,7 +3,9 @@ plugins {
     kotlin("android")
     kotlin("plugin.serialization")
     alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)}
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.google.gms.google.services)
+}
 
 android {
     namespace = "propertymanager.core.domain"
@@ -19,6 +21,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.google.firebase.firestore.ktx)
     ksp(libs.hilt.compiler)
 
     // Data serialization (JSON, protobuf, xml, retrofit)

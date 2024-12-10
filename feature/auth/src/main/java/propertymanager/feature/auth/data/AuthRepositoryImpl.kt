@@ -1,6 +1,7 @@
 package propertymanager.feature.auth.data
 
 import android.app.Activity
+import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -10,13 +11,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.propertymanager.common.utils.Constants
 import com.propertymanager.common.utils.Response
+import com.propertymanager.domain.model.Role
+import com.propertymanager.domain.model.User
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
-import propertymanager.feature.auth.domain.model.Role
-import propertymanager.feature.auth.domain.model.User
 import propertymanager.feature.auth.domain.repository.AuthRepository
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -27,7 +28,6 @@ class AuthRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : AuthRepository {
 
-    // Store verificationCode (sent by Firebase) and the ForceResendingToken
     private lateinit var verificationCode: String
     private lateinit var verificationToken: PhoneAuthProvider.ForceResendingToken
 
@@ -82,7 +82,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signInWithCredential(otp: String): Flow<Response<String>> = callbackFlow {
         trySend(Response.Loading)
 
-        // Use the verificationCode and entered OTP to authenticate the user
+        // Ensure verification code is initialized
         if (::verificationCode.isInitialized) {
             val credential = PhoneAuthProvider.getCredential(verificationCode, otp)
             auth.signInWithCredential(credential)
@@ -90,10 +90,10 @@ class AuthRepositoryImpl @Inject constructor(
                     if (it.isSuccessful) {
                         // User authenticated successfully with OTP
                         val user = auth.currentUser
-                        if (user != null) {
-                            val userId = user.uid
+                        Log.d("AuthRepo", "Current User: ${user?.uid}")
 
-                            // Create the user object for Firestore
+                        if (user != null && user.uid.isNotEmpty()) {
+                            val userId = user.uid
                             val userDocRef = firestore.collection(Constants.COLLECTION_NAME_USERS)
                                 .document(userId)
 
@@ -131,7 +131,8 @@ class AuthRepositoryImpl @Inject constructor(
                                 }
                             }
                         } else {
-                            trySend(Response.Error("Failed to retrieve authenticated user"))
+                            Log.e("AuthRepo", "User ID is empty or user is null!")
+                            trySend(Response.Error("User ID cannot be empty"))
                         }
                     } else {
                         trySend(Response.Error("Invalid OTP"))
@@ -206,17 +207,23 @@ class AuthRepositoryImpl @Inject constructor(
     ): Flow<Response<Boolean>> = flow {
         try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val userid =
-                result.user?.uid ?: return@flow emit(Response.Error("User creation failed"))
-            val user = User(
-                username = username, email = email, userId = userid,
-                name = "",
-                phone = "",
-                address = "",
-                location = GeoPoint(0.0, 0.0)
-            )
-            firestore.collection("users").document(userid).set(user).await()
-            emit(Response.Success(true))
+            val userId = result.user?.uid ?: return@flow emit(Response.Error("User creation failed"))
+
+            if (userId.isNotEmpty()) {
+                val user = User(
+                    username = username,
+                    email = email,
+                    userId = userId,
+                    name = "",
+                    phone = "",
+                    address = "",
+                    location = GeoPoint(0.0, 0.0)
+                )
+                firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId).set(user).await()
+                emit(Response.Success(true))
+            } else {
+                emit(Response.Error("User ID is empty"))
+            }
         } catch (e: Exception) {
             emit(Response.Error(e.localizedMessage ?: "Sign up failed"))
         }

@@ -18,6 +18,7 @@ android {
 
 dependencies {
     api(projects.core.common)
+    api(projects.core.domain)
     api(projects.core.presentation)
     api(projects.i18n)
     api(project(":core:firebase"))
