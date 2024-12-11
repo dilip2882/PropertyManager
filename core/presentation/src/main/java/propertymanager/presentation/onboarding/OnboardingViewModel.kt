@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.usecase.UserUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel

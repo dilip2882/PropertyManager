@@ -19,6 +19,7 @@ android {
 dependencies {
     api(projects.core.common)
     api(projects.i18n)
+    implementation(project(":core:presentation"))
 
     //firebase
     implementation(platform(libs.firebase.bom))

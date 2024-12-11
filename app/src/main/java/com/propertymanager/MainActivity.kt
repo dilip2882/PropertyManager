@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PropertyManagerTheme {
-                MainNavigation()
+                MainNavigation(navController = rememberNavController())
             }
         }
     }
