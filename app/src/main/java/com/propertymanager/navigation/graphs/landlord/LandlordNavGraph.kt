@@ -1,4 +1,4 @@
-package com.propertymanager.navigation.graphs
+package com.propertymanager.navigation.graphs.landlord
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder

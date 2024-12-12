@@ -63,14 +63,14 @@ class MaintenanceRequestRepositoryImpl @Inject constructor(
     override suspend fun createMaintenanceRequest(request: MaintenanceRequest): Flow<Response<Boolean>> = flow {
         emit(Response.Loading)
         try {
-            firestore.collection("maintenance_requests")
-                .add(request)
-                .await()
+            val docRef = firestore.collection("maintenance_requests").add(request).await()
+            request.copy(id = docRef.id)
             emit(Response.Success(true))
         } catch (e: Exception) {
             emit(Response.Error(e.message ?: "Failed to create request"))
         }
     }
+
 
     override suspend fun updateMaintenanceRequest(request: MaintenanceRequest): Flow<Response<Boolean>> = flow {
         emit(Response.Loading)

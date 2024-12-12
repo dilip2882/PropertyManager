@@ -1,4 +1,4 @@
-package com.propertymanager.navigation.graphs
+package com.propertymanager.navigation.graphs.tenant
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -18,15 +18,12 @@ fun NavGraphBuilder.tenantNavGraph(navController: NavController) {
             TenantScreen(
                 onNavigateToMaintenanceList = {
                     navController.navigate(Dest.MaintenanceListScreen)
-                },
-                onNavigateToTenantSettings = {
-                    navController.navigate(Dest.TenantSettingsScreen)
-                },
-                navController = navController
+                }
+
             )
         }
 
-        composable<Dest.TenantScreen> {
+        composable<Dest.MaintenanceListScreen> {
             MaintenanceListScreen(
                 onNavigateToMaintenanceRequest = {
                     navController.navigate(Dest.MaintenanceRequestScreen)

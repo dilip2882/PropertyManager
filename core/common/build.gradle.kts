@@ -23,6 +23,9 @@ dependencies {
 //    api(kotlinx.serialization.json)
 //    api(kotlinx.serialization.json.okio)
 
+    implementation(compose.material3.core)
+    implementation(compose.material.icons)
+
     api(libs.preferencektx)
 
     // Sort

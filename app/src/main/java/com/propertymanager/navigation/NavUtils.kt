@@ -21,39 +21,39 @@ sealed class SubGraph {
 
 }
 
-sealed class Dest {
+sealed interface Dest {
 
     @Serializable
-    data object PhoneScreen : Dest()
+    data object PhoneScreen : Dest
 
     @Serializable
-    data class OtpScreen(val phoneNumber: String) : Dest()
+    data class OtpScreen(val phoneNumber: String) : Dest
 
     @Serializable
-    data object OnboardingFormScreen : Dest()
+    data object OnboardingFormScreen : Dest
 
     @Serializable
-    data object HomeScreen : Dest()
+    data object HomeScreen : Dest
 
     // Role-based destinations
     @Serializable
-    data object TenantScreen : Dest()
+    data object TenantScreen : Dest
 
     @Serializable
-    data object LandlordScreen : Dest()
+    data object LandlordScreen : Dest
 
     @Serializable
-    data object StaffScreen : Dest()
+    data object StaffScreen : Dest
 
     // Tenant screens
     @Serializable
-    data object MaintenanceListScreen : Dest()
+    data object MaintenanceListScreen : Dest
 
     @Serializable
-    data object MaintenanceRequestScreen : Dest()
+    data object MaintenanceRequestScreen : Dest
 
     @Serializable
-    data object TenantSettingsScreen : Dest()
+    data object TenantSettingsScreen : Dest
 
 }
 

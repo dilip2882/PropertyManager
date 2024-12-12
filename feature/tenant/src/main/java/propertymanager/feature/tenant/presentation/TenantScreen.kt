@@ -1,10 +1,26 @@
 package propertymanager.feature.tenant.presentation
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 
 @Composable
-fun TenantScreen() {
-    Text(text = "Tenant Dashboard", style = MaterialTheme.typography.headlineMedium)
+fun TenantScreen(
+    onNavigateToMaintenanceList: () -> Unit,
+) {
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Button(onClick = { onNavigateToMaintenanceList() }) {
+            Text(text = "Navigate to Maintenance List")
+        }
+    }
 }
