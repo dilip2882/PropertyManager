@@ -94,9 +94,7 @@ fun TenantScreen(
             }
         },
     ) { innerPadding ->
-        MainNavigation(
-            navController = homeNavController
-        )
+
     }
 }
 

@@ -82,7 +82,6 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signInWithCredential(otp: String): Flow<Response<String>> = callbackFlow {
         trySend(Response.Loading)
 
-        // Ensure verification code is initialized
         if (::verificationCode.isInitialized) {
             val credential = PhoneAuthProvider.getCredential(verificationCode, otp)
             auth.signInWithCredential(credential)

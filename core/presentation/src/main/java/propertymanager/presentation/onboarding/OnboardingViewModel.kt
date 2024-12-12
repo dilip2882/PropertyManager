@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.propertymanager.common.preferences.AppPreferences
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.usecase.UserUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,8 @@ class OnboardingViewModel @Inject constructor(
     private val userUseCases: UserUseCases,
     private val firebaseStorage: FirebaseStorage,
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val appPreferences: AppPreferences
 ) : ViewModel(), OnboardingContract {
 
     private val userid = firebaseAuth.currentUser?.uid
@@ -87,6 +89,10 @@ class OnboardingViewModel @Inject constructor(
                 // Save user details in Firestore
                 firestore.collection("users").document(currentUser.uid).set(updatedUser)
                     .await()
+
+                // Save the authentication token to AppPreferences (to mark as logged in)
+                appPreferences.saveAuthToken(currentUser.uid)
+
 
                 _effect.emit(OnboardingContract.OnboardingEffect.NavigateToHome)
                 _state.value = OnboardingContract.OnboardingState.Success(updatedUser)

@@ -31,12 +31,9 @@ import propertymanager.feature.tenant.presentation.components.MaintenanceListIte
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceListScreen(
-    onNavigateToMaintenanceRequest: () -> Unit,
+    onNavigateToMaintenanceRequest: (String?) -> Unit,
 ) {
-
     val maintenanceViewModel = hiltViewModel<MaintenanceRequestViewModel>()
-
-
     val maintenanceRequestsState = maintenanceViewModel.maintenanceRequests.value
     val context = LocalContext.current
 
@@ -49,11 +46,8 @@ fun MaintenanceListScreen(
             TopAppBar(
                 title = { Text("Maintenance Requests") },
                 actions = {
-                    IconButton(onClick = { onNavigateToMaintenanceRequest() }) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Request",
-                        )
+                    IconButton(onClick = { onNavigateToMaintenanceRequest(null) }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Request")
                     }
                 },
             )
@@ -62,33 +56,21 @@ fun MaintenanceListScreen(
         Box(modifier = Modifier.padding(paddingValues)) {
             when (maintenanceRequestsState) {
                 is Response.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .wrapContentSize(Alignment.Center),
-                    )
+                    CircularProgressIndicator(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center))
                 }
 
                 is Response.Success -> {
                     val requests = maintenanceRequestsState.data
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                    ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
                         items(requests) { request ->
                             MaintenanceListItem(
                                 maintenanceRequest = request,
-                                onEditClick = {
-//                                        Edit navigate
-                                },
+                                onEditClick = { onNavigateToMaintenanceRequest(request.id) },
                                 onDeleteClick = {
-                                    maintenanceViewModel.deleteMaintenanceRequest(request.id)
-                                    Toast.makeText(
-                                        context,
-                                        "Request deleted successfully",
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                    request.id?.let { id ->
+                                        maintenanceViewModel.deleteMaintenanceRequest(id)
+                                        Toast.makeText(context, "Request deleted successfully", Toast.LENGTH_SHORT).show()
+                                    }
                                 },
                             )
                         }
@@ -96,16 +78,9 @@ fun MaintenanceListScreen(
                 }
 
                 is Response.Error -> {
-                    Text(
-                        text = "Failed to load maintenance requests",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .wrapContentSize(Alignment.Center),
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                    Text(text = "Failed to load maintenance requests", color = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center))
                 }
             }
         }
     }
-
 }

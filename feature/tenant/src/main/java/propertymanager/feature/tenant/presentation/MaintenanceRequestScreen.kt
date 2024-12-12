@@ -1,28 +1,27 @@
 package propertymanager.feature.tenant.presentation
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.firebase.ktx.Firebase
 import com.propertymanager.common.utils.Response
 import propertymanager.feature.tenant.domian.model.MaintenanceRequest
 import propertymanager.feature.tenant.domian.model.PriorityLevel
@@ -44,6 +42,7 @@ import propertymanager.feature.tenant.domian.model.PriorityLevel
 @Composable
 fun MaintenanceRequestScreen(
     navController: NavController,
+    requestId: String? = null,
 ) {
     val maintenanceRequestViewModel = hiltViewModel<MaintenanceRequestViewModel>()
 
@@ -55,152 +54,124 @@ fun MaintenanceRequestScreen(
 
     val categories = listOf("Plumbing", "Electrical", "Cleaning", "General", "Other")
     val priorities = PriorityLevel.getAllPriorities()
-
-    // Dropdown expanded states
     var categoryExpanded by remember { mutableStateOf(false) }
     var priorityExpanded by remember { mutableStateOf(false) }
 
+    val existingRequest = maintenanceRequestViewModel.maintenanceRequest.value
     val createRequestResponse = maintenanceRequestViewModel.createRequestResponse.value
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            maintenanceRequestViewModel.uploadMedia(uri, MediaType.IMAGE) { mediaUrl -> photos = photos + mediaUrl }
+        }
+    }
 
+    val videoPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            maintenanceRequestViewModel.uploadMedia(uri, MediaType.VIDEO) { mediaUrl -> videos = videos + mediaUrl }
+        }
+    }
+
+    // If editing an existing request, load its data
+    if (requestId != null) {
+        LaunchedEffect(requestId) {
+            maintenanceRequestViewModel.getMaintenanceRequestById(requestId)
+        }
+    }
+
+    if (existingRequest is Response.Success && requestId != null) {
+        val request = existingRequest.data
+        issueDescription = request.issueDescription
+        issueCategory = request.issueCategory
+        priority = request.priority
+        photos = request.photos
+        videos = request.videos
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(
             title = { Text("Submit Maintenance Request", fontWeight = FontWeight.Bold, fontSize = 24.sp) },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
-            }
+            },
         )
 
-        // Issue Description
         TextField(
             value = issueDescription,
             onValueChange = { issueDescription = it },
             label = { Text("Describe the issue") },
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            maxLines = 4
+            maxLines = 4,
         )
 
-        // Issue Category Dropdown
-        ExposedDropdownMenuBox(expanded = categoryExpanded, onExpandedChange = { categoryExpanded = !categoryExpanded }) {
+        ExposedDropdownMenuBox(
+            expanded = categoryExpanded,
+            onExpandedChange = { categoryExpanded = !categoryExpanded },
+        ) {
             OutlinedTextField(
                 value = issueCategory,
                 onValueChange = { issueCategory = it },
                 label = { Text("Issue Category") },
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 readOnly = true,
-                trailingIcon = {
-                    Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Category")
-                }
+                trailingIcon = { Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Category") },
             )
-            ExposedDropdownMenu(
-                expanded = categoryExpanded,
-                onDismissRequest = { categoryExpanded = false }
-            ) {
+            ExposedDropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
                 categories.forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(category) },
-                        onClick = {
-                            issueCategory = category
-                            categoryExpanded = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = null,
-                        trailingIcon = null,
-                        enabled = true,
-                        colors = MenuDefaults.itemColors(),
-                        contentPadding = PaddingValues(16.dp),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
+                    DropdownMenuItem(text = { Text(category) }, onClick = {
+                        issueCategory = category
+                        categoryExpanded = false
+                    })
                 }
             }
         }
 
-        // Priority Dropdown
-        ExposedDropdownMenuBox(expanded = priorityExpanded, onExpandedChange = { priorityExpanded = !priorityExpanded }) {
-            OutlinedTextField(
-                value = priority,
-                onValueChange = { /* No-op */ },
-                label = { Text("Priority Level") },
-                readOnly = true,
-                trailingIcon = {
-                    Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Priority Level")
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = priorityExpanded,
-                onDismissRequest = { priorityExpanded = false }
-            ) {
-                priorities.forEach { priorityOption ->
-                    DropdownMenuItem(
-                        text = { Text(priorityOption) },
-                        onClick = {
-                            priority = priorityOption
-                            priorityExpanded = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = null,
-                        trailingIcon = null,
-                        enabled = true,
-                        colors = MenuDefaults.itemColors(),
-                        contentPadding = PaddingValues(16.dp),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-                }
-            }
-        }
+        FileUploadButton(onUploadClick = { imagePickerLauncher.launch("image/*") })
 
-        // Photo/Video Upload Button
-        FileUploadButton(onUploadClick = {
-            // Handle file picker for photos/videos
-        })
-
-        // Submit Request Button
         Button(
             onClick = {
                 val request = MaintenanceRequest(
-                    propertyId = "",
-                    tenantId = "",
-                    issueDescription = issueDescription,
-                    issueCategory = issueCategory,
-                    priority = priority,
-                    photos = photos,
-                    videos = videos
+                    id = requestId,
+                    propertyId = "", tenantId = "", issueDescription = issueDescription,
+                    issueCategory = issueCategory, priority = priority, photos = photos, videos = videos
                 )
-                maintenanceRequestViewModel.createMaintenanceRequest(request)
+                if (requestId != null) {
+                    maintenanceRequestViewModel.updateMaintenanceRequest(request)
+                } else {
+                    maintenanceRequestViewModel.createMaintenanceRequest(request)
+                }
             },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
         ) {
-            Text("Submit Request")
+            Text(if (requestId != null) "Update Request" else "Submit Request")
         }
 
-        // Display status for request creation
-        when (val response = createRequestResponse) {
+        when (createRequestResponse) {
             is Response.Loading -> {
-//                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp))
+/*
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp))
+*/
             }
             is Response.Success -> {
-                Text("Request created successfully", modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp), color = Color.Green)
+                Text("Request created successfully", color = Color.Green, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp))
                 navController.popBackStack()
             }
-            is Response.Error -> {
-                Text("Error: ${response.message}", modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp), color = Color.Red)
-            }
+            is Response.Error -> Text("Error: ${createRequestResponse.message}", color = Color.Red, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp))
         }
     }
 }
+
 
 @Composable
 fun FileUploadButton(onUploadClick: () -> Unit) {
     Button(
         onClick = onUploadClick,
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
     ) {
         Text("Upload Photos/Videos")
     }
 }
-

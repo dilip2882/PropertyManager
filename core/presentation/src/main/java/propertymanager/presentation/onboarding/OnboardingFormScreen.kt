@@ -2,22 +2,17 @@ package propertymanager.presentation.onboarding
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.net.Uri
-import android.util.Base64
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,23 +33,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
 import com.google.android.gms.location.LocationServices
-import com.google.firebase.firestore.GeoPoint
 import com.propertymanager.domain.model.User
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import propertymanager.presentation.onboarding.mvi.OnboardingContract
 import java.util.Locale
 
@@ -63,7 +50,7 @@ fun OnboardingFormScreen(
     state: OnboardingContract.OnboardingState,
     effect: OnboardingContract.OnboardingEffect? = null,
     dispatch: (OnboardingContract.OnboardingEvent) -> Unit,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
 ) {
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -85,6 +72,7 @@ fun OnboardingFormScreen(
             is OnboardingContract.OnboardingEffect.ShowToast -> {
                 Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
             }
+
             else -> {}
         }
     }
@@ -94,12 +82,12 @@ fun OnboardingFormScreen(
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "Complete Your Profile",
             fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         OutlinedTextField(
@@ -107,7 +95,7 @@ fun OnboardingFormScreen(
             onValueChange = { username = it },
             label = { Text("Username") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
         )
 
         OutlinedTextField(
@@ -115,7 +103,7 @@ fun OnboardingFormScreen(
             onValueChange = { bio = it },
             label = { Text("Bio") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
         )
 
         OutlinedTextField(
@@ -124,7 +112,7 @@ fun OnboardingFormScreen(
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
-            singleLine = true
+            singleLine = true,
         )
 
         OutlinedTextField(
@@ -137,13 +125,13 @@ fun OnboardingFormScreen(
                     onClick = {
                         if (ActivityCompat.checkSelfPermission(
                                 context,
-                                Manifest.permission.ACCESS_FINE_LOCATION
+                                Manifest.permission.ACCESS_FINE_LOCATION,
                             ) != PackageManager.PERMISSION_GRANTED
                         ) {
                             ActivityCompat.requestPermissions(
                                 context as Activity,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                100
+                                100,
                             )
                         } else {
                             fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
@@ -153,16 +141,16 @@ fun OnboardingFormScreen(
                                 }
                             }
                         }
-                    }
+                    },
                 ) {
                     Icon(Icons.Default.LocationOn, contentDescription = "Get Location")
                 }
-            }
+            },
         )
 
         Button(
             onClick = { imagePickerLauncher.launch("image/*") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Select Profile Picture")
         }
@@ -173,7 +161,7 @@ fun OnboardingFormScreen(
                 contentDescription = "Selected Image",
                 modifier = Modifier
                     .size(100.dp)
-                    .padding(top = 16.dp)
+                    .padding(top = 16.dp),
             )
         }
 
@@ -183,12 +171,12 @@ fun OnboardingFormScreen(
                     username = username,
                     bio = bio,
                     email = email,
-                    address = address
+                    address = address,
                 )
                 dispatch(OnboardingContract.OnboardingEvent.SubmitUserDetails(user, selectedImageUri))
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = username.isNotEmpty() && bio.isNotEmpty() && email.isNotEmpty()
+            enabled = username.isNotEmpty() && bio.isNotEmpty() && email.isNotEmpty(),
         ) {
             Text("Complete Profile")
         }
@@ -201,7 +189,7 @@ fun OnboardingFormScreen(
             Text(
                 text = state.message,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
         }
     }

@@ -1,8 +1,9 @@
 plugins {
     id("propertymanager.library")
     kotlin("android")
-//    kotlin("plugin.serialization")
-}
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+    kotlin("plugin.serialization")}
 
 android {
     namespace = "com.propertymanager.common"
@@ -22,6 +23,14 @@ dependencies {
 //    api(kotlinx.coroutines.core)
 //    api(kotlinx.serialization.json)
 //    api(kotlinx.serialization.json.okio)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.androidx.compiler)
+
+    implementation(androidx.datastore)
 
     api(libs.preferencektx)
 

@@ -7,6 +7,8 @@ interpolator_version = "1.0.0"
 composeNavigation = "2.8.4"
 serialization = "1.7.3"
 
+datastore = "1.1.1"
+
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "agp_version" }
 
@@ -27,6 +29,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 lifecycle-common = { module = "androidx.lifecycle:lifecycle-common", version.ref = "lifecycle_version" }
 lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle_version" }
 lifecycle-runtimektx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle_version" }
+
+#dataStore
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
 
 workmanager = "androidx.work:work-runtime:2.10.0"
 

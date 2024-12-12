@@ -1,7 +1,7 @@
 package propertymanager.feature.tenant.domian.model
 
 data class MaintenanceRequest(
-    val id: String = "", // auto-generated ID
+    val id: String? = null, // auto-generated ID
     val propertyId: String, // Reference to `properties.id`
     val tenantId: String, // (tenant who raised the request)
     val assignedStaffId: String = "", // (agency staff assigned)
@@ -13,10 +13,10 @@ data class MaintenanceRequest(
     val createdAt: Long = System.currentTimeMillis(), // Request creation timestamp
     val updatedAt: Long = System.currentTimeMillis(), // Last status update timestamp
     val photos: List<String> = emptyList(), // URLs of photos
-    val videos: List<String> = emptyList() // URLs of videos
+    val videos: List<String> = emptyList(), // URLs of videos
 ) {
     constructor() : this(
-        id = "",
+        id = null,
         propertyId = "",
         tenantId = "",
         assignedStaffId = "",
@@ -28,14 +28,14 @@ data class MaintenanceRequest(
         createdAt = System.currentTimeMillis(),
         updatedAt = System.currentTimeMillis(),
         photos = emptyList(),
-        videos = emptyList()
+        videos = emptyList(),
     )
 }
 
 data class WorkerDetails(
     val name: String = "", // Name of the worker
     val phone: String = "", // Phone number of the worker
-    val trade: String = "" // Trade of the worker
+    val trade: String = "", // Trade of the worker
 )
 
 enum class RequestStatus(val label: String) {

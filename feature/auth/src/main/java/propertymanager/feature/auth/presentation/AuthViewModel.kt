@@ -5,6 +5,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.propertymanager.common.preferences.AppPreferences
 import com.propertymanager.common.utils.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,8 +21,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authUseCases: AuthenticationUseCases
-) : ViewModel(), AuthContract {
+    private val authUseCases: AuthenticationUseCases,
+    private val firebaseAuth: FirebaseAuth,
+    private val appPreferences: AppPreferences
+    ) : ViewModel(), AuthContract {
 
     private val mutableState = MutableStateFlow<AuthContract.AuthState>(AuthContract.AuthState.Idle)
     private val mutableEffect = MutableSharedFlow<AuthContract.AuthEffect>()
@@ -83,10 +87,17 @@ class AuthViewModel @Inject constructor(
     private fun observeAuthState() {
         viewModelScope.launch {
             authUseCases.firebaseAuthStateUseCase().collect { isAuthenticated ->
+                if (isAuthenticated) {
+                    val currentUser = firebaseAuth.currentUser
+                    if (currentUser != null) {
+                        appPreferences.saveAuthToken(currentUser.uid) // Store the token
+                    }
+                }
                 mutableState.value = AuthContract.AuthState.Authenticated(isAuthenticated)
             }
         }
     }
+
 
     private fun signOut() {
         viewModelScope.launch {
