@@ -4,7 +4,6 @@ import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
 import com.propertymanager.common.utils.Response
-import com.propertymanager.domain.model.Role
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.repository.UserRepository
 import kotlinx.coroutines.channels.awaitClose
@@ -47,15 +46,15 @@ class UserRepositoryImpl @Inject constructor(
     override fun setUserDetails(user: User): Flow<Response<Boolean>> = flow {
         emit(Response.Loading)
         try {
-            if (user.userId.isEmpty()) {
+            if (user.userId?.isEmpty() == true) {
                 throw Exception("User ID cannot be empty")
             }
 
             val userMap = user.toMap()
-            Log.d("UserRepositoryImpl", "Uploading user: $userMap") // Log user details
+            Log.d("UserRepositoryImpl", "Uploading user: $userMap") // Logging user details
 
             firebaseFirestore.collection(COLLECTION_NAME_USERS)
-                .document(user.userId)
+                .document(user.userId!!)
                 .set(userMap)
                 .await()
 
@@ -81,7 +80,7 @@ class UserRepositoryImpl @Inject constructor(
             "role" to role.name,
             "address" to address,
             "location" to location,
-            "properties" to properties,
+            "associatedProperties" to associatedProperties,
             "createdAt" to createdAt,
             "updatedAt" to updatedAt,
             "profileImage" to profileImage

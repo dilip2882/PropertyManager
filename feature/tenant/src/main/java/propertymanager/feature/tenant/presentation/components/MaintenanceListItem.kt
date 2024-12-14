@@ -1,7 +1,7 @@
 package propertymanager.feature.tenant.presentation.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -20,11 +24,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import propertymanager.feature.tenant.domian.model.MaintenanceRequest
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.propertymanager.domain.model.MaintenanceRequest
 
 @Composable
 fun MaintenanceListItem(
@@ -56,6 +64,40 @@ fun MaintenanceListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
+                LazyRow(modifier = Modifier.padding(top = 8.dp)) {
+                    items(maintenanceRequest.photos.size) { photoUrl ->
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(photoUrl)
+                                    .crossfade(true)
+                                    .build()
+                            ),
+                            contentDescription = "Photo",
+                            modifier = Modifier
+                                .size(64.dp)
+                                .padding(4.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+
+                LazyRow(modifier = Modifier.padding(top = 8.dp)) {
+                    items(maintenanceRequest.videos.size) { videoUrl ->
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Videocam,
+                                contentDescription = "Video Thumbnail",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -82,12 +124,3 @@ fun MaintenanceListItem(
     }
 }
 
-@Preview
-@Composable
-private fun MaintenanceListItem() {
-    MaintenanceListItem(
-        maintenanceRequest = MaintenanceRequest(),
-        onEditClick = {},
-        onDeleteClick = {},
-    )
-}

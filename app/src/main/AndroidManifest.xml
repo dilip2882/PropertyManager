@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission-sdk-23 android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:name="com.propertymanager.App"
         android:allowBackup="true"
@@ -30,6 +33,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name=".notification.CloudNotification"
+            android:exported="true"
+            android:permission="android.permission.POST_NOTIFICATIONS">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

@@ -3,6 +3,7 @@ package com.propertymanager.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import com.propertymanager.common.preferences.AppPreferences
 import com.propertymanager.navigation.graphs.authNavGraph
@@ -14,6 +15,7 @@ import com.propertymanager.navigation.graphs.tenant.tenantNavGraph
 @Composable
 fun MainNavigation(
     navController: NavHostController,
+    navOptions: NavOptions,
     appPreferences: AppPreferences
 ) {
     val isLoggedIn = appPreferences.getAuthToken().collectAsState(initial = null).value != null
@@ -26,7 +28,7 @@ fun MainNavigation(
         homeNavGraph(navController)
 
         // Role-based
-        tenantNavGraph(navController)
+        tenantNavGraph(navController, navOptions = navOptions)
         landlordNavGraph(navController)
         staffNavGraph(navController)
     }

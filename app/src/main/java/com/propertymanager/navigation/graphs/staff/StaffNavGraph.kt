@@ -12,7 +12,12 @@ fun NavGraphBuilder.staffNavGraph(navController: NavController) {
 
     navigation<SubGraph.Staff>(startDestination = Dest.StaffScreen) {
         composable<Dest.StaffScreen> {
-            StaffScreen()
+            StaffScreen(
+                staffId = "",
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

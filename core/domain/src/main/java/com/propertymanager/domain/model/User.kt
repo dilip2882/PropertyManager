@@ -1,10 +1,12 @@
 package com.propertymanager.domain.model
 
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.GeoPoint
 import java.util.Date
 
 data class User(
-    val userId: String = "",
+    @DocumentId val userId: String? = null, // based on role - can be manager, tenant, landlord
     val name: String = "",
     var username: String = "",
     var imageUrl: String = "",
@@ -12,12 +14,13 @@ data class User(
     var url: String = "",
     val phone: String = "",
     val email: String = "",
-    val role: Role = Role.TENANT,
+    val passwordHash: String? = null,
+    val role: Role = Role.MANAGER,
     val address: String = "",
     val location: GeoPoint = GeoPoint(0.0, 0.0),
-    val properties: List<String> = emptyList(),
-    val createdAt: Date = Date(),
-    val updatedAt: Date = Date(),
+    val associatedProperties: List<String> = emptyList(),
+    val createdAt: Timestamp? = Timestamp.now(),
+    val updatedAt: Timestamp? = Timestamp.now(),
     var profileImage: String? = null
 ) {
     // No-argument constructor for Firestore
@@ -30,12 +33,13 @@ data class User(
         url = "",
         phone = "",
         email = "",
+        passwordHash = "",
         role = Role.TENANT,
         address = "",
         location = GeoPoint(0.0, 0.0),
-        properties = emptyList(),
-        createdAt = Date(),
-        updatedAt = Date(),
+        associatedProperties = emptyList(),
+        createdAt = Timestamp.now(),
+        updatedAt = Timestamp.now(),
         profileImage = null
     )
 }

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +42,6 @@ import androidx.navigation.NavHostController
 import com.hbb20.CountryCodePicker
 import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
-import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
 fun PhoneScreen(
@@ -162,6 +163,11 @@ fun PhoneScreen(
     }
 
     if (state is AuthContract.AuthState.Loading) {
-        LoadingScreen()
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
     }
 }

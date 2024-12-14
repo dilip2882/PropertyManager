@@ -1,8 +1,6 @@
 package com.propertymanager.bottomnav.tenant
 
-import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.propertymanager.R
 import com.propertymanager.navigation.Dest
 import propertymanager.i18n.MR
 import propertymanager.presentation.components.PropertyManagerIcons
@@ -44,5 +42,6 @@ enum class TenantTopLevelDestination(
         iconTextId = MR.strings.app_name.toString(),
         titleTextId = MR.strings.app_name.toString(),
         route = Dest.TenantSettingsScreen::class,
+        baseRoute = Dest.TenantScreen::class,
     ),
 }

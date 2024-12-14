@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
-import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
 fun OtpScreen(
@@ -192,6 +192,11 @@ fun OtpScreen(
     }
 
     if (state is AuthContract.AuthState.Loading) {
-        LoadingScreen()
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
     }
 }

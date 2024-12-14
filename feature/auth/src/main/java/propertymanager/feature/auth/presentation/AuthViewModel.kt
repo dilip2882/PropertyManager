@@ -1,8 +1,6 @@
 package propertymanager.feature.auth.presentation
 
 import android.app.Activity
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -15,7 +13,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import propertymanager.feature.auth.domain.usecase.AuthenticationUseCases
+import com.propertymanager.domain.usecase.AuthenticationUseCases
 import propertymanager.feature.auth.presentation.mvi.AuthContract
 import javax.inject.Inject
 

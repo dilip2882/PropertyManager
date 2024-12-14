@@ -46,6 +46,8 @@ dependencies {
     implementation(compose.ui.tooling.preview)
     implementation(compose.ui.util)
 
+    implementation(libs.coil.compose)
+
     implementation(kotlinx.immutables)
 }
 

@@ -1,112 +1,149 @@
 package com.propertymanager.bottomnav
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
-import androidx.compose.animation.graphics.res.animatedVectorResource
-import androidx.compose.animation.graphics.vector.AnimatedImageVector
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.propertymanager.R
-import com.propertymanager.navigation.Dest
-import com.propertymanager.navigation.MainNavigation
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.receiveAsFlow
-import propertymanager.presentation.components.NavBar
-import propertymanager.presentation.components.NavigationItem
+import androidx.navigation.NavOptions
+import com.propertymanager.bottomnav.tenant.TenantTopLevelDestination
+import com.propertymanager.bottomnav.tenant.navigateToHome
+import com.propertymanager.bottomnav.tenant.navigateToSettings
+import com.propertymanager.ui.theme.PropertyManagerTheme
+import propertymanager.presentation.components.PropertyManagerIcons
 
-@OptIn(ExperimentalAnimationGraphicsApi::class)
 @Composable
 fun TenantScreen(
-    homeNavController: NavHostController = rememberNavController(),
+    navController: NavHostController, // pass NavHostController as a parameter for navigation
+    topLevelNavOptions: NavOptions, // navigation options
 ) {
-    val showBottomNavEvent = Channel<Boolean>()
-
-    val homeAnimatedIcon = AnimatedImageVector.animatedVectorResource(R.drawable.ic_home)
-    val settingsAnimatedIcon = AnimatedImageVector.animatedVectorResource(R.drawable.ic_settings)
-    val navigationItem = remember {
-        listOf(
-            NavigationItem(homeAnimatedIcon, text = "Home"),
-            NavigationItem(settingsAnimatedIcon, text = "Settings"),
-        )
-    }
-
-    val backStackState = homeNavController.currentBackStackEntryAsState().value
-    var selectedItem by remember {
-        mutableIntStateOf(0)
-    }
-
-    selectedItem = when (backStackState?.destination?.route) {
-        BottomScreens.Home.name -> 0
-        BottomScreens.Settings.name -> 1
-        else -> 0
-    }
-
-    // Hide the bottom navigation when the user is in the details screen
-    val isBarVisible = remember(key1 = backStackState) {
-        backStackState?.destination?.route == BottomScreens.Home.name ||
-            backStackState?.destination?.route == BottomScreens.Settings.name
-    }
-
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (isBarVisible) {
-                val bottomNavVisible by produceState(initialValue = true) {
-                    showBottomNavEvent.receiveAsFlow().collectLatest { value = it }
+            TenantNavigationBar(
+                selectedItem = navController.currentBackStackEntry?.destination?.route ?: "",
+                onItemSelected = { selectedItem ->
+                    when (selectedItem) {
+                        TenantTopLevelDestination.HOME.route.simpleName -> {
+                            navController.navigateToHome(topLevelNavOptions)
+                        }
+                        TenantTopLevelDestination.SETTINGS.route.simpleName -> {
+                            navController.navigateToSettings(topLevelNavOptions)
+                        }
+                    }
                 }
-                AnimatedVisibility(
-                    visible = bottomNavVisible,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                ) {
-                    NavBar(
-                        items = navigationItem,
-                        selectedItem = selectedItem,
-                        onItemClick = { index ->
-                            when (index) {
-                                0 -> navigateToTab(
-                                    navController = homeNavController,
-                                    screen = Dest.MaintenanceListScreen
-                                )
-
-                                1 -> navigateToTab(
-                                    navController = homeNavController,
-                                    screen = Dest.TenantSettingsScreen
-                                )
-                            }
-                        },
-                    )
-                }
-            }
+            )
         },
-    ) { innerPadding ->
+        content = { paddingValues ->
+            val contentPadding = WindowInsets
+                .systemBars
+                .add(WindowInsets(left = 16.dp, top = 16.dp, right = 16.dp, bottom = 16.dp))
+                .asPaddingValues()
 
-    }
-}
-
-private fun navigateToTab(navController: NavController, screen: Dest) {
-    navController.navigate(screen) {
-        navController.graph.startDestinationRoute?.let { screenRoute ->
-            popUpTo(screenRoute) {
-                saveState = true
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = contentPadding,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item { Text("Navigation", Modifier.padding(top = 16.dp)) }
+                item {
+                    Text("Tenant Dashboard or any other content", Modifier.padding(top = 16.dp))
+                }
             }
         }
-        launchSingleTop = true
-        restoreState = true
+    )
+}
+
+
+@Composable
+fun TenantNavigationBar(
+    selectedItem: String,
+    onItemSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val items = listOf(
+        TenantTopLevelDestination.HOME.route.simpleName,
+        TenantTopLevelDestination.SETTINGS.route.simpleName
+    )
+
+    NavigationBar(modifier = modifier) {
+        items.forEachIndexed { index, item ->
+            TenantNavigationBarItem(
+                selected = selectedItem == item,
+                onClick = {
+                    if (item != null) {
+                        onItemSelected(item)
+                    }
+                },
+                label = { item?.let { Text(it) } },
+                icon = {
+                    val icon = if (item == TenantTopLevelDestination.HOME.route.simpleName) {
+                        PropertyManagerIcons.Home
+                    } else {
+                        PropertyManagerIcons.Settings
+                    }
+                    Icon(imageVector = icon, contentDescription = item)
+                },
+            )
+        }
     }
 }
 
+@Composable
+fun RowScope.TenantNavigationBarItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    label: @Composable () -> Unit,
+) {
+    NavigationBarItem(
+        selected = selected,
+        onClick = onClick,
+        icon = icon,
+        label = label,
+        modifier = modifier,
+        alwaysShowLabel = true,
+        colors = NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+        )
+    )
+}
+
+
+object NiaNavigationDefaults {
+    @Composable
+    fun navigationContentColor() = MaterialTheme.colorScheme.onSurfaceVariant
+
+    @Composable
+    fun navigationSelectedItemColor() = MaterialTheme.colorScheme.onPrimaryContainer
+
+    @Composable
+    fun navigationIndicatorColor() = MaterialTheme.colorScheme.primaryContainer
+}

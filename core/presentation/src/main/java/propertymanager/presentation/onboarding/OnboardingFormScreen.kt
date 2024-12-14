@@ -9,15 +9,20 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -33,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,7 +78,6 @@ fun OnboardingFormScreen(
             is OnboardingContract.OnboardingEffect.ShowToast -> {
                 Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
             }
-
             else -> {}
         }
     }
@@ -89,6 +94,30 @@ fun OnboardingFormScreen(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
+
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                .clickable { imagePickerLauncher.launch("image/*") },
+            contentAlignment = Alignment.Center
+        ) {
+            if (selectedImageUri != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(selectedImageUri),
+                    contentDescription = "Selected Image",
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Default Profile Icon",
+                    modifier = Modifier.size(50.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
 
         OutlinedTextField(
             value = username,
@@ -147,23 +176,6 @@ fun OnboardingFormScreen(
                 }
             },
         )
-
-        Button(
-            onClick = { imagePickerLauncher.launch("image/*") },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Select Profile Picture")
-        }
-
-        selectedImageUri?.let { uri ->
-            Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = "Selected Image",
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(top = 16.dp),
-            )
-        }
 
         Button(
             onClick = {

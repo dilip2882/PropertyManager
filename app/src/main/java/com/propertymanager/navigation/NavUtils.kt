@@ -46,11 +46,12 @@ sealed interface Dest {
     data object StaffScreen : Dest
 
     // Tenant screens
-    @Serializable
-    data object MaintenanceListScreen : Dest
 
     @Serializable
     data object MaintenanceRequestScreen : Dest
+
+    @Serializable
+    data object MaintenanceListScreen : Dest
 
     @Serializable
     data object TenantSettingsScreen : Dest
