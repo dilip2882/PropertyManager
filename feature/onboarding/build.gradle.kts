@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "propertymanager.feature.tenant"
+    namespace = "propertymanager.feature.onboarding"
 
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -23,12 +23,18 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.play.services.location)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.androidx.compiler)
 
+    //firebase
     implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.google.firebase.auth.ktx)
 
     // Compose
     implementation(compose.activity)

@@ -1,4 +1,4 @@
-package propertymanager.feature.tenant.presentation.components
+package com.propertymanager.domain.usecase
 
 import android.content.Context
 import android.net.Uri

@@ -1,4 +1,4 @@
-package propertymanager.presentation.onboarding.mvi
+package propertymanager.feature.onboarding.mvi
 
 import android.net.Uri
 import com.propertymanager.domain.model.User

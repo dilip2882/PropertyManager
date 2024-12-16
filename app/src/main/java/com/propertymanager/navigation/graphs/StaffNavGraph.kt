@@ -1,4 +1,4 @@
-package com.propertymanager.navigation.graphs.staff
+package com.propertymanager.navigation.graphs
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder

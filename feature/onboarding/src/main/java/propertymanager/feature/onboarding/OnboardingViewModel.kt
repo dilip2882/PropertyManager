@@ -1,4 +1,4 @@
-package propertymanager.presentation.onboarding
+package propertymanager.feature.onboarding
 
 import android.net.Uri
 import android.util.Log
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import propertymanager.presentation.onboarding.mvi.OnboardingContract
+import propertymanager.feature.onboarding.mvi.OnboardingContract
 import javax.inject.Inject
 
 @HiltViewModel

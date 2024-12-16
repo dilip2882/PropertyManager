@@ -30,10 +30,7 @@ dependencies {
     ksp(libs.hilt.androidx.compiler)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics.ktx)
-    implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore.ktx)
-    implementation(libs.google.firebase.auth.ktx)
 
     // Compose
     implementation(compose.activity)

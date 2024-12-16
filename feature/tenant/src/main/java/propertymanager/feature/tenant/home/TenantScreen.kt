@@ -1,4 +1,4 @@
-package propertymanager.feature.tenant.presentation
+package propertymanager.feature.tenant.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 sealed class SubGraph {
 
     @Serializable
-    data object Auth : SubGraph()
+    data object Home : SubGraph()
 
     @Serializable
-    data object Home : SubGraph()
+    data object Auth : SubGraph()
 
     @Serializable
     data object Tenant : SubGraph()

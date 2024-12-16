@@ -107,7 +107,6 @@ class AuthRepositoryImpl @Inject constructor(
                                         imageUrl = "",
                                         bio = "",
                                         url = "",
-                                        role = Role.TENANT, // Default role for first-time creation
                                         address = "",
                                         location = GeoPoint(0.0, 0.0),
                                         associatedProperties = emptyList(),

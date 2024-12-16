@@ -15,8 +15,8 @@ import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.auth.presentation.AuthViewModel
 import propertymanager.feature.auth.presentation.OtpScreen
 import propertymanager.feature.auth.presentation.PhoneScreen
-import propertymanager.presentation.onboarding.OnboardingFormScreen
-import propertymanager.presentation.onboarding.OnboardingViewModel
+import propertymanager.feature.onboarding.OnboardingFormScreen
+import propertymanager.feature.onboarding.OnboardingViewModel
 
 fun NavGraphBuilder.authNavGraph(navController: NavController) {
 

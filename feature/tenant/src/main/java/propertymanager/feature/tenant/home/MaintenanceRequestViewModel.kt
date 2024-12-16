@@ -1,43 +1,29 @@
-package propertymanager.feature.tenant.presentation
+package propertymanager.feature.tenant.home
 
-import android.app.Application
-import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.storage.FirebaseStorage
 import com.propertymanager.common.utils.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import com.propertymanager.domain.model.MaintenanceRequest
-import androidx.lifecycle.viewModelScope
-import com.google.common.io.Files.getFileExtension
 import com.google.firebase.Timestamp
 import com.propertymanager.domain.model.MediaType
 import com.propertymanager.domain.repository.MaintenanceRequestRepository
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import propertymanager.feature.tenant.presentation.components.MediaUploadUseCase
+import com.propertymanager.domain.usecase.MediaUploadUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class MaintenanceRequestViewModel @Inject constructor(
     private val repository: MaintenanceRequestRepository,
     private val mediaUploadUseCase: MediaUploadUseCase,
-    private val firebaseStorage: FirebaseStorage
 ) : ViewModel() {
 
     private val _maintenanceRequests = MutableStateFlow<Response<List<MaintenanceRequest>>>(Response.Loading)

@@ -18,13 +18,13 @@ fun NavGraphBuilder.homeNavGraph(navController: NavController) {
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = tween(700)
+                    animationSpec = tween(700),
                 )
             },
             exitTransition = {
                 slideOutOfContainer(
                     AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = tween(700)
+                    animationSpec = tween(700),
                 )
             },
         ) {

@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.firebase.storage.ktx)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.messaging.ktx)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.androidx.compiler)

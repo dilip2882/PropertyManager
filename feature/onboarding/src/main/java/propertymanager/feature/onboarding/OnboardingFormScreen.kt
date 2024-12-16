@@ -1,4 +1,4 @@
-package propertymanager.presentation.onboarding
+package propertymanager.feature.onboarding
 
 import android.Manifest
 import android.app.Activity
@@ -47,8 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import coil3.compose.rememberAsyncImagePainter
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.firestore.GeoPoint
 import com.propertymanager.domain.model.User
-import propertymanager.presentation.onboarding.mvi.OnboardingContract
+import propertymanager.feature.onboarding.mvi.OnboardingContract
 import java.util.Locale
 
 @Composable
@@ -63,10 +64,12 @@ fun OnboardingFormScreen(
     val geocoder = remember { Geocoder(context, Locale.getDefault()) }
 
     var username by remember { mutableStateOf("") }
-    var bio by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf(GeoPoint(0.0, 0.0)) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    var isEmailValid by remember { mutableStateOf(true) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         selectedImageUri = uri
@@ -101,20 +104,20 @@ fun OnboardingFormScreen(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 .clickable { imagePickerLauncher.launch("image/*") },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             if (selectedImageUri != null) {
                 Image(
                     painter = rememberAsyncImagePainter(selectedImageUri),
                     contentDescription = "Selected Image",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Default Profile Icon",
                     modifier = Modifier.size(50.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }
@@ -128,45 +131,64 @@ fun OnboardingFormScreen(
         )
 
         OutlinedTextField(
-            value = bio,
-            onValueChange = { bio = it },
-            label = { Text("Bio") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-
-        OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()
+            },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
             singleLine = true,
+            isError = !isEmailValid,
         )
+
+        if (!isEmailValid) {
+            Text(
+                text = "Invalid email address",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.Start),
+            )
+        }
 
         OutlinedTextField(
             value = address,
             onValueChange = { address = it },
             label = { Text("Address") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             trailingIcon = {
                 IconButton(
                     onClick = {
                         if (ActivityCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.ACCESS_FINE_LOCATION,
+                            ) != PackageManager.PERMISSION_GRANTED &&
+                            ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
                             ) != PackageManager.PERMISSION_GRANTED
                         ) {
                             ActivityCompat.requestPermissions(
                                 context as Activity,
-                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                ),
                                 100,
                             )
                         } else {
+                            // Fetch the location
                             fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
                                 loc?.let {
-                                    val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-                                    address = addresses?.get(0)?.getAddressLine(0) ?: ""
+                                    location = GeoPoint(it.latitude, it.longitude)
+                                    // Reverse geocode the address
+                                    val addresses =
+                                        geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                                    if (!addresses.isNullOrEmpty()) {
+                                        address = addresses[0].getAddressLine(0) ?: ""
+                                    }
                                 }
                             }
                         }
@@ -179,16 +201,18 @@ fun OnboardingFormScreen(
 
         Button(
             onClick = {
-                val user = User(
-                    username = username,
-                    bio = bio,
-                    email = email,
-                    address = address,
-                )
-                dispatch(OnboardingContract.OnboardingEvent.SubmitUserDetails(user, selectedImageUri))
+                if (isEmailValid) {
+                    val user = User(
+                        username = username,
+                        email = email,
+                        address = address,
+                    )
+                    dispatch(OnboardingContract.OnboardingEvent.SubmitUserDetails(user, selectedImageUri))
+                } else {
+                    Toast.makeText(context, "Please provide a valid email address", Toast.LENGTH_SHORT).show()
+                }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = username.isNotEmpty() && bio.isNotEmpty() && email.isNotEmpty(),
         ) {
             Text("Complete Profile")
         }
@@ -206,3 +230,4 @@ fun OnboardingFormScreen(
         }
     }
 }
+

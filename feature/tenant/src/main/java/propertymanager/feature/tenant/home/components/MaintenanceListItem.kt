@@ -1,4 +1,4 @@
-package propertymanager.feature.tenant.presentation.components
+package propertymanager.feature.tenant.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

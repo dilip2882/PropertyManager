@@ -62,6 +62,7 @@ import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.PriorityLevel
 import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.WorkerDetails
+import com.propertymanager.domain.model.formatDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -210,7 +211,7 @@ fun StaffMaintenanceCard(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        text = "Created at: ${request.createdAt.toDate()}",
+                        text = "Created at: ${request.createdAt.toDate().formatDate()}",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -241,11 +242,11 @@ fun StaffMaintenanceCard(
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
                     },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = when (request.status) {
-                            RequestStatus.PENDING.label -> MaterialTheme.colorScheme.error
+                        unfocusedContainerColor = when (request.status) {
+                            RequestStatus.PENDING.label -> Color.Transparent
                             RequestStatus.IN_PROGRESS.label -> MaterialTheme.colorScheme.primary
-                            RequestStatus.COMPLETED.label -> MaterialTheme.colorScheme.tertiary
-                            else -> MaterialTheme.colorScheme.onSurface
+                            RequestStatus.COMPLETED.label -> Color.Green
+                            else -> Color.White
                         },
                     ),
                     modifier = Modifier.menuAnchor(),
@@ -283,10 +284,11 @@ fun StaffMaintenanceCard(
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityExpanded)
                     },
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = when (request.priority) {
+                        unfocusedContainerColor = when (request.priority) {
+                            PriorityLevel.LOW.label -> Color.White
                             PriorityLevel.HIGH.label -> MaterialTheme.colorScheme.error
                             PriorityLevel.MEDIUM.label -> MaterialTheme.colorScheme.primary
-                            else -> MaterialTheme.colorScheme.onSurface
+                            else -> Color.Transparent
                         },
                     ),
                     modifier = Modifier.menuAnchor(),

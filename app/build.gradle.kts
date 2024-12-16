@@ -78,6 +78,7 @@ dependencies {
     implementation(projects.i18n)
 
     implementation(project(":feature:auth"))
+    implementation(project(":feature:onboarding"))
     implementation(project(":feature:staff"))
     implementation(project(":feature:tenant"))
     implementation(project(":feature:landlord"))
@@ -86,6 +87,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.firebase.messaging.ktx)
+    implementation(project(":feature:onboarding"))
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.androidx.compiler)

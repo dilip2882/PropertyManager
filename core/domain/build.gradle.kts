@@ -22,6 +22,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.google.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
     ksp(libs.hilt.compiler)
 
     // Data serialization (JSON, protobuf, xml, retrofit)

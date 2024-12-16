@@ -1,4 +1,4 @@
-package propertymanager.feature.tenant.presentation
+package propertymanager.feature.tenant.home
 
 import android.util.Log
 import android.widget.Toast
@@ -32,7 +32,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -58,8 +57,8 @@ import coil3.request.crossfade
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.RequestStatus
+import com.propertymanager.domain.model.formatDate
 import kotlinx.coroutines.launch
-import propertymanager.feature.tenant.presentation.components.MaintenanceListItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,11 +99,6 @@ fun MaintenanceListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Maintenance Feed") },
-                actions = {
-                    IconButton(onClick = { onNavigateToMaintenanceRequest(null) }) {
-                        Icon(Icons.Default.Add, contentDescription = "Create Request")
-                    }
-                }
             )
         },
         floatingActionButton = {
@@ -198,7 +192,7 @@ fun MaintenancePostCard(
                         style = MaterialTheme.typography.titleSmall
                     )
                     Text(
-                        text = maintenanceRequest.createdAt.toDate().toString(),
+                        text = maintenanceRequest.createdAt.toDate().formatDate(),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )

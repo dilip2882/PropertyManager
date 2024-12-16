@@ -36,7 +36,7 @@
 
         <service android:name=".notification.CloudNotification"
             android:exported="true"
-            android:permission="android.permission.POST_NOTIFICATIONS">
+            android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>

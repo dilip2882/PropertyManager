@@ -15,7 +15,7 @@ data class User(
     val phone: String = "",
     val email: String = "",
     val passwordHash: String? = null,
-    val role: Role = Role.MANAGER,
+    val role: Role = Role.TENANT,
     val address: String = "",
     val location: GeoPoint = GeoPoint(0.0, 0.0),
     val associatedProperties: List<String> = emptyList(),

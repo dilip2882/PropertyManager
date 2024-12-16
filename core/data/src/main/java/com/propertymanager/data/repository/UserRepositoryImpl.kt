@@ -77,7 +77,6 @@ class UserRepositoryImpl @Inject constructor(
             "url" to url,
             "phone" to phone,
             "email" to email,
-            "role" to role.name,
             "address" to address,
             "location" to location,
             "associatedProperties" to associatedProperties,
