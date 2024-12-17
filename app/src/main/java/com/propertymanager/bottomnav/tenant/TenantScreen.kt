@@ -23,6 +23,7 @@ import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.home.MaintenanceRequestScreen
+import propertymanager.feature.tenant.home.components.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
 
 @Composable
@@ -61,7 +62,7 @@ fun TenantScreen(
             composable(TenantBottomNavItem.Home.route) {
                 MaintenanceListScreen(
                     onNavigateToMaintenanceRequest = { requestId ->
-                        navController.navigate(Dest.MaintenanceRequestScreen)
+                        navController.navigate(Dest.MaintenanceCategoriesScreen)
                     },
                 )
             }
@@ -74,9 +75,20 @@ fun TenantScreen(
                 )
             }
 
+            composable<Dest.MaintenanceCategoriesScreen> {
+                MaintenanceCategoriesScreen(
+                    onCategorySelected = {
+                        navController.navigate(Dest.MaintenanceRequestScreen)
+                    }
+                )
+            }
+
             composable<Dest.MaintenanceRequestScreen> {
                 MaintenanceRequestScreen(
-                    navController = navController,
+                    selectedCategory = it.arguments?.getString("category") ?: "",
+                    onSubmit = { request ->
+                        navController.navigate(Dest.MaintenanceListScreen)
+                    }
                 )
             }
 

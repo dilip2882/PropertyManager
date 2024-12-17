@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
-import propertymanager.feature.staff.presentation.StaffScreen
+import propertymanager.feature.staff.StaffScreen
 
 fun NavGraphBuilder.staffNavGraph(navController: NavController) {
 

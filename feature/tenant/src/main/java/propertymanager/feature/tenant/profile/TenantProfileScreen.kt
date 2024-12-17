@@ -4,12 +4,9 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,21 +17,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
-import androidx.compose.material.icons.automirrored.outlined.Wysiwyg
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -55,13 +45,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
-import propertymanager.feature.tenant.R
 
 
 @Composable
@@ -76,15 +63,6 @@ fun TenantProfileScreen(
                     titleContentColor = Color.Black,
                 ),
                 title = { Text("") },
-                navigationIcon = {
-                    IconButton(onClick = { /* Handle back button click */ }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Black,
-                        )
-                    }
-                },
                 actions = {
                     IconButton(onClick = onNavigateToEditProfile) {
                         Icon(
@@ -99,7 +77,62 @@ fun TenantProfileScreen(
     ) { padding ->
 
         Column(modifier = Modifier.padding(padding)) {
+
             Profile()
+
+            /*            Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    // Profile Image
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF556E8D)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            text = "D",
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                        )
+                                    }
+                                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                                        Text(
+                                            text = "Dilip",
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.Black,
+                                        )
+                                        Text(
+                                            text = "Gorwa, Vadodara",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray,
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "I have water problem",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                    color = Color.Black,
+                                )
+                                Text(
+                                    text = "Only single bed without mattress",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }*/
         }
     }
 }
@@ -141,12 +174,12 @@ fun Profile() {
                 )
 
             Icon(
-                imageVector = Icons.Default.CameraAlt,
+                imageVector = Icons.Outlined.CameraAlt,
                 contentDescription = "Camera Icon",
                 tint = Color.White,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(12.dp)
+                    .padding(10.dp)
                     .size(28.dp),
             )
 
@@ -162,24 +195,17 @@ fun Profile() {
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF556E8D))
-                        .clickable { imagePickerLauncher.launch("image/*") },
+                        .background(Color(0xFF556E8D)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (selectedImageUri != null) {
-                        Image(
-                            painter = rememberAsyncImagePainter(selectedImageUri),
-                            contentDescription = "Selected Image",
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Default Profile Icon",
-                            modifier = Modifier.size(50.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    }
+
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Default Profile Icon",
+                        modifier = Modifier.size(50.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                    )
+
                 }
 
                 // Edit Icon
@@ -189,15 +215,23 @@ fun Profile() {
                         .clip(CircleShape)
                         .background(Color.White)
                         .align(Alignment.BottomEnd)
-                        .offset(y = 1.dp, x = 0.dp),
+                        .offset(y = 0.dp, x = (-2).dp)
+                        .clickable { imagePickerLauncher.launch("image/*") },
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Outlined.Edit,
+                        modifier = Modifier.size(20.dp),
                         contentDescription = "Edit Icon",
                         tint = Color.Black,
-                        modifier = Modifier.size(16.dp),
                     )
+                    if (selectedImageUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(selectedImageUri),
+                            contentDescription = "Selected Image",
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
         }
@@ -285,7 +319,7 @@ fun Profile() {
                 )
 
                 Text(
-                    text = "Add hometown",
+                    text = "Add Address",
                     color = Color(0xFF007AFF),
                     fontSize = 14.sp,
                     modifier = Modifier.padding(start = 2.dp),
@@ -313,61 +347,5 @@ fun Profile() {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Posts
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Profile Image
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF556E8D)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "D",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                        )
-                    }
-                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text(
-                            text = "Dilip",
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Black,
-                        )
-                        Text(
-                            text = "Gorwa, Vadodara",
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "I have water problem",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = Color.Black,
-                )
-                Text(
-                    text = "Only single bed without mattress",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
     }
 }

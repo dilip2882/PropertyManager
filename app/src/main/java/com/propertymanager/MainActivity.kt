@@ -11,6 +11,7 @@ import com.propertymanager.common.preferences.AppPreferences
 import com.propertymanager.navigation.MainNavigation
 import com.propertymanager.ui.theme.PropertyManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
+import propertymanager.feature.staff.categories.CategoryManagerScreen
 import javax.inject.Inject
 
 
@@ -35,10 +36,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PropertyManagerTheme {
-                MainNavigation(
-                    navController = rememberNavController(),
-                    appPreferences = appPreferences,
-                )
+//                CategoryListScreen()
+                CategoryManagerScreen()
+//                MainNavigation(
+//                    navController = rememberNavController(),
+//                    appPreferences = appPreferences,
+//                )
             }
         }
     }

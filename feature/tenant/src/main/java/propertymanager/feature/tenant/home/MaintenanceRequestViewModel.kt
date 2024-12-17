@@ -10,6 +10,8 @@ import kotlinx.coroutines.launch
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.google.firebase.Timestamp
 import com.propertymanager.domain.model.MediaType
+import com.propertymanager.domain.model.PriorityLevel
+import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.repository.MaintenanceRequestRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import com.propertymanager.domain.usecase.MediaUploadUseCase
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,11 +44,31 @@ class MaintenanceRequestViewModel @Inject constructor(
     private val _mediaUploadState = MutableStateFlow<Map<Uri, Response<String>>>(emptyMap())
     val mediaUploadState = _mediaUploadState.asStateFlow()
 
+    private val _availableCategories = MutableStateFlow<List<String>>(emptyList())
+    val availableCategories: StateFlow<List<String>> = _availableCategories.asStateFlow()
+
+    private val _priorityLevels = MutableStateFlow<List<String>>(PriorityLevel.getAllPriorities())
+    val priorityLevels: StateFlow<List<String>> = _priorityLevels.asStateFlow()
+
+    private val _requestStatuses = MutableStateFlow<List<String>>(RequestStatus.getAllStatuses())
+    val requestStatuses: StateFlow<List<String>> = _requestStatuses.asStateFlow()
+
     fun fetchMaintenanceRequests() {
         viewModelScope.launch {
             repository.getMaintenanceRequests().collectLatest { response ->
                 _maintenanceRequests.value = response
             }
+        }
+    }
+
+    init {
+        fetchAvailableCategories()
+    }
+
+    fun fetchAvailableCategories() {
+        viewModelScope.launch {
+            val categories = repository.getAvailableCategories()
+            _availableCategories.value = categories
         }
     }
 
@@ -93,53 +116,16 @@ class MaintenanceRequestViewModel @Inject constructor(
         }
     }
 
-    fun uploadMedia(uri: Uri, mediaType: MediaType) {
+    fun uploadMedia(uri: Uri, mediaType: MediaType, requestId: String) {
         viewModelScope.launch {
             _mediaUploadState.update { it + (uri to Response.Loading) }
 
-            mediaUploadUseCase.uploadMedia(uri, mediaType).collect { response ->
+            mediaUploadUseCase.uploadMedia(uri, mediaType, requestId).collect { response ->
                 _mediaUploadState.update { it + (uri to response) }
             }
         }
     }
-    fun uploadMediaAndCreateRequest(
-        request: MaintenanceRequest,
-        photos: List<Uri>,
-        videos: List<Uri>
-    ) {
-        viewModelScope.launch {
-            try {
-                _createRequestState.value = Response.Loading
 
-                val photoUrls = photos.map { uri ->
-                    mediaUploadUseCase.uploadMedia(uri, MediaType.IMAGE).first { it is Response.Success }
-                }.mapNotNull { (it as? Response.Success)?.data }
-
-                val videoUrls = videos.map { uri ->
-                    mediaUploadUseCase.uploadMedia(uri, MediaType.VIDEO).first { it is Response.Success }
-                }.mapNotNull { (it as? Response.Success)?.data }
-
-                val finalRequest = request.copy(
-                    photos = photoUrls,
-                    videos = videoUrls,
-                    createdAt = Timestamp.now(),
-                    updatedAt = Timestamp.now()
-                )
-
-                if (request.maintenanceRequestsId == null) {
-                    repository.createMaintenanceRequest(finalRequest).collect {
-                        _createRequestState.value = it
-                    }
-                } else {
-                    repository.updateMaintenanceRequest(finalRequest).collect {
-                        _createRequestState.value = it
-                    }
-                }
-            } catch (e: Exception) {
-                _createRequestState.value = Response.Error(e.message ?: "Failed to create request")
-            }
-        }
-    }
 }
 
 

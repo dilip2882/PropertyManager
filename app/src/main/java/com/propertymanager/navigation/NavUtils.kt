@@ -56,5 +56,8 @@ sealed interface Dest {
     @Serializable
     data object TenantSettingsScreen : Dest
 
+    @Serializable
+    data object MaintenanceCategoriesScreen: Dest
+
 }
 

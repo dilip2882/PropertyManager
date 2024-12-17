@@ -19,6 +19,11 @@ class MaintenanceRequestRepositoryImpl(
     private val firestore: FirebaseFirestore
 ) : MaintenanceRequestRepository {
 
+    override fun getAvailableCategories(): List<String> {
+        // get from firestore
+        return listOf("Electrical", "Plumbing", "Gardening", "House Keeping")
+    }
+
     override fun getMaintenanceRequests(): Flow<Response<List<MaintenanceRequest>>> = flow {
         emit(Response.Loading)
         try {

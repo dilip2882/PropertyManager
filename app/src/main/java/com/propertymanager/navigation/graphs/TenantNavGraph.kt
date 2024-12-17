@@ -9,6 +9,7 @@ import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.home.MaintenanceRequestScreen
+import propertymanager.feature.tenant.home.components.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
 
 fun NavGraphBuilder.tenantNavGraph(
@@ -24,6 +25,14 @@ fun NavGraphBuilder.tenantNavGraph(
         composable<Dest.MaintenanceListScreen> {
             MaintenanceListScreen(
                 onNavigateToMaintenanceRequest = {
+                    navController.navigate(Dest.MaintenanceCategoriesScreen)
+                }
+            )
+        }
+
+        composable<Dest.MaintenanceCategoriesScreen> {
+            MaintenanceCategoriesScreen(
+                onCategorySelected = {
                     navController.navigate(Dest.MaintenanceRequestScreen)
                 }
             )
@@ -31,7 +40,10 @@ fun NavGraphBuilder.tenantNavGraph(
 
         composable<Dest.MaintenanceRequestScreen> {
             MaintenanceRequestScreen(
-                navController = navController,
+                selectedCategory = it.arguments?.getString("category") ?: "",
+                onSubmit = { request ->
+                    navController.navigate(Dest.MaintenanceListScreen)
+                }
             )
         }
 
