@@ -19,7 +19,7 @@ android {
 dependencies {
     implementation(projects.core.common)
 
-    //firebase
+    // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.database.ktx)

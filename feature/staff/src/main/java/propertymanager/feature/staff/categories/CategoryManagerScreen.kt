@@ -52,11 +52,13 @@ fun CategoryManagerScreen() {
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                isEditMode = false
-                showCategoryDialog = true
-                categoryName = ""
-            }) {
+            FloatingActionButton(
+                onClick = {
+                    isEditMode = false
+                    showCategoryDialog = true
+                    categoryName = ""
+                },
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Category")
             }
         },
@@ -67,7 +69,7 @@ fun CategoryManagerScreen() {
                     IconButton(onClick = { viewModel.toggleSortCategories() }) {
                         Icon(Icons.Default.Sort, contentDescription = "Sort Categories")
                     }
-                }
+                },
             )
         },
     ) { paddingValues ->
@@ -105,15 +107,16 @@ fun CategoryManagerScreen() {
                                 },
                                 onDeleteSubcategory = { subName ->
                                     viewModel.deleteSubcategory(category.id, subName)
-                                }
+                                },
                             )
                         }
                     }
                 }
+
                 is Response.Error -> Text(
                     "Error: ${(categoriesResponse as Response.Error).message}",
                     color = Color.Red,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
         }
@@ -131,7 +134,7 @@ fun CategoryManagerScreen() {
                         viewModel.addCategory(Category("", categoryName, emptyList()))
                     }
                     showCategoryDialog = false
-                }
+                },
             )
         }
 
@@ -151,7 +154,7 @@ fun CategoryManagerScreen() {
                     }
                     showSubcategoryDialog = false
                     selectedSubcategory = null
-                }
+                },
             )
         }
 
@@ -161,8 +164,9 @@ fun CategoryManagerScreen() {
             is Response.Error -> Toast.makeText(
                 LocalContext.current,
                 (operationResponse as Response.Error).message,
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_SHORT,
             ).show()
+
             else -> {}
         }
     }

@@ -23,7 +23,7 @@ dependencies {
     api(projects.i18n)
     api(project(":core:firebase"))
 
-    //firebase
+    // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.database.ktx)

@@ -3,11 +3,11 @@ package com.propertymanager.data.repository
 import android.app.Activity
 import android.util.Log
 import com.google.firebase.FirebaseException
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.propertymanager.common.utils.Constants
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
 ) : AuthRepository {
 
     private lateinit var verificationCode: String
@@ -43,7 +43,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun createUserWithPhone(
         phone: String,
-        activity: Activity
+        activity: Activity,
     ): Flow<Response<String>> = callbackFlow {
         trySend(Response.Loading)
 
@@ -57,7 +57,7 @@ class AuthRepositoryImpl @Inject constructor(
 
                 override fun onCodeSent(
                     sentVerificationCode: String,
-                    token: PhoneAuthProvider.ForceResendingToken
+                    token: PhoneAuthProvider.ForceResendingToken,
                 ) {
                     super.onCodeSent(sentVerificationCode, token)
                     trySend(Response.Success("OTP Sent Successfully"))
@@ -85,60 +85,69 @@ class AuthRepositoryImpl @Inject constructor(
         if (::verificationCode.isInitialized) {
             val credential = PhoneAuthProvider.getCredential(verificationCode, otp)
             auth.signInWithCredential(credential)
-                .addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        // User authenticated successfully with OTP
+                .addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
                         val user = auth.currentUser
-                        Log.d("AuthRepo", "Current User: ${user?.uid}")
+                        Log.d("AuthRepo", "Current Firebase User: ${user?.uid}")
 
                         if (user != null && user.uid.isNotEmpty()) {
                             val userId = user.uid
                             val userDocRef = firestore.collection(Constants.COLLECTION_NAME_USERS)
                                 .document(userId)
 
-                            // Check if the user already exists in Firestore
-                            userDocRef.get().addOnSuccessListener { document ->
-                                if (!document.exists()) {
-                                    val newUser = User(
-                                        userId = userId,
-                                        phone = user.phoneNumber ?: "",
-                                        name = "",
-                                        username = "",
-                                        imageUrl = "",
-                                        bio = "",
-                                        url = "",
-                                        address = "",
-                                        location = GeoPoint(0.0, 0.0),
-                                        associatedProperties = emptyList(),
-                                        createdAt = Timestamp.now(),
-                                        updatedAt = Timestamp.now(),
-                                        profileImage = null,
-                                        email = ""
+                            // Retrieve the document synchronously
+                            userDocRef.get()
+                                .addOnSuccessListener { documentSnapshot ->
+                                    // Forcefully retrieve and preserve the existing role
+                                    val existingRole = documentSnapshot.getString("role")
+                                        ?: documentSnapshot.get("role")?.toString()
+                                        ?: Role.TENANT.name // Default to MANAGER if not found
+
+                                    Log.d("AuthRepo", "Existing Role in Document: $existingRole")
+
+                                    // Prepare update data that DOES NOT modify the role
+                                    val updateData = mapOf(
+                                        "phone" to (user.phoneNumber ?: ""),
+                                        "updatedAt" to FieldValue.serverTimestamp(),
                                     )
 
-                                    // Store the new user in Firestore
-                                    userDocRef.set(newUser).addOnCompleteListener {
-                                        if (it.isSuccessful) {
-                                            trySend(Response.Success("User Created Successfully"))
-                                        } else {
-                                            trySend(Response.Error("Failed to add user to Firestore"))
+                                    // Update document without touching the role
+                                    userDocRef.update(updateData)
+                                        .addOnSuccessListener {
+                                            Log.d("AuthRepo", "User updated. Preserving role: $existingRole")
+
+                                            // Explicitly set the role back to its original value if somehow changed
+                                            val roleUpdateData = mapOf("role" to existingRole)
+                                            userDocRef.update(roleUpdateData)
+                                                .addOnSuccessListener {
+                                                    trySend(Response.Success("Signed in with role: $existingRole"))
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Log.e("AuthRepo", "Failed to preserve role", e)
+                                                    trySend(Response.Success("Signed in, but role preservation failed"))
+                                                }
                                         }
-                                    }
-                                } else {
-                                    // User already exists, do not change the role
-                                    trySend(Response.Success("User already exists in Firestore"))
+                                        .addOnFailureListener { e ->
+                                            Log.e("AuthRepo", "User update failed", e)
+                                            trySend(Response.Error("Update failed: ${e.message}"))
+                                        }
                                 }
-                            }
+                                .addOnFailureListener { e ->
+                                    Log.e("AuthRepo", "Document retrieval failed", e)
+                                    trySend(Response.Error("Retrieval failed: ${e.message}"))
+                                }
                         } else {
                             Log.e("AuthRepo", "User ID is empty or user is null!")
                             trySend(Response.Error("User ID cannot be empty"))
                         }
                     } else {
+                        Log.e("AuthRepo", "Authentication failed", authTask.exception)
                         trySend(Response.Error("Invalid OTP"))
                     }
                 }
-                .addOnFailureListener {
-                    trySend(Response.Error(it.toString()))
+                .addOnFailureListener { e ->
+                    Log.e("AuthRepo", "Sign-in credential failed", e)
+                    trySend(Response.Error(e.toString()))
                 }
         } else {
             trySend(Response.Error("Verification code not initialized"))
@@ -151,7 +160,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun resendOtp(
         phone: String,
-        activity: Activity
+        activity: Activity,
     ): Flow<Response<String>> = callbackFlow {
         trySend(Response.Loading)
 
@@ -165,7 +174,7 @@ class AuthRepositoryImpl @Inject constructor(
 
                 override fun onCodeSent(
                     sentVerificationCode: String,
-                    token: PhoneAuthProvider.ForceResendingToken
+                    token: PhoneAuthProvider.ForceResendingToken,
                 ) {
                     super.onCodeSent(sentVerificationCode, token)
                     trySend(Response.Success("OTP Resent Successfully"))
@@ -202,7 +211,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun firebaseSignUpWithEmailAndPassword(
         email: String,
         password: String,
-        username: String
+        username: String,
     ): Flow<Response<Boolean>> = flow {
         try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
@@ -216,7 +225,7 @@ class AuthRepositoryImpl @Inject constructor(
                     name = "",
                     phone = "",
                     address = "",
-                    location = GeoPoint(0.0, 0.0)
+                    location = GeoPoint(0.0, 0.0),
                 )
                 firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId).set(user).await()
                 emit(Response.Success(true))

@@ -1,6 +1,6 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import propertymanager.buildlogic.generatedBuildDir
 import propertymanager.buildlogic.tasks.getLocalesConfigTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("propertymanager.library")

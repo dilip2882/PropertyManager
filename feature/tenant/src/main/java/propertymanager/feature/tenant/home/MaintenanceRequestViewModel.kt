@@ -5,28 +5,28 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.propertymanager.common.utils.Response
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.model.MaintenanceRequest
-import com.google.firebase.Timestamp
 import com.propertymanager.domain.model.MediaType
 import com.propertymanager.domain.model.PriorityLevel
 import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.repository.MaintenanceRequestRepository
+import com.propertymanager.domain.usecase.CategoryUseCases
+import com.propertymanager.domain.usecase.MediaUploadUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import com.propertymanager.domain.usecase.MediaUploadUseCase
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MaintenanceRequestViewModel @Inject constructor(
     private val repository: MaintenanceRequestRepository,
     private val mediaUploadUseCase: MediaUploadUseCase,
+    private val categoryUseCases: CategoryUseCases,
 ) : ViewModel() {
 
     private val _maintenanceRequests = MutableStateFlow<Response<List<MaintenanceRequest>>>(Response.Loading)
@@ -44,8 +44,8 @@ class MaintenanceRequestViewModel @Inject constructor(
     private val _mediaUploadState = MutableStateFlow<Map<Uri, Response<String>>>(emptyMap())
     val mediaUploadState = _mediaUploadState.asStateFlow()
 
-    private val _availableCategories = MutableStateFlow<List<String>>(emptyList())
-    val availableCategories: StateFlow<List<String>> = _availableCategories.asStateFlow()
+    private val _categoriesResponse = MutableStateFlow<Response<List<Category>>>(Response.Loading)
+    val categoriesResponse: StateFlow<Response<List<Category>>> = _categoriesResponse
 
     private val _priorityLevels = MutableStateFlow<List<String>>(PriorityLevel.getAllPriorities())
     val priorityLevels: StateFlow<List<String>> = _priorityLevels.asStateFlow()
@@ -62,13 +62,18 @@ class MaintenanceRequestViewModel @Inject constructor(
     }
 
     init {
-        fetchAvailableCategories()
+        fetchCategories()
     }
 
-    fun fetchAvailableCategories() {
+    private fun fetchCategories() {
         viewModelScope.launch {
-            val categories = repository.getAvailableCategories()
-            _availableCategories.value = categories
+            _categoriesResponse.value = Response.Loading
+            try {
+                val categories = categoryUseCases.fetchCategories()
+                _categoriesResponse.value = Response.Success(categories)
+            } catch (e: Exception) {
+                _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")
+            }
         }
     }
 

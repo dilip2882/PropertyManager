@@ -68,7 +68,7 @@ class UserRepositoryImpl @Inject constructor(
 
 
     private fun User.toMap(): Map<String, Any?> {
-        return mapOf(
+        val map = mapOf(
             "userId" to userId,
             "name" to name,
             "username" to username,
@@ -82,8 +82,10 @@ class UserRepositoryImpl @Inject constructor(
             "associatedProperties" to associatedProperties,
             "createdAt" to createdAt,
             "updatedAt" to updatedAt,
-            "profileImage" to profileImage
+            "profileImage" to profileImage,
+            "role" to role
         )
+        Log.d("UserMap", "Converting User to Map: role = ${map["role"]}")
+        return map
     }
-
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.propertymanager.common.preferences.AppPreferences
 import com.propertymanager.common.utils.Response
+import com.propertymanager.domain.usecase.AuthenticationUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import com.propertymanager.domain.usecase.AuthenticationUseCases
 import propertymanager.feature.auth.presentation.mvi.AuthContract
 import javax.inject.Inject
 
@@ -21,8 +21,8 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val authUseCases: AuthenticationUseCases,
     private val firebaseAuth: FirebaseAuth,
-    private val appPreferences: AppPreferences
-    ) : ViewModel(), AuthContract {
+    private val appPreferences: AppPreferences,
+) : ViewModel(), AuthContract {
 
     private val mutableState = MutableStateFlow<AuthContract.AuthState>(AuthContract.AuthState.Idle)
     private val mutableEffect = MutableSharedFlow<AuthContract.AuthEffect>()
@@ -96,13 +96,14 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-
     private fun signOut() {
         viewModelScope.launch {
             authUseCases.signOutUseCase().collect { result ->
                 when (result) {
                     is Response.Loading -> mutableState.value = AuthContract.AuthState.Loading
-                    is Response.Success -> mutableEffect.emit(AuthContract.AuthEffect.ShowToast("Signed Out Successfully"))
+                    is Response.Success -> mutableEffect.emit(
+                        AuthContract.AuthEffect.ShowToast("Signed Out Successfully"),
+                    )
                     is Response.Error -> mutableState.value = AuthContract.AuthState.Error(result.message)
                 }
             }

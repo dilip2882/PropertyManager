@@ -213,7 +213,7 @@ fun CategoryItem(
                     }
                 }
 
-                // Subcategories and Add Subcategory Button
+                // Subcategories and Add Subcategory
                 if (expanded) {
                     category.subcategories.forEach { subcategory ->
                         Row(

@@ -38,7 +38,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.navigation.NavHostController
 import com.hbb20.CountryCodePicker
 import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
@@ -48,7 +47,7 @@ fun PhoneScreen(
     state: AuthContract.AuthState,
     effect: AuthContract.AuthEffect?,
     dispatch: (AuthContract.AuthEvent) -> Unit,
-    onNavigateToOtpScreen: (String) -> Unit
+    onNavigateToOtpScreen: (String) -> Unit,
 ) {
     val context = LocalContext.current
     var phoneNumber by remember { mutableStateOf("") }
@@ -81,7 +80,7 @@ fun PhoneScreen(
         Image(
             painter = painterResource(id = R.drawable.mail_box_img),
             contentDescription = null,
-            modifier = Modifier.size(150.dp)
+            modifier = Modifier.size(150.dp),
         )
 
         Spacer(modifier = Modifier.height(30.dp))
@@ -90,7 +89,7 @@ fun PhoneScreen(
             text = "OTP Verification",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF2b472b)
+            color = Color(0xFF2b472b),
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -98,13 +97,13 @@ fun PhoneScreen(
         Text(
             text = "We will send you a One Time Password",
             color = Color.Gray,
-            fontSize = 16.sp
+            fontSize = 16.sp,
         )
 
         Text(
             text = "on this mobile number",
             color = Color.Gray,
-            fontSize = 16.sp
+            fontSize = 16.sp,
         )
 
         Spacer(modifier = Modifier.height(20.dp))

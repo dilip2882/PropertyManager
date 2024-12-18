@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
+import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
 fun OtpScreen(
@@ -50,7 +51,7 @@ fun OtpScreen(
     dispatch: (AuthContract.AuthEvent) -> Unit,
     onNavigateToPhoneScreen: () -> Unit,
     onNavigateToOnboarding: () -> Unit,
-    phoneNumber: String
+    phoneNumber: String,
 ) {
     val context = LocalContext.current
     var otpInput by remember { mutableStateOf("") }
@@ -109,7 +110,7 @@ fun OtpScreen(
         Image(
             painter = painterResource(id = R.drawable.mail_box_img),
             contentDescription = null,
-            modifier = Modifier.size(150.dp)
+            modifier = Modifier.size(150.dp),
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -118,7 +119,7 @@ fun OtpScreen(
             text = "OTP Verification",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF2b472b)
+            color = Color(0xFF2b472b),
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -126,7 +127,7 @@ fun OtpScreen(
         Text(
             text = "Enter OTP sent to $phoneNumber",
             color = Color.Gray,
-            fontSize = 16.sp
+            fontSize = 16.sp,
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -181,7 +182,7 @@ fun OtpScreen(
                 resendOtpEnabled = false
                 dispatch(AuthContract.AuthEvent.ResendOtp(phoneNumber = phoneNumber, context as Activity))
             },
-            enabled = resendOtpEnabled
+            enabled = resendOtpEnabled,
         ) {
             if (resendOtpEnabled) {
                 Text(text = "Resend OTP", color = Color(0xFF2b472b))
@@ -196,7 +197,7 @@ fun OtpScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            CircularProgressIndicator()
+            LoadingScreen()
         }
     }
 }

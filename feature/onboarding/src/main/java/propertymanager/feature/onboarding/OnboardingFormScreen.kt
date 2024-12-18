@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.rememberAsyncImagePainter
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.GeoPoint
@@ -62,6 +64,9 @@ fun OnboardingFormScreen(
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val geocoder = remember { Geocoder(context, Locale.getDefault()) }
+
+    val  viewModel = viewModel<OnboardingViewModel>()
+    val existingRole by viewModel.existingRole.collectAsState()
 
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -206,6 +211,7 @@ fun OnboardingFormScreen(
                         username = username,
                         email = email,
                         address = address,
+                        role = existingRole ?: "TENANT"
                     )
                     dispatch(OnboardingContract.OnboardingEvent.SubmitUserDetails(user, selectedImageUri))
                 } else {

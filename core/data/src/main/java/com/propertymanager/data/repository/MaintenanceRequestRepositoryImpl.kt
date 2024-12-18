@@ -1,22 +1,16 @@
 package com.propertymanager.data.repository
 
 import android.util.Log
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.repository.MaintenanceRequestRepository
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.tasks.await
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
 class MaintenanceRequestRepositoryImpl(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
 ) : MaintenanceRequestRepository {
 
     override fun getAvailableCategories(): List<String> {
@@ -30,7 +24,7 @@ class MaintenanceRequestRepositoryImpl(
             val snapshot = firestore.collection("maintenance_requests").get().await()
             val requests = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(MaintenanceRequest::class.java)?.copy(
-                    maintenanceRequestsId = doc.id
+                    maintenanceRequestsId = doc.id,
                 )
             }
             emit(Response.Success(requests))
@@ -44,7 +38,7 @@ class MaintenanceRequestRepositoryImpl(
         try {
             val document = firestore.collection("maintenance_requests").document(requestId).get().await()
             val request = document.toObject(MaintenanceRequest::class.java)?.copy(
-                maintenanceRequestsId = document.id
+                maintenanceRequestsId = document.id,
             )
             if (request != null) {
 //                emit(Response.Success("$request.createdAt.toDate().toString()"))

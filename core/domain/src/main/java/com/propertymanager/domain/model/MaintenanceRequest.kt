@@ -15,6 +15,7 @@ data class MaintenanceRequest(
     val workerDetails: WorkerDetails = WorkerDetails(),
     val issueDescription: String = "",
     val issueCategory: String = "",
+    val issueSubcategory: String = "",
     val isUrgent: Boolean = false,
     val status: String = RequestStatus.PENDING.label,
     val priority: String = PriorityLevel.LOW.label,

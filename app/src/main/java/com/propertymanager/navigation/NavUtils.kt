@@ -48,16 +48,18 @@ sealed interface Dest {
     // Tenant screens
 
     @Serializable
-    data object MaintenanceRequestScreen : Dest
-
-    @Serializable
     data object MaintenanceListScreen : Dest
 
     @Serializable
     data object TenantSettingsScreen : Dest
 
     @Serializable
-    data object MaintenanceCategoriesScreen: Dest
+    data object MaintenanceCategoriesScreen : Dest
 
+    @Serializable
+    data class MaintenanceRequestScreen(
+        val category: String,
+        val subcategory: String
+    ) : Dest
 }
 

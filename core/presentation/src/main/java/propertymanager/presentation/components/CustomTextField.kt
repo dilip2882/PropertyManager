@@ -1,5 +1,6 @@
 package propertymanager.presentation.components
 
+import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -102,12 +103,13 @@ fun PasswordEyeIcon(
     }
 }
 
+@SuppressLint("PrivateResource")
 @Preview
 @Composable
 fun CustomTextFieldPreview() {
     CustomTextField(
         value = "",
         onValueChange = {},
-        hint = androidx.compose.ui.R.string.default_error_message,
+        hint = R.string.default_error_message,
     )
 }

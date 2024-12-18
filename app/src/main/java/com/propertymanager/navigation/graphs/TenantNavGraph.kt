@@ -4,12 +4,14 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import androidx.navigation.toRoute
 import com.propertymanager.bottomnav.tenant.TenantScreen
+import com.propertymanager.domain.model.Category
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.home.MaintenanceRequestScreen
-import propertymanager.feature.tenant.home.components.MaintenanceCategoriesScreen
+import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
 
 fun NavGraphBuilder.tenantNavGraph(
@@ -32,18 +34,24 @@ fun NavGraphBuilder.tenantNavGraph(
 
         composable<Dest.MaintenanceCategoriesScreen> {
             MaintenanceCategoriesScreen(
-                onCategorySelected = {
-                    navController.navigate(Dest.MaintenanceRequestScreen)
-                }
+                category = Category(),
+                onNavigateUp = { navController.navigateUp() },
+                onCategorySelected = { category, subCategory ->
+                    navController.navigate(Dest.MaintenanceRequestScreen(category, subCategory))
+                },
             )
         }
 
         composable<Dest.MaintenanceRequestScreen> {
+            val args = it.toRoute<Dest.MaintenanceRequestScreen>()
+
             MaintenanceRequestScreen(
-                selectedCategory = it.arguments?.getString("category") ?: "",
-                onSubmit = { request ->
+                selectedCategory = args.category,
+                selectedSubcategory = args.subcategory,
+                onNavigateUp = { navController.navigateUp() },
+                onSubmit = {
                     navController.navigate(Dest.MaintenanceListScreen)
-                }
+                },
             )
         }
 
