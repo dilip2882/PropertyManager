@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.storage.FirebaseStorage
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.model.MaintenanceRequest
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,6 +29,7 @@ class MaintenanceRequestViewModel @Inject constructor(
     private val repository: MaintenanceRequestRepository,
     private val mediaUploadUseCase: MediaUploadUseCase,
     private val categoryUseCases: CategoryUseCases,
+    private val firebaseStorage: FirebaseStorage,
 ) : ViewModel() {
 
     private val _maintenanceRequests = MutableStateFlow<Response<List<MaintenanceRequest>>>(Response.Loading)
@@ -37,6 +40,8 @@ class MaintenanceRequestViewModel @Inject constructor(
 
     private val _createRequestState = MutableStateFlow<Response<MaintenanceRequest>>(Response.Loading)
     val createRequestState: StateFlow<Response<MaintenanceRequest>> = _createRequestState.asStateFlow()
+
+    private val isRequestInProgress = MutableStateFlow(false)
 
     private val _deleteRequestResponse = MutableStateFlow<Response<Boolean>>(Response.Loading)
     val deleteRequestResponse: StateFlow<Response<Boolean>> = _deleteRequestResponse.asStateFlow()
@@ -53,6 +58,9 @@ class MaintenanceRequestViewModel @Inject constructor(
     private val _requestStatuses = MutableStateFlow<List<String>>(RequestStatus.getAllStatuses())
     val requestStatuses: StateFlow<List<String>> = _requestStatuses.asStateFlow()
 
+    private val _uploadedUrls = MutableStateFlow<List<String>>(emptyList())
+    val uploadedUrls: StateFlow<List<String>> = _uploadedUrls.asStateFlow()
+
     fun fetchMaintenanceRequests() {
         viewModelScope.launch {
             repository.getMaintenanceRequests().collectLatest { response ->
@@ -67,12 +75,11 @@ class MaintenanceRequestViewModel @Inject constructor(
 
     private fun fetchCategories() {
         viewModelScope.launch {
-            _categoriesResponse.value = Response.Loading
             try {
                 val categories = categoryUseCases.fetchCategories()
                 _categoriesResponse.value = Response.Success(categories)
             } catch (e: Exception) {
-                _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")
+                _categoriesResponse.value = Response.Error(e.message ?: "Unable to fetch categories")
             }
         }
     }
@@ -82,6 +89,27 @@ class MaintenanceRequestViewModel @Inject constructor(
             repository.getMaintenanceRequestById(requestId).collectLatest { response ->
                 _currentRequest.value = response
             }
+        }
+    }
+
+    private fun isValidRequest(request: MaintenanceRequest): Boolean {
+        return request.issueDescription.isNotBlank() &&
+            request.issueCategory.isNotBlank()
+    }
+
+
+    fun createMaintenanceRequestSafely(request: MaintenanceRequest) {
+        viewModelScope.launch {
+            if (isRequestInProgress.value) return@launch
+            if (!isValidRequest(request)) {
+                _createRequestState.value = Response.Error("Invalid Request Data")
+                return@launch
+            }
+            isRequestInProgress.value = true
+            repository.createMaintenanceRequest(request).collectLatest { response ->
+                _createRequestState.value = response
+            }
+            isRequestInProgress.value = false
         }
     }
 
@@ -108,7 +136,7 @@ class MaintenanceRequestViewModel @Inject constructor(
                 if (requestId.isNotEmpty()) {
                     repository.deleteMaintenanceRequest(requestId).collectLatest { deleteResponse ->
                         _deleteRequestResponse.value = deleteResponse
-                        fetchMaintenanceRequests() // refresh
+//                        fetchMaintenanceRequests() // refresh
                     }
                 } else {
                     _deleteRequestResponse.value = Response.Error("No response from server")
@@ -127,6 +155,17 @@ class MaintenanceRequestViewModel @Inject constructor(
 
             mediaUploadUseCase.uploadMedia(uri, mediaType, requestId).collect { response ->
                 _mediaUploadState.update { it + (uri to response) }
+            }
+        }
+    }
+
+    fun deleteUploadedFile(fileUrl: String) {
+        viewModelScope.launch {
+            try {
+                val storageRef = firebaseStorage.getReferenceFromUrl(fileUrl)
+                storageRef.delete().await()
+            } catch (e: Exception) {
+                Log.e("MaintenanceViewModel", "Error deleting file: ${e.message}")
             }
         }
     }

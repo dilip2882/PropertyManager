@@ -19,7 +19,6 @@ class MediaUploadUseCase @Inject constructor(
     private val firestore: FirebaseFirestore,
     @ApplicationContext private val context: Context
 ) {
-
     fun uploadMedia(uri: Uri, mediaType: MediaType, documentId: String): Flow<Response<String>> = flow {
         emit(Response.Loading)
         try {
@@ -35,17 +34,6 @@ class MediaUploadUseCase @Inject constructor(
             // Upload to Firebase Storage
             val uploadTask = storageRef.putFile(uri).await()
             val downloadUrl = storageRef.downloadUrl.await().toString()
-
-            // Save the download URL to Firestore under the specified document
-            val mediaData = hashMapOf(
-                "mediaUrl" to downloadUrl,
-                "mediaType" to mediaType.name
-            )
-            firestore.collection("maintenance_requests")
-                .document(documentId)
-                .collection("media")
-                .add(mediaData)
-                .await()
 
             emit(Response.Success(downloadUrl))
         } catch (e: Exception) {

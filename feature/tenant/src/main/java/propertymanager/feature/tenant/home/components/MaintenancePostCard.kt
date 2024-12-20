@@ -26,9 +26,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.propertymanager.domain.model.MaintenanceRequest
-import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.formatDate
 import kotlin.math.roundToInt
 
@@ -60,7 +57,7 @@ enum class RevealState {
 fun MaintenancePostCard(
     maintenanceRequest: MaintenanceRequest,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
 ) {
     var revealState by remember { mutableStateOf(RevealState.Hidden) }
     var offsetX by remember { mutableFloatStateOf(0f) }
@@ -70,20 +67,20 @@ fun MaintenancePostCard(
     val swipeAnimation = remember {
         SpringSpec<Float>(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessLow,
         )
     }
 
     val animatedOffset by animateFloatAsState(
         targetValue = if (revealState == RevealState.Revealed) maxOffset else 0f,
         animationSpec = swipeAnimation,
-        label = "offset"
+        label = "offset",
     )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         // Action buttons
         Row(
@@ -91,32 +88,35 @@ fun MaintenancePostCard(
                 .align(Alignment.CenterEnd)
                 .height(IntrinsicSize.Min)
                 .shadow(8.dp, RoundedCornerShape(12.dp)),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
         ) {
             Box(
                 modifier = Modifier
                     .width(actionButtonWidth)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp),
+                    )
                     .clickable(onClick = onEditClick),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "Edit",
                         color = Color.White,
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
                     )
                 }
             }
@@ -126,24 +126,24 @@ fun MaintenancePostCard(
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.error, RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
                     .clickable(onClick = onDeleteClick),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "Delete",
                         color = Color.White,
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
                     )
                 }
             }
@@ -170,7 +170,7 @@ fun MaintenancePostCard(
                             val newOffset = offsetX + dragAmount
                             offsetX = newOffset.coerceIn(maxOffset, 0f)
                             change.consume()
-                        }
+                        },
                     )
                 }
                 .clickable {
@@ -180,40 +180,40 @@ fun MaintenancePostCard(
                 },
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 2.dp,
-                pressedElevation = 4.dp
+                pressedElevation = 4.dp,
             ),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = maintenanceRequest.issueDescription,
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Medium
-                        )
+                            fontWeight = FontWeight.Medium,
+                        ),
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Schedule,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = maintenanceRequest.createdAt.toDate().formatDate(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

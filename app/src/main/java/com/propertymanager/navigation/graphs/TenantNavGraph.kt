@@ -34,7 +34,6 @@ fun NavGraphBuilder.tenantNavGraph(
 
         composable<Dest.MaintenanceCategoriesScreen> {
             MaintenanceCategoriesScreen(
-                category = Category(),
                 onNavigateUp = { navController.navigateUp() },
                 onCategorySelected = { category, subCategory ->
                     navController.navigate(Dest.MaintenanceRequestScreen(category, subCategory))
@@ -49,18 +48,19 @@ fun NavGraphBuilder.tenantNavGraph(
                 selectedCategory = args.category,
                 selectedSubcategory = args.subcategory,
                 onNavigateUp = { navController.navigateUp() },
-                onSubmit = {
+                onSubmitSuccess = {
                     navController.navigate(Dest.MaintenanceListScreen)
                 },
             )
         }
 
-        composable<Dest.TenantSettingsScreen> {
-            TenantProfileScreen(
-                onNavigateToEditProfile = {
-                    navController.navigate(Dest.OnboardingFormScreen)
+        composable<Dest.MaintenanceListScreen> {
+            MaintenanceListScreen(
+                onNavigateToMaintenanceRequest = {
+                    navController.navigate(Dest.MaintenanceCategoriesScreen)
                 }
             )
         }
+
     }
 }

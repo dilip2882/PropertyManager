@@ -158,7 +158,6 @@ fun CategoryManagerScreen() {
             )
         }
 
-        // Operation Feedback
         when (operationResponse) {
             is Response.Loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             is Response.Error -> Toast.makeText(

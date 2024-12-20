@@ -39,13 +39,12 @@ import com.propertymanager.domain.model.Category
 
 @Composable
 fun MaintenanceCategoriesScreen(
-    category: Category,
     onNavigateUp: () -> Unit,
     onCategorySelected: (category: String, subCategory: String) -> Unit,
-) {
-    val viewModel: MaintenanceRequestViewModel = hiltViewModel()
+    ) {
+    val viewModel = hiltViewModel<MaintenanceRequestViewModel>()
     val categoriesResponse: Response<List<Category>> by viewModel.categoriesResponse.collectAsState()
-    val expandedCategory = remember { mutableStateOf<String>("") } // Tracks expanded category
+    val expandedCategory = remember { mutableStateOf<String>("") }
 
     Scaffold(
         topBar = {
@@ -126,7 +125,7 @@ fun CategoryItem(
     category: Category,
     expandedCategory: String?,
     onCategorySelected: (String, String) -> Unit,
-    onExpandToggle: () -> Unit,
+    onExpandToggle: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -141,32 +140,30 @@ fun CategoryItem(
                 }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-            )
+            Text(text = category.name, style = MaterialTheme.typography.bodyMedium)
+
             if (category.subcategories.isNotEmpty()) {
                 Icon(
-                    imageVector = if (expandedCategory == category.name) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = "Expand/Collapse",
-                    tint = Color.Gray,
+                    imageVector = if (expandedCategory == category.name) Icons.Filled.KeyboardArrowUp
+                    else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "Expand/Collapse"
                 )
             }
         }
 
-        // Subcategories list
+        // Subcategories
         if (expandedCategory == category.name) {
             Column(modifier = Modifier.padding(start = 32.dp)) {
                 category.subcategories.forEach { subcategory ->
                     Text(
                         text = subcategory,
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray),
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onCategorySelected(category.name, subcategory) }
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 8.dp)
                     )
                 }
             }

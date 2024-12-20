@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -18,13 +19,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.propertymanager.domain.model.Category
 import com.propertymanager.navigation.Dest
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
+import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.home.MaintenanceRequestScreen
-import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
 
 @Composable
@@ -62,7 +62,7 @@ fun TenantScreen(
         ) {
             composable(TenantBottomNavItem.Home.route) {
                 MaintenanceListScreen(
-                    onNavigateToMaintenanceRequest = { requestId ->
+                    onNavigateToMaintenanceRequest = {
                         navController.navigate(Dest.MaintenanceCategoriesScreen)
                     },
                 )
@@ -78,7 +78,6 @@ fun TenantScreen(
 
             composable<Dest.MaintenanceCategoriesScreen> {
                 MaintenanceCategoriesScreen(
-                    category = Category(),
                     onNavigateUp = { navController.navigateUp() },
                     onCategorySelected = { category, subCategory ->
                         navController.navigate(Dest.MaintenanceRequestScreen(category, subCategory))
@@ -93,12 +92,19 @@ fun TenantScreen(
                     selectedCategory = args.category,
                     selectedSubcategory = args.subcategory,
                     onNavigateUp = { navController.navigateUp() },
-                    onSubmit = {
+                    onSubmitSuccess = {
                         navController.navigate(Dest.MaintenanceListScreen)
                     },
                 )
             }
 
+            composable<Dest.MaintenanceListScreen> {
+                MaintenanceListScreen(
+                    onNavigateToMaintenanceRequest = {
+                        navController.navigate(Dest.MaintenanceCategoriesScreen)
+                    }
+                )
+            }
 
             composable<Dest.OnboardingFormScreen> {
                 val viewModel: OnboardingViewModel = hiltViewModel()

@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,12 +52,13 @@ import propertymanager.feature.tenant.home.components.PullRefresh
 @Composable
 fun MaintenanceListScreen(
     onNavigateToMaintenanceRequest: (String?) -> Unit,
-) {
+    ) {
     val viewModel = hiltViewModel<MaintenanceRequestViewModel>()
+
     val maintenanceRequests by viewModel.maintenanceRequests.collectAsState()
     val deleteResponse by viewModel.deleteRequestResponse.collectAsState()
     val context = LocalContext.current
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
 
     var isInitialLoading by remember { mutableStateOf(true) }
@@ -126,7 +128,7 @@ fun MaintenanceListScreen(
                 viewModel.fetchMaintenanceRequests()
             },
             modifier = Modifier.padding(paddingValues),
-            indicatorPadding = PaddingValues(start = 170.dp),
+            indicatorPadding = PaddingValues(),
         ) {
             when (val state = maintenanceRequests) {
                 is Response.Loading -> {
