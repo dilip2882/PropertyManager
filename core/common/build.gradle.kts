@@ -24,6 +24,15 @@ dependencies {
 //    api(kotlinx.serialization.json)
 //    api(kotlinx.serialization.json.okio)
 
+    // Image loading
+    implementation(platform(libs.coil.bom))
+    implementation(libs.bundles.coil)
+    implementation(libs.subsamplingscaleimageview) {
+        exclude(module = "image-decoder")
+    }
+    implementation(libs.image.decoder)
+    implementation(libs.coil.compose)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

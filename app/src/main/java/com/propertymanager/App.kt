@@ -5,16 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import android.util.Log
-import androidx.compose.runtime.collectAsState
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.messaging.FirebaseMessaging
-import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
-import com.propertymanager.domain.model.User
+import coil3.ImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.tasks.await
+import okhttp3.OkHttpClient
 
 @HiltAndroidApp
 class App : Application() {
@@ -23,14 +17,29 @@ class App : Application() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "PropertyManager",
+                "PropertyManager", // Channel ID
                 "PropertyManager Notification Channel",
                 NotificationManager.IMPORTANCE_HIGH,
+            ).apply {
+                description = "This channel is used for property manager notifications" // Optional description
+            }
 
-                )
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
 
+        ImageLoader.Builder(applicationContext)
+            .components {
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = {
+                            OkHttpClient()
+                        },
+                    ),
+                )
+            }
+            .build()
     }
+
 }
+

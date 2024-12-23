@@ -12,12 +12,12 @@ import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.home.MaintenanceRequestScreen
 import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
+import propertymanager.feature.tenant.home.MaintenanceDetailsScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
 
 fun NavGraphBuilder.tenantNavGraph(
     navController: NavHostController
 ) {
-
     navigation<SubGraph.Tenant>(startDestination = Dest.TenantScreen) {
 
         composable<Dest.TenantScreen> {
@@ -28,7 +28,19 @@ fun NavGraphBuilder.tenantNavGraph(
             MaintenanceListScreen(
                 onNavigateToMaintenanceRequest = {
                     navController.navigate(Dest.MaintenanceCategoriesScreen)
+                },
+                onNavigateToDetails = { requestId ->
+                    navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
                 }
+            )
+        }
+
+
+        composable<Dest.MaintenanceDetailsScreen> {
+            val args = it.toRoute<Dest.MaintenanceDetailsScreen>()
+            MaintenanceDetailsScreen(
+                requestId = args.requestId,
+                onNavigateUp = { navController.navigateUp() }
             )
         }
 
@@ -49,18 +61,15 @@ fun NavGraphBuilder.tenantNavGraph(
                 selectedSubcategory = args.subcategory,
                 onNavigateUp = { navController.navigateUp() },
                 onSubmitSuccess = {
-                    navController.navigate(Dest.MaintenanceListScreen)
+                    navController.navigate(Dest.MaintenanceListScreen) {
+                        // Do not pop up to MaintenanceListScreen, as it's part of the bottom nav navigation
+                        popUpTo(Dest.MaintenanceCategoriesScreen) { inclusive = true } // Clear the previous screens
+                        launchSingleTop = true // Prevent duplicates
+                    }
                 },
             )
         }
 
-        composable<Dest.MaintenanceListScreen> {
-            MaintenanceListScreen(
-                onNavigateToMaintenanceRequest = {
-                    navController.navigate(Dest.MaintenanceCategoriesScreen)
-                }
-            )
-        }
 
     }
 }

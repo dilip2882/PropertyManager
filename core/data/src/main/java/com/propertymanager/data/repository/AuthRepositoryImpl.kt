@@ -10,6 +10,7 @@ import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.messaging.FirebaseMessaging
 import com.propertymanager.common.utils.Constants
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Role
@@ -101,36 +102,50 @@ class AuthRepositoryImpl @Inject constructor(
                                     // Forcefully retrieve and preserve the existing role
                                     val existingRole = documentSnapshot.getString("role")
                                         ?: documentSnapshot.get("role")?.toString()
-                                        ?: Role.TENANT.name // Default to MANAGER if not found
+                                        ?: Role.TENANT.name // Default to TENANT if not found
 
                                     Log.d("AuthRepo", "Existing Role in Document: $existingRole")
 
-                                    // Prepare update data that DOES NOT modify the role
-                                    val updateData = mapOf(
-                                        "phone" to (user.phoneNumber ?: ""),
-                                        "updatedAt" to FieldValue.serverTimestamp(),
-                                    )
+                                    // Retrieve the notification token before continuing
+                                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            val notificationToken = task.result
+                                            Log.d("AuthRepo", "FCM Token: $notificationToken")
 
-                                    // Update document without touching the role
-                                    userDocRef.update(updateData)
-                                        .addOnSuccessListener {
-                                            Log.d("AuthRepo", "User updated. Preserving role: $existingRole")
+                                            val tokenList = notificationToken?.let { listOf(it) } ?: emptyList()
 
-                                            // Explicitly set the role back to its original value if somehow changed
-                                            val roleUpdateData = mapOf("role" to existingRole)
-                                            userDocRef.update(roleUpdateData)
+                                            // Prepare the update data with token
+                                            val updateData = mapOf(
+                                                "phone" to (user.phoneNumber ?: ""),
+                                                "updatedAt" to FieldValue.serverTimestamp(),
+                                                "token" to FieldValue.arrayUnion(notificationToken)
+                                            )
+
+                                            // Update document without modifying the role
+                                            userDocRef.update(updateData)
                                                 .addOnSuccessListener {
-                                                    trySend(Response.Success("Signed in with role: $existingRole"))
+                                                    Log.d("AuthRepo", "User updated. Preserving role: $existingRole")
+
+                                                    // Explicitly set the role back to its original value if it was somehow changed
+                                                    val roleUpdateData = mapOf("role" to existingRole)
+                                                    userDocRef.update(roleUpdateData)
+                                                        .addOnSuccessListener {
+                                                            trySend(Response.Success("Signed in with role: $existingRole"))
+                                                        }
+                                                        .addOnFailureListener { e ->
+                                                            Log.e("AuthRepo", "Failed to preserve role", e)
+                                                            trySend(Response.Success("Signed in, but role preservation failed"))
+                                                        }
                                                 }
                                                 .addOnFailureListener { e ->
-                                                    Log.e("AuthRepo", "Failed to preserve role", e)
-                                                    trySend(Response.Success("Signed in, but role preservation failed"))
+                                                    Log.e("AuthRepo", "User update failed", e)
+                                                    trySend(Response.Error("Update failed: ${e.message}"))
                                                 }
+                                        } else {
+                                            Log.e("AuthRepo", "Failed to fetch FCM token", task.exception)
+                                            trySend(Response.Error("Failed to fetch FCM token"))
                                         }
-                                        .addOnFailureListener { e ->
-                                            Log.e("AuthRepo", "User update failed", e)
-                                            trySend(Response.Error("Update failed: ${e.message}"))
-                                        }
+                                    }
                                 }
                                 .addOnFailureListener { e ->
                                     Log.e("AuthRepo", "Document retrieval failed", e)
@@ -157,6 +172,7 @@ class AuthRepositoryImpl @Inject constructor(
             close()
         }
     }
+
 
     override suspend fun resendOtp(
         phone: String,
@@ -225,7 +241,7 @@ class AuthRepositoryImpl @Inject constructor(
                     name = "",
                     phone = "",
                     address = "",
-                    location = GeoPoint(0.0, 0.0),
+                    location = GeoPoint(0.0, 0.0)
                 )
                 firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId).set(user).await()
                 emit(Response.Success(true))
@@ -240,4 +256,5 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun isUserAuthenticatedInFirebase(): Boolean {
         return auth.currentUser != null
     }
+
 }

@@ -2,12 +2,14 @@ package propertymanager.feature.tenant.home
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -51,10 +54,10 @@ import propertymanager.feature.tenant.home.components.PullRefresh
 
 @Composable
 fun MaintenanceListScreen(
-    onNavigateToMaintenanceRequest: (String?) -> Unit,
-    ) {
+    onNavigateToMaintenanceRequest: () -> Unit,
+    onNavigateToDetails: (String) -> Unit
+) {
     val viewModel = hiltViewModel<MaintenanceRequestViewModel>()
-
     val maintenanceRequests by viewModel.maintenanceRequests.collectAsState()
     val deleteResponse by viewModel.deleteRequestResponse.collectAsState()
     val context = LocalContext.current
@@ -113,7 +116,7 @@ fun MaintenanceListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onNavigateToMaintenanceRequest(null) },
+                onClick = onNavigateToMaintenanceRequest,
                 containerColor = MaterialTheme.colorScheme.primary,
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create Request")
@@ -155,7 +158,7 @@ fun MaintenanceListScreen(
 
                     if (requests.isEmpty()) {
                         EmptyStateContent(
-                            onCreateClick = { onNavigateToMaintenanceRequest(null) },
+                            onCreateClick = onNavigateToMaintenanceRequest,
                         )
                     } else {
                         LazyColumn(
@@ -164,19 +167,32 @@ fun MaintenanceListScreen(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp),
                         ) {
                             items(requests) { request ->
-                                MaintenancePostCard(
-                                    maintenanceRequest = request,
-                                    onEditClick = {
-                                        onNavigateToMaintenanceRequest(request.maintenanceRequestsId)
-                                    },
-                                    onDeleteClick = {
-                                        coroutineScope.launch {
-                                            request.maintenanceRequestsId?.let { id ->
-                                                viewModel.deleteMaintenanceRequest(id)
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .clickable {
+                                            request.maintenanceRequestsId?.let { requestId ->
+                                                onNavigateToDetails(requestId)
                                             }
                                         }
-                                    },
-                                )
+                                ) {
+                                    MaintenancePostCard(
+                                        maintenanceRequest = request,
+                                        onEditClick = {
+                                            request.maintenanceRequestsId?.let { requestId ->
+                                                onNavigateToDetails(requestId)
+                                            }
+                                        },
+                                        onDeleteClick = {
+                                            coroutineScope.launch {
+                                                request.maintenanceRequestsId?.let { id ->
+                                                    viewModel.deleteMaintenanceRequest(id)
+                                                }
+                                            }
+                                        },
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
@@ -196,7 +212,6 @@ fun MaintenanceListScreen(
         }
     }
 }
-
 
 @Composable
 fun EmptyStateContent(

@@ -23,13 +23,15 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.auth.ktx)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.androidx.compiler)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
 
     // Compose
     implementation(compose.activity)
@@ -42,6 +44,13 @@ dependencies {
     implementation(compose.ui.tooling.preview)
     implementation(compose.ui.util)
 
+    // Image loading
+    implementation(platform(libs.coil.bom))
+    implementation(libs.bundles.coil)
+    implementation(libs.subsamplingscaleimageview) {
+        exclude(module = "image-decoder")
+    }
+    implementation(libs.image.decoder)
     implementation(libs.coil.compose)
 
     implementation(kotlinx.immutables)

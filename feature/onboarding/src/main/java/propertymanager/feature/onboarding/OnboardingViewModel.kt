@@ -5,10 +5,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import com.propertymanager.common.preferences.AppPreferences
+import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
 import com.propertymanager.domain.model.Role
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.usecase.UserUseCases
@@ -92,6 +95,7 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+
     private fun submitUserDetails(user: User, imageUri: Uri?) {
         viewModelScope.launch {
             _state.value = OnboardingContract.OnboardingState.Loading
@@ -108,19 +112,20 @@ class OnboardingViewModel @Inject constructor(
 
                 val imageUrl = imageUri?.let { uploadImageToFirebase(it, currentUser.uid) }
 
-                val updatedUser = user.copy(
-                    userId = currentUser.uid,
-                    imageUrl = imageUrl ?: user.imageUrl,
-                    role = existingRole ?: "TENANT"  // Using existing role
+                val updateData = mutableMapOf<String, Any?>(
+                    "role" to (existingRole ?: "TENANT"),
+                    "imageUrl" to (imageUrl ?: user.imageUrl),
+                    "updatedAt" to FieldValue.serverTimestamp()
                 )
 
+                // Only update the necessary fields
                 firestore.collection("users").document(currentUser.uid)
-                    .set(updatedUser)
+                    .update(updateData)
                     .await()
 
                 appPreferences.saveAuthToken(currentUser.uid)
                 _effect.emit(OnboardingContract.OnboardingEffect.NavigateToHome)
-                _state.value = OnboardingContract.OnboardingState.Success(updatedUser)
+                _state.value = OnboardingContract.OnboardingState.Success(user)
             } catch (e: Exception) {
                 _state.value = OnboardingContract.OnboardingState.Error("An unexpected error occurred: ${e.message}")
             }
@@ -137,4 +142,5 @@ class OnboardingViewModel @Inject constructor(
             throw Exception("Failed to upload profile picture. Please try again.")
         }
     }
+
 }

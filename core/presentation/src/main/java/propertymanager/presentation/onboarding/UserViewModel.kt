@@ -5,7 +5,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
+import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.usecase.UserUseCases
@@ -61,3 +65,4 @@ class UserViewModel @Inject constructor(
     }
 
 }
+

@@ -34,6 +34,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.firebase.messaging.ktx)
     ksp(libs.hilt.compiler)
 
     // Data serialization (JSON, protobuf, xml, retrofit)

@@ -1,5 +1,10 @@
 package com.propertymanager.bottomnav.tenant
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -9,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,9 +26,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.propertymanager.navigation.Dest
+import com.propertymanager.navigation.graphs.tenantNavGraph
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
+import propertymanager.feature.tenant.home.MaintenanceDetailsScreen
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.home.MaintenanceRequestScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
@@ -33,25 +41,33 @@ fun TenantScreen(
 ) {
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination
 
+    val isBottomBarVisible = remember(currentDestination) {
+        when (currentDestination?.route) {
+            TenantBottomNavItem.Home.route,
+            TenantBottomNavItem.Profile.route -> true
+            else -> false
+        }
+    }
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                TenantBottomNavItem.getAllItems().forEach { item ->
-                    NavigationBarItem(
-                        selected = currentDestination?.route == item.route,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+            AnimatedVisibility(
+                visible = isBottomBarVisible,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                TenantNavBar(
+                    currentDestination = currentDestination?.route,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
-                        },
-                        icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) },
-                    )
-                }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
         },
     ) { paddingValues ->
@@ -65,6 +81,9 @@ fun TenantScreen(
                     onNavigateToMaintenanceRequest = {
                         navController.navigate(Dest.MaintenanceCategoriesScreen)
                     },
+                    onNavigateToDetails = { requestId ->
+                        navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
+                    }
                 )
             }
 
@@ -72,36 +91,6 @@ fun TenantScreen(
                 TenantProfileScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.OnboardingFormScreen)
-                    }
-                )
-            }
-
-            composable<Dest.MaintenanceCategoriesScreen> {
-                MaintenanceCategoriesScreen(
-                    onNavigateUp = { navController.navigateUp() },
-                    onCategorySelected = { category, subCategory ->
-                        navController.navigate(Dest.MaintenanceRequestScreen(category, subCategory))
-                    },
-                )
-            }
-
-            composable<Dest.MaintenanceRequestScreen> {
-                val args = it.toRoute<Dest.MaintenanceRequestScreen>()
-
-                MaintenanceRequestScreen(
-                    selectedCategory = args.category,
-                    selectedSubcategory = args.subcategory,
-                    onNavigateUp = { navController.navigateUp() },
-                    onSubmitSuccess = {
-                        navController.navigate(Dest.MaintenanceListScreen)
-                    },
-                )
-            }
-
-            composable<Dest.MaintenanceListScreen> {
-                MaintenanceListScreen(
-                    onNavigateToMaintenanceRequest = {
-                        navController.navigate(Dest.MaintenanceCategoriesScreen)
                     }
                 )
             }
@@ -118,8 +107,9 @@ fun TenantScreen(
                     onComplete = { navController.navigate(Dest.HomeScreen) },
                 )
             }
+
+            tenantNavGraph(navController)
         }
     }
+
 }
-
-

@@ -99,6 +99,17 @@ dependencies {
     implementation(androidx.navigation.compose)
     implementation(androidx.kotlinx.serialization.json)
 
+    // Image loading
+    implementation(platform(libs.coil.bom))
+    implementation(libs.bundles.coil)
+    implementation(libs.subsamplingscaleimageview) {
+        exclude(module = "image-decoder")
+    }
+    implementation(libs.image.decoder)
+    implementation(libs.coil.compose)
+
+    implementation(libs.okhttp)
+
     // Compose
     implementation(compose.activity)
     implementation(compose.foundation)

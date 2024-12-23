@@ -1,7 +1,10 @@
 package com.propertymanager.data.repository
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.User
@@ -83,9 +86,38 @@ class UserRepositoryImpl @Inject constructor(
             "createdAt" to createdAt,
             "updatedAt" to updatedAt,
             "profileImage" to profileImage,
-            "role" to role
+            "role" to role,
+            "token" to token
         )
         Log.d("UserMap", "Converting User to Map: role = ${map["role"]}")
         return map
     }
 }
+
+fun addToken() {
+    // Fetch the FCM token asynchronously
+    FirebaseMessaging.getInstance().token
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                // Retrieve the FCM token
+                val notiToken: String = task.result
+                Log.d("TAG", "FCM Token: $notiToken")
+
+                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                Log.d("TAG", "docid: ${userId} ")
+                // Update the Firestore document with the new token
+                FirebaseFirestore.getInstance().collection(COLLECTION_NAME_USERS)
+                    .document(userId!!)
+                    .update("token", FieldValue.arrayUnion(notiToken))
+                    .addOnSuccessListener {
+                        Log.d("TAG", "Token added successfully")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("TAG", "Error adding token", e)
+                    }
+            } else {
+                Log.e("TAG", "Failed to fetch FCM token", task.exception)
+            }
+        }
+}
+

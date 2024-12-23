@@ -35,7 +35,6 @@ fun showNotification(context: Context, title:String, message:String) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted, request permission or handle accordingly
             Log.w("NotificationPermission", "POST_NOTIFICATIONS permission not granted")
-            Toast.makeText(context, "Notification permission is required", Toast.LENGTH_SHORT).show()
             return
         }
     }

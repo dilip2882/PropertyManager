@@ -51,6 +51,11 @@ sealed interface Dest {
     data object MaintenanceListScreen : Dest
 
     @Serializable
+    data class MaintenanceDetailsScreen(
+        val requestId: String
+    ) : Dest
+
+    @Serializable
     data object TenantSettingsScreen : Dest
 
     @Serializable

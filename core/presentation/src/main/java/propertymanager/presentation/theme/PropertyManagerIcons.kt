@@ -1,4 +1,4 @@
-package propertymanager.presentation.components
+package propertymanager.presentation.theme
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.rounded.ShortText
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Upcoming
 import androidx.compose.material.icons.rounded.Add
@@ -27,6 +28,8 @@ object PropertyManagerIcons {
     val HomeBorder = Icons.Outlined.Home
     val Settings = Icons.Rounded.Settings
     val SettingsBorder = Icons.Outlined.Settings
+    val Person = Icons.Rounded.Person
+    val PersonBorder = Icons.Outlined.Person
 
     val Add = Icons.Rounded.Add
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
@@ -38,7 +41,6 @@ object PropertyManagerIcons {
     val Close = Icons.Rounded.Close
     val Grid3x3 = Icons.Rounded.Grid3x3
     val MoreVert = Icons.Default.MoreVert
-    val Person = Icons.Rounded.Person
     val Search = Icons.Rounded.Search
     val ShortText = Icons.AutoMirrored.Rounded.ShortText
     val Upcoming = Icons.Rounded.Upcoming
