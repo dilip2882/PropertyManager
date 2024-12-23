@@ -65,6 +65,7 @@ fun MaintenanceListScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var isInitialLoading by remember { mutableStateOf(true) }
+    val expandedCardState = remember { mutableStateOf<String?>(null) } // Track the currently expanded card
 
     LaunchedEffect(Unit) {
         viewModel.fetchMaintenanceRequests()
@@ -171,15 +172,18 @@ fun MaintenanceListScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp)
-                                        .clickable {
-                                            request.maintenanceRequestsId?.let { requestId ->
-                                                onNavigateToDetails(requestId)
-                                            }
-                                        }
+//                                        .clickable {
+//                                            request.maintenanceRequestsId?.let { requestId ->
+//                                                onNavigateToDetails(requestId)
+//                                            }
+//                                        }
                                 ) {
                                     MaintenancePostCard(
                                         maintenanceRequest = request,
                                         onEditClick = {
+                                            /* TODO */
+                                        },
+                                        onCardClick = {
                                             request.maintenanceRequestsId?.let { requestId ->
                                                 onNavigateToDetails(requestId)
                                             }
@@ -191,6 +195,14 @@ fun MaintenanceListScreen(
                                                 }
                                             }
                                         },
+                                        revealState = expandedCardState.value == request.maintenanceRequestsId,
+                                        onRevealStateChange = { isRevealed ->
+                                            if (isRevealed) {
+                                                expandedCardState.value = request.maintenanceRequestsId
+                                            } else {
+                                                expandedCardState.value = null
+                                            }
+                                        }
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))

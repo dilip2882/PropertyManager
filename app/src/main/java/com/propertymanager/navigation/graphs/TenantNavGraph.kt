@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.propertymanager.bottomnav.tenant.TenantBottomNavItem
 import com.propertymanager.bottomnav.tenant.TenantScreen
 import com.propertymanager.domain.model.Category
 import com.propertymanager.navigation.Dest
@@ -61,10 +62,9 @@ fun NavGraphBuilder.tenantNavGraph(
                 selectedSubcategory = args.subcategory,
                 onNavigateUp = { navController.navigateUp() },
                 onSubmitSuccess = {
-                    navController.navigate(Dest.MaintenanceListScreen) {
-                        // Do not pop up to MaintenanceListScreen, as it's part of the bottom nav navigation
+                    navController.navigate(TenantBottomNavItem.Home.route) {
                         popUpTo(Dest.MaintenanceCategoriesScreen) { inclusive = true } // Clear the previous screens
-                        launchSingleTop = true // Prevent duplicates
+                        launchSingleTop = true
                     }
                 },
             )

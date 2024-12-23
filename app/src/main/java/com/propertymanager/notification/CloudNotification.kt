@@ -9,14 +9,33 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.propertymanager.common.utils.Constants
+import com.propertymanager.common.utils.Response
 import com.propertymanager.presentation.R
 
 class CloudNotification: FirebaseMessagingService(){
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        val updateData = mapOf(
+            "token" to FieldValue.arrayUnion(token)
+        )
+
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        val userDocRef = FirebaseFirestore.getInstance().collection(Constants.COLLECTION_NAME_USERS)
+            .document(userId)
+
+        userDocRef.update(updateData).addOnSuccessListener {
+            Log.d("onNewToken", ": $updateData")
+        }.addOnFailureListener { e ->
+            Log.e("onNewToken", "User update failed", e)
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

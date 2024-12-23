@@ -7,14 +7,18 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.navigation.NavOptions
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.common.preferences.AppPreferences
 import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
 import com.propertymanager.navigation.MainNavigation
+import com.propertymanager.navigation.SubGraph
+import com.propertymanager.navigation.graphs.staffNavGraph
 import com.propertymanager.ui.theme.PropertyManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -31,12 +35,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PropertyManagerTheme {
                 MainNavigation(
                     navController = rememberNavController(),
                     appPreferences = appPreferences,
                 )
-            }
         }
     }
 }

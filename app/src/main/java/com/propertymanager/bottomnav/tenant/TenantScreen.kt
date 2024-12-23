@@ -6,33 +6,24 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.graphs.tenantNavGraph
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
-import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
-import propertymanager.feature.tenant.home.MaintenanceDetailsScreen
 import propertymanager.feature.tenant.home.MaintenanceListScreen
-import propertymanager.feature.tenant.home.MaintenanceRequestScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
 
 @Composable
@@ -44,7 +35,9 @@ fun TenantScreen(
     val isBottomBarVisible = remember(currentDestination) {
         when (currentDestination?.route) {
             TenantBottomNavItem.Home.route,
-            TenantBottomNavItem.Profile.route -> true
+            TenantBottomNavItem.Profile.route,
+                -> true
+
             else -> false
         }
     }
@@ -54,7 +47,7 @@ fun TenantScreen(
             AnimatedVisibility(
                 visible = isBottomBarVisible,
                 enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+                exit = shrinkVertically() + fadeOut(),
             ) {
                 TenantNavBar(
                     currentDestination = currentDestination?.route,
@@ -66,7 +59,7 @@ fun TenantScreen(
                             launchSingleTop = true
                             restoreState = true
                         }
-                    }
+                    },
                 )
             }
         },
@@ -83,7 +76,7 @@ fun TenantScreen(
                     },
                     onNavigateToDetails = { requestId ->
                         navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
-                    }
+                    },
                 )
             }
 
@@ -91,7 +84,7 @@ fun TenantScreen(
                 TenantProfileScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.OnboardingFormScreen)
-                    }
+                    },
                 )
             }
 

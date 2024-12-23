@@ -64,7 +64,7 @@ import com.propertymanager.domain.model.formatDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StaffScreen(
+fun StaffHomeScreen(
     staffId: String,
     onNavigateBack: () -> Unit,
 ) {

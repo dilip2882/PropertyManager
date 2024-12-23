@@ -66,5 +66,13 @@ sealed interface Dest {
         val category: String,
         val subcategory: String
     ) : Dest
+
+    // Staff screens
+    @Serializable
+    data object StaffHomeScreen : Dest
+
+    @Serializable
+    data object StaffSettingsScreen : Dest
+
 }
 

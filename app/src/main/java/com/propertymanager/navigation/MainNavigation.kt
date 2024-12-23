@@ -28,7 +28,7 @@ fun MainNavigation(
 
         // Role-based
         tenantNavGraph(navController)
-        landlordNavGraph(navController)
         staffNavGraph(navController)
+        landlordNavGraph(navController)
     }
 }

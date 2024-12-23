@@ -59,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.google.firebase.auth.FirebaseAuth
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.model.MaintenanceRequest
@@ -366,6 +367,7 @@ fun MaintenanceRequestScreen(
 
                         isSubmitting = true
 
+                        val tenantId = FirebaseAuth.getInstance().currentUser?.uid
                         if (photoUriList.isEmpty()) {
                             val request = MaintenanceRequest(
                                 issueDescription = issueDescription,
@@ -374,6 +376,7 @@ fun MaintenanceRequestScreen(
                                 issueSubcategory = currentSubcategory,
                                 photos = emptyList(),
                                 status = RequestStatus.PENDING.label,
+                                tenantId = tenantId!!
                             )
                             viewModel.createMaintenanceRequestSafely(request)
                         } else {
@@ -405,7 +408,7 @@ fun MaintenanceRequestScreen(
                         .background(Color.Black.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator()
+//                    CircularProgressIndicator()
                 }
             }
         }

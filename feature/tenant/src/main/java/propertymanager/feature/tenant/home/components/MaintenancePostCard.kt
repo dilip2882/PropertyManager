@@ -39,9 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.propertymanager.domain.model.MaintenanceRequest
@@ -58,8 +60,10 @@ fun MaintenancePostCard(
     maintenanceRequest: MaintenanceRequest,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    onCardClick: () -> Unit,
+    revealState: Boolean,
+    onRevealStateChange: (Boolean) -> Unit
 ) {
-    var revealState by remember { mutableStateOf(RevealState.Hidden) }
     var offsetX by remember { mutableFloatStateOf(0f) }
     val actionButtonWidth = 80.dp
     val maxOffset = with(LocalDensity.current) { -actionButtonWidth.times(2).toPx() }
@@ -72,7 +76,7 @@ fun MaintenancePostCard(
     }
 
     val animatedOffset by animateFloatAsState(
-        targetValue = if (revealState == RevealState.Revealed) maxOffset else 0f,
+        targetValue = if (revealState) maxOffset else 0f,
         animationSpec = swipeAnimation,
         label = "offset",
     )
@@ -80,73 +84,31 @@ fun MaintenancePostCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 1.dp),
     ) {
-        // Action buttons
+        // Action buttons (Edit & Delete)
         Row(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .height(IntrinsicSize.Min)
-                .shadow(8.dp, RoundedCornerShape(12.dp)),
+                .fillMaxHeight(),
             horizontalArrangement = Arrangement.End,
         ) {
-            Box(
-                modifier = Modifier
-                    .width(actionButtonWidth)
-                    .fillMaxHeight()
-                    .background(
-                        MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp),
-                    )
-                    .clickable(onClick = onEditClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Edit",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .width(actionButtonWidth)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.error, RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
-                    .clickable(onClick = onDeleteClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Delete",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                }
-            }
+
+                ActionButton(
+                    modifier = Modifier.width(actionButtonWidth),
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    icon = Icons.Default.Edit,
+                    text = "Edit",
+                    onClick = onEditClick
+                )
+                ActionButton(
+                    modifier = Modifier.width(actionButtonWidth),
+                    backgroundColor = MaterialTheme.colorScheme.error,
+                    icon = Icons.Default.Delete,
+                    text = "Delete",
+                    onClick = onDeleteClick
+                )
+
         }
 
         // Main card content
@@ -157,26 +119,17 @@ fun MaintenancePostCard(
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
-                            if (offsetX < maxOffset / 2) {
-                                revealState = RevealState.Revealed
-                            } else {
-                                revealState = RevealState.Hidden
-                            }
-                        },
-                        onDragCancel = {
-                            offsetX = if (revealState == RevealState.Revealed) maxOffset else 0f
+                            val isRevealed = offsetX < maxOffset / 2
+                            onRevealStateChange(isRevealed)
                         },
                         onHorizontalDrag = { change, dragAmount ->
-                            val newOffset = offsetX + dragAmount
-                            offsetX = newOffset.coerceIn(maxOffset, 0f)
+                            offsetX = (offsetX + dragAmount).coerceIn(maxOffset, 0f)
                             change.consume()
                         },
                     )
                 }
-                .clickable {
-                    if (revealState == RevealState.Revealed) {
-                        revealState = RevealState.Hidden
-                    }
+                .clickable(enabled = !revealState) { // Only allow clicking when not revealed
+                    onCardClick()
                 },
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 2.dp,
@@ -196,9 +149,7 @@ fun MaintenancePostCard(
                 ) {
                     Text(
                         text = maintenanceRequest.issueDescription,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Medium,
-                        ),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -218,6 +169,41 @@ fun MaintenancePostCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ActionButton(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .background(backgroundColor)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = text,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = text,
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium,
+            )
         }
     }
 }
