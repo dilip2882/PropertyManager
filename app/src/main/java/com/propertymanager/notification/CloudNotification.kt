@@ -22,7 +22,7 @@ class CloudNotification: FirebaseMessagingService(){
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        val updateData = mapOf(
+/*        val updateData = mapOf(
             "token" to FieldValue.arrayUnion(token)
         )
 
@@ -35,7 +35,7 @@ class CloudNotification: FirebaseMessagingService(){
             Log.d("onNewToken", ": $updateData")
         }.addOnFailureListener { e ->
             Log.e("onNewToken", "User update failed", e)
-        }
+        }*/
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

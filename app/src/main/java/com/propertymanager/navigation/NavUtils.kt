@@ -74,5 +74,11 @@ sealed interface Dest {
     @Serializable
     data object StaffSettingsScreen : Dest
 
+    @Serializable
+    data object CategoryManagerScreen: Dest
+
+    @Serializable
+    data object PropertyManagerScreen: Dest
+
 }
 

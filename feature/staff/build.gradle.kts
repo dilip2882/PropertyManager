@@ -43,6 +43,15 @@ dependencies {
     implementation(compose.ui.tooling.preview)
     implementation(compose.ui.util)
 
+    // Image loading
+    implementation(platform(libs.coil.bom))
+    implementation(libs.bundles.coil)
+    implementation(libs.subsamplingscaleimageview) {
+        exclude(module = "image-decoder")
+    }
+    implementation(libs.image.decoder)
+    implementation(libs.coil.compose)
+
     implementation(kotlinx.immutables)
 }
 

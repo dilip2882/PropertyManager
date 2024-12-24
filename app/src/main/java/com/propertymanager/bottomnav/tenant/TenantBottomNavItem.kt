@@ -37,7 +37,7 @@ sealed class TenantBottomNavItem(
         label = "Home",
     )
 
-    data object Profile : TenantBottomNavItem(
+    data object Settings : TenantBottomNavItem(
         route = "tenant_profile",
         selectedIcon = PropertyManagerIcons.PersonBorder,
         unselectedIcon = PropertyManagerIcons.Person,
@@ -45,7 +45,7 @@ sealed class TenantBottomNavItem(
     )
 
     companion object {
-        fun getAllItems() = listOf(Home, Profile)
+        fun getAllItems() = listOf(Home, Settings)
     }
 }
 

@@ -1,4 +1,4 @@
-package propertymanager.feature.staff.categories.components
+package propertymanager.feature.staff.settings.category.components
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.SpringSpec
@@ -60,8 +60,8 @@ enum class RevealState {
 @Composable
 fun CategoryItem(
     category: Category,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
+    onMoveUp: (() -> Unit)? = null,
+    onMoveDown: (() -> Unit)? = null,
     onEditCategory: () -> Unit,
     onDeleteCategory: () -> Unit,
     onAddSubcategory: () -> Unit,
@@ -204,10 +204,10 @@ fun CategoryItem(
                 ) {
                     Text(text = category.name, style = MaterialTheme.typography.titleMedium)
                     Row {
-                        IconButton(onClick = onMoveUp) {
+                        IconButton(onClick = onMoveUp!!) {
                             Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Move Up")
                         }
-                        IconButton(onClick = onMoveDown) {
+                        IconButton(onClick = onMoveDown!!) {
                             Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Move Down")
                         }
                     }

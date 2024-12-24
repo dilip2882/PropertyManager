@@ -21,9 +21,18 @@ data class Property(
 
     // property address
     data class Address(
-        val street: String = "",
+        val country: String = "",
         val city: String = "",
-        val state: String = "",
-        val zipCode: String = ""
+        val society: String = "",
+        val building: String = "",
+        val flatNo: String = "",
+        val ownershipType: OwnershipType = OwnershipType.FLAT_OWNER
     )
+
+    enum class OwnershipType {
+        FLAT_OWNER,
+        RENTING_WITH_FAMILY,
+        RENTING_WITH_FLATMATES
+    }
+
 }

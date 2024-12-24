@@ -1,4 +1,4 @@
-package propertymanager.feature.staff.categories.components
+package propertymanager.feature.staff.settings.category.components
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -7,20 +7,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
 @Composable
-fun SubcategoryDialog(
-    subcategoryName: String,
+fun CategoryDialog(
+    categoryName: String,
     onNameChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Subcategory") },
+        title = { Text("Category") },
         text = {
             OutlinedTextField(
-                value = subcategoryName,
+                value = categoryName,
                 onValueChange = onNameChange,
-                label = { Text("Subcategory Name") }
+                label = { Text("Category Name") }
             )
         },
         confirmButton = {

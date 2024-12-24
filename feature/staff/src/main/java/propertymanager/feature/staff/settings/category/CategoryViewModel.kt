@@ -1,4 +1,4 @@
-package propertymanager.feature.staff.categories
+package propertymanager.feature.staff.settings.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

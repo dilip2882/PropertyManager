@@ -1,4 +1,4 @@
-package propertymanager.feature.staff.categories
+package propertymanager.feature.staff.settings.category
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -30,12 +31,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Category
-import propertymanager.feature.staff.categories.components.CategoryDialog
-import propertymanager.feature.staff.categories.components.CategoryItem
-import propertymanager.feature.staff.categories.components.SubcategoryDialog
+import propertymanager.feature.staff.settings.category.components.CategoryDialog
+import propertymanager.feature.staff.settings.category.components.CategoryItem
+import propertymanager.feature.staff.settings.category.components.SubcategoryDialog
+import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
-fun CategoryManagerScreen() {
+fun CategoryManagerScreen(
+    onNavigateUp: () -> Unit,
+) {
     val viewModel = hiltViewModel<CategoryViewModel>()
     val categoriesResponse by viewModel.categoriesResponse.collectAsState()
     val operationResponse by viewModel.operationResponse.collectAsState()
@@ -65,9 +69,14 @@ fun CategoryManagerScreen() {
         topBar = {
             TopAppBar(
                 title = { Text("Manage Categories") },
+                navigationIcon = {
+                    IconButton(onClick = { onNavigateUp() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.toggleSortCategories() }) {
-                        Icon(Icons.Default.Sort, contentDescription = "Sort Categories")
+                        Icon(Icons.Filled.Sort, contentDescription = "Sort Categories")
                     }
                 },
             )
@@ -75,7 +84,7 @@ fun CategoryManagerScreen() {
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             when (categoriesResponse) {
-                is Response.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                is Response.Loading -> LoadingScreen()
                 is Response.Success -> {
                     val categories = (categoriesResponse as Response.Success<List<Category>>).data
 

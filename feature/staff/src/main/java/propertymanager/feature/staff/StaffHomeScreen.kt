@@ -66,7 +66,6 @@ import com.propertymanager.domain.model.formatDate
 @Composable
 fun StaffHomeScreen(
     staffId: String,
-    onNavigateBack: () -> Unit,
 ) {
     val staffViewModel = hiltViewModel<StaffViewModel>()
 
@@ -106,11 +105,6 @@ fun StaffHomeScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Staff Dashboard") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                },
             )
         },
     ) { paddingValues ->

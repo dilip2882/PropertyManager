@@ -1,5 +1,6 @@
 package com.propertymanager.navigation.graphs
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
@@ -8,16 +9,18 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.propertymanager.bottomnav.staff.StaffScreen
-import com.propertymanager.bottomnav.tenant.TenantScreen
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.staff.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
+import propertymanager.feature.staff.settings.category.CategoryManagerScreen
+import propertymanager.feature.staff.settings.property.PropertyManagerScreen
 
-fun NavGraphBuilder.staffNavGraph(navController: NavHostController) {
-    navigation<SubGraph.Staff>(
-        startDestination = Dest.StaffScreen
-    ) {
+fun NavGraphBuilder.staffNavGraph(
+    navController: NavHostController,
+) {
+    navigation<SubGraph.Staff>(startDestination = Dest.StaffScreen) {
+
         composable<Dest.StaffScreen> {
             StaffScreen()
         }
@@ -25,14 +28,32 @@ fun NavGraphBuilder.staffNavGraph(navController: NavHostController) {
         composable<Dest.StaffHomeScreen> {
             StaffHomeScreen(
                 staffId = "",
-                onNavigateBack = {
-
-                }
             )
         }
 
         composable<Dest.StaffSettingsScreen> {
-            StaffSettingsScreen()
+            StaffSettingsScreen(
+                onNavigateToRoles = {},
+                onNavigateToCategoryManager = {
+                    navController.navigate(Dest.MaintenanceCategoriesScreen)
+                },
+                onNavigateToPropertyManager = {
+                    navController.navigate(Dest.PropertyManagerScreen)
+                },
+            )
+        }
+
+        composable<Dest.CategoryManagerScreen> {
+            CategoryManagerScreen(
+                onNavigateUp = { navController.navigateUp() },
+                )
+        }
+
+        composable<Dest.PropertyManagerScreen> {
+            PropertyManagerScreen(
+                onNavigateUp = { navController.navigateUp() },
+                viewModel = hiltViewModel()
+            )
         }
     }
 }
