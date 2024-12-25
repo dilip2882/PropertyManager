@@ -79,6 +79,14 @@ sealed interface Dest {
 
     @Serializable
     data object PropertyManagerScreen: Dest
+    @Serializable
+    data object AddPropertyScreen: Dest
+    @Serializable
+    data class EditPropertyScreen(val propertyId: String): Dest
+    @Serializable
+    data object SelectCountryScreen: Dest
+    @Serializable
+    data object SelectCityScreen: Dest
 
 }
 

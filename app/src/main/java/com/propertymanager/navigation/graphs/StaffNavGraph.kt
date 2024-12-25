@@ -1,11 +1,8 @@
 package com.propertymanager.navigation.graphs
 
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.propertymanager.bottomnav.staff.StaffScreen
@@ -14,7 +11,10 @@ import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.staff.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 import propertymanager.feature.staff.settings.category.CategoryManagerScreen
+import propertymanager.feature.staff.settings.property.AddPropertyScreen
 import propertymanager.feature.staff.settings.property.PropertyManagerScreen
+import propertymanager.feature.staff.settings.property.SelectCityScreen
+import propertymanager.feature.staff.settings.property.SelectCountryScreen
 
 fun NavGraphBuilder.staffNavGraph(
     navController: NavHostController,
@@ -46,18 +46,56 @@ fun NavGraphBuilder.staffNavGraph(
         composable<Dest.CategoryManagerScreen> {
             CategoryManagerScreen(
                 onNavigateUp = { navController.navigateUp() },
-                )
+            )
         }
 
         composable<Dest.PropertyManagerScreen> {
             PropertyManagerScreen(
-                onNavigateUp = { navController.navigateUp() },
-                viewModel = hiltViewModel()
+                onNavigateToAddProperty = {
+                    navController.navigate(Dest.SelectCountryScreen)
+                },
+                viewModel = hiltViewModel(),
             )
+        }
+
+        composable<Dest.SelectCountryScreen> {
+            SelectCountryScreen(
+                onCountrySelected = {
+                    navController.navigate(Dest.SelectCityScreen)
+                },
+                onNavigateBack = { navController.navigateUp() },
+            )
+        }
+
+        composable<Dest.SelectCityScreen> {
+            SelectCityScreen(
+                selectedCountry = "NA",
+                onCitySelected = {
+                    navController.navigate(Dest.AddPropertyScreen)
+                },
+                onNavigateBack = { navController.navigateUp() },
+            )
+        }
+
+        composable<Dest.AddPropertyScreen> {
+            AddPropertyScreen(
+                viewModel = hiltViewModel(),
+                selectedCountry = "",
+                selectedCity = "",
+                onPropertyAdded = {},
+                onNavigateBack = { navController.navigateUp() },
+            )
+        }
+
+
+        composable<Dest.EditPropertyScreen> { backStackEntry ->
+            val propertyId = backStackEntry.arguments?.getString("propertyId")
+
         }
     }
 }
 
+/*
 fun NavController.navigateToStaffDestination(
     destination: Dest,
     builder: NavOptionsBuilder.() -> Unit = {
@@ -98,3 +136,4 @@ fun NavController.handleStaffNavigationEvent(event: StaffNavigationEvent) {
         }
     }
 }
+*/
