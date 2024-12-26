@@ -31,7 +31,6 @@ dependencies {
     // geolocation
     implementation(libs.play.services.location)
 
-
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.firebase.messaging.ktx)
@@ -39,6 +38,9 @@ dependencies {
 
     // Data serialization (JSON, protobuf, xml, retrofit)
     implementation(kotlinx.bundles.serialization)
+
+    // biometric auth
+    implementation(androidx.biometric.auth.ktx)
 
     implementation(kotlinx.reflect)
     implementation(kotlinx.immutables)

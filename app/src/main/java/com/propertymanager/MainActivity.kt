@@ -1,31 +1,27 @@
 package com.propertymanager
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.fragment.app.FragmentActivity
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.messaging.FirebaseMessaging
-import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.common.preferences.AppPreferences
-import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
+import com.propertymanager.domain.model.biometrics.BiometricAuthState
 import com.propertymanager.navigation.MainNavigation
-import com.propertymanager.navigation.SubGraph
-import com.propertymanager.navigation.graphs.staffNavGraph
 import com.propertymanager.ui.theme.PropertyManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
+import propertymanager.feature.staff.settings.BiometricViewModel
+import propertymanager.feature.staff.settings.ThemeViewModel
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     @Inject
     lateinit var appPreferences: AppPreferences
 
@@ -35,10 +31,36 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val viewModel: ThemeViewModel = hiltViewModel()
+            val biometricViewModel: BiometricViewModel = hiltViewModel()
+
+            val dynamicColor by viewModel.dynamicColor.collectAsState()
+            val darkMode by viewModel.darkMode.collectAsState()
+
+            val hasAuthenticated by biometricViewModel.hasAuthenticated.collectAsState()
+            val biometricAuthState by biometricViewModel
+                .biometricAuthState
+                .collectAsState(BiometricAuthState.LOADING)
+            val biometricAuthResult by biometricViewModel.authResult.collectAsState()
+
+            LaunchedEffect(biometricAuthState) {
+
+                if (biometricAuthState == BiometricAuthState.ENABLED) {
+                    biometricViewModel.authenticate(this@MainActivity)
+                }
+            }
+
+            biometricViewModel.handleBiometricAuth(biometricAuthResult, this)
+
+            PropertyManagerTheme(
+                darkTheme = darkMode, dynamicColor = dynamicColor,
+            ) {
                 MainNavigation(
                     navController = rememberNavController(),
                     appPreferences = appPreferences,
                 )
+            }
+
         }
     }
 }

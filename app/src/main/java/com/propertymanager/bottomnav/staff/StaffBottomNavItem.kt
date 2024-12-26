@@ -25,30 +25,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.propertymanager.common.i18n.Strings
+import dev.icerock.moko.resources.StringResource
 import propertymanager.presentation.theme.PropertyManagerIcons
 
 enum class StaffBottomNavItem(
-    val route: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val label: String,
+    val route: String,
 ) {
     HOME(
-        route = "staff_home",
         selectedIcon = PropertyManagerIcons.Home,
         unselectedIcon = PropertyManagerIcons.HomeBorder,
-        label = "Home"
+        label = "Home",
+        route = "staff_home",
     ),
     SETTINGS(
-        route = "staff_settings",
         selectedIcon = PropertyManagerIcons.Settings,
         unselectedIcon = PropertyManagerIcons.SettingsBorder,
-        label = "Settings"
+        label = "Settings",
+        route = "staff_settings",
     );
 
     companion object {
@@ -56,6 +59,10 @@ enum class StaffBottomNavItem(
     }
 }
 
+@Composable
+fun stringResource(id: StringResource, vararg args: Any): String {
+    return Strings(LocalContext.current).get(id, args.toList())
+}
 
 @Composable
 fun StaffNavBar(
@@ -91,25 +98,25 @@ fun StaffNavBar(
                         val iconSize by animateDpAsState(
                             targetValue = if (selected) 30.dp else 30.dp,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Icon Size"
+                            label = "Icon Size",
                         )
 
                         val iconShape by animateFloatAsState(
                             targetValue = if (selected) 35f else 20f,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Icon Shape"
+                            label = "Icon Shape",
                         )
 
                         val backgroundWidth by animateDpAsState(
                             targetValue = if (selected) 60.dp else 40.dp,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Background Width"
+                            label = "Background Width",
                         )
 
                         val rotation by animateFloatAsState(
                             targetValue = if (selected && item == StaffBottomNavItem.SETTINGS) 90f else 0f,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Rotation"
+                            label = "Rotation",
                         )
 
                         Box(
@@ -134,13 +141,13 @@ fun StaffNavBar(
                         val labelColor by animateColorAsState(
                             targetValue = if (selected) Color(0xFFE7EF9F) else Color.White,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Label Color"
+                            label = "Label Color",
                         )
 
                         val labelFontSize by animateFloatAsState(
                             targetValue = if (selected) 14f else 12f,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Label Font Size"
+                            label = "Label Font Size",
                         )
 
                         Text(

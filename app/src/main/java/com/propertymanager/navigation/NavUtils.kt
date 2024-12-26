@@ -35,6 +35,9 @@ sealed interface Dest {
     @Serializable
     data object HomeScreen : Dest
 
+    @Serializable
+    data object PropertyManagerApp : Dest
+
     // Role-based destinations
     @Serializable
     data object TenantScreen : Dest

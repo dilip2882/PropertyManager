@@ -35,7 +35,7 @@ fun TenantScreen(
     val isBottomBarVisible = remember(currentDestination) {
         when (currentDestination?.route) {
             TenantBottomNavItem.Home.route,
-            TenantBottomNavItem.Settings.route,
+            TenantBottomNavItem.Person.route,
                 -> true
 
             else -> false
@@ -80,7 +80,7 @@ fun TenantScreen(
                 )
             }
 
-            composable(TenantBottomNavItem.Settings.route) {
+            composable(TenantBottomNavItem.Person.route) {
                 TenantProfileScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.OnboardingFormScreen)

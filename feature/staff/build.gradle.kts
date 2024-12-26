@@ -52,6 +52,9 @@ dependencies {
     implementation(libs.image.decoder)
     implementation(libs.coil.compose)
 
+    // biometric auth
+    implementation(androidx.biometric.auth.ktx)
+    
     implementation(kotlinx.immutables)
 }
 

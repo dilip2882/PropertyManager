@@ -35,4 +35,5 @@ object PropertyModule {
             getPropertyById = GetPropertyByIdUseCase(repository),
         )
     }
+
 }

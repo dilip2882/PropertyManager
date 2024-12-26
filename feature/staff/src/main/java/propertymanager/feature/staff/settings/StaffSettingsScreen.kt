@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,11 +50,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
+import com.propertymanager.domain.model.biometrics.BiometricAuthState
+import com.propertymanager.domain.model.biometrics.BiometricCheckResult
 import propertymanager.presentation.components.ImageWrapper
 import propertymanager.presentation.components.LocalPreferenceHighlighted
 import propertymanager.presentation.components.LocalPreferenceMinHeight
@@ -65,6 +70,35 @@ fun StaffSettingsScreen(
     onNavigateToPropertyManager: () -> Unit,
     onNavigateToRoles: () -> Unit,
 ) {
+    val viewModel = hiltViewModel<ThemeViewModel>()
+    val biometricAuthViewModel = hiltViewModel<BiometricViewModel>()
+
+    val context = LocalContext.current
+    val dynamicColor by viewModel.dynamicColor.collectAsState()
+    val darkMode by viewModel.darkMode.collectAsState()
+    val biometricAvailability by biometricAuthViewModel.biometricAvailability.collectAsState()
+    val biometricAuth by biometricAuthViewModel.biometricAuthState.collectAsState()
+
+    val darkModeChange: (Boolean) -> Unit = remember(viewModel) {
+        {
+            viewModel.setDarkMode(it)
+        }
+    }
+
+    val dynamicColorChange: (Boolean) -> Unit = remember(viewModel) {
+        {
+            viewModel.setDynamicColor(it)
+        }
+    }
+
+    val biometricAuthChange: (Boolean) -> Unit = remember(biometricAuthViewModel) {
+
+        {
+            biometricAuthViewModel.setBiometricAuth(it)
+        }
+
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -109,8 +143,8 @@ fun StaffSettingsScreen(
                 SettingsItem(
                     optionName = "Dark Mode",
                     isSwitch = true,
-                    switchValue = false,
-                    onSwitchChanged = {},
+                    switchValue = darkMode,
+                    onSwitchChanged = darkModeChange,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -120,9 +154,25 @@ fun StaffSettingsScreen(
                 SettingsItem(
                     optionName = "Dynamic Color",
                     isSwitch = true,
-                    switchValue = false,
-                    onSwitchChanged = {},
+                    switchValue = dynamicColor,
+                    onSwitchChanged = dynamicColorChange,
                 )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                if (biometricAvailability is BiometricCheckResult.Available) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SettingsItem(
+                        optionName = "Biometric Authentication",
+                        isSwitch = true,
+                        switchValue = biometricAuth == BiometricAuthState.ENABLED,
+                        onSwitchChanged = biometricAuthChange,
+                    )
+                }
 
             }
 

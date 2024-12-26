@@ -9,6 +9,8 @@ serialization = "1.7.3"
 
 datastore = "1.1.1"
 
+biometric-version = "1.1.0"
+
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "agp_version" }
 
@@ -33,6 +35,8 @@ lifecycle-runtimektx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", ve
 #dataStore
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
+# biometric-auth
+biometric-auth-ktx = {module = "androidx.biometric:biometric", version.ref = "biometric-version"}
 
 workmanager = "androidx.work:work-runtime:2.10.0"
 
