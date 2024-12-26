@@ -25,7 +25,6 @@ import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.staff.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
-import propertymanager.feature.tenant.home.MaintenanceCategoriesScreen
 
 @Composable
 fun StaffScreen(
@@ -35,10 +34,9 @@ fun StaffScreen(
 
     val isBottomBarVisible = remember(currentDestination) {
         when (currentDestination?.route) {
-            StaffBottomNavItem.Home.route,
-            StaffBottomNavItem.Settings.route,
+            StaffBottomNavItem.HOME.route,
+            StaffBottomNavItem.SETTINGS.route,
                 -> true
-
             else -> false
         }
     }
@@ -67,17 +65,16 @@ fun StaffScreen(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = StaffBottomNavItem.Home.route,
+            startDestination = StaffBottomNavItem.HOME.route,
             modifier = Modifier.padding(paddingValues),
         ) {
-            composable(StaffBottomNavItem.Home.route) {
+            composable(StaffBottomNavItem.HOME.route) {
                 StaffHomeScreen(
                     staffId = "",
                 )
-
             }
 
-            composable(StaffBottomNavItem.Settings.route) {
+            composable(StaffBottomNavItem.SETTINGS.route) {
                 StaffSettingsScreen(
                     onNavigateToRoles = {},
                     onNavigateToCategoryManager = {
@@ -105,6 +102,4 @@ fun StaffScreen(
             staffNavGraph(navController)
         }
     }
-
 }
-

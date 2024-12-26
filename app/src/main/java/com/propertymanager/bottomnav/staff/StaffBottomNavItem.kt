@@ -27,35 +27,33 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import propertymanager.presentation.theme.PropertyManagerIcons
 
-sealed class StaffBottomNavItem(
+enum class StaffBottomNavItem(
     val route: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val label: String,
 ) {
-
-    data object Home : StaffBottomNavItem(
+    HOME(
         route = "staff_home",
         selectedIcon = PropertyManagerIcons.Home,
         unselectedIcon = PropertyManagerIcons.HomeBorder,
-        label = "Home",
-    )
-
-    data object Settings : StaffBottomNavItem(
+        label = "Home"
+    ),
+    SETTINGS(
         route = "staff_settings",
         selectedIcon = PropertyManagerIcons.Settings,
         unselectedIcon = PropertyManagerIcons.SettingsBorder,
-        label = "Settings",
-    )
+        label = "Settings"
+    );
 
     companion object {
-        fun getAllItems() = listOf(Home, Settings)
+        fun getAllItems() = entries
     }
-
 }
 
 
@@ -89,6 +87,7 @@ fun StaffNavBar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
+                        // Animate icon size
                         val iconSize by animateDpAsState(
                             targetValue = if (selected) 30.dp else 30.dp,
                             animationSpec = tween(durationMillis = 300),
@@ -108,7 +107,7 @@ fun StaffNavBar(
                         )
 
                         val rotation by animateFloatAsState(
-                            targetValue = if (selected && item is StaffBottomNavItem.Settings) 90f else 0f,
+                            targetValue = if (selected && item == StaffBottomNavItem.SETTINGS) 90f else 0f,
                             animationSpec = tween(durationMillis = 300),
                             label = "Rotation"
                         )
@@ -158,5 +157,18 @@ fun StaffNavBar(
             }
         }
     }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun StaffNavBarPreview() {
+    val currentDestination = "home"
+    val onNavigate: (String) -> Unit = { }
+
+    StaffNavBar(
+        currentDestination = currentDestination,
+        onNavigate = onNavigate,
+    )
 }
 
