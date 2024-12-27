@@ -38,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dilip.country_code_picker.CountryCodePickerTextField
 import com.hbb20.CountryCodePicker
 import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
@@ -114,6 +115,7 @@ fun PhoneScreen(
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+
             // Country Code Picker
             AndroidView(
                 factory = { context ->

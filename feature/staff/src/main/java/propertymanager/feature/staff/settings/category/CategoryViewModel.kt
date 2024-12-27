@@ -32,7 +32,7 @@ class CategoryViewModel @Inject constructor(
         viewModelScope.launch {
             _categoriesResponse.value = Response.Loading
             try {
-                val categories = categoryUseCases.fetchCategories()
+                val categories = categoryUseCases.fetchCategories().sortedBy { it.name.lowercase() }
                 _categoriesResponse.value = Response.Success(categories)
             } catch (e: Exception) {
                 _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")

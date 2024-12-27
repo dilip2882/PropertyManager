@@ -91,7 +91,8 @@ fun CategoryItem(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(start = 15.dp, end = 15.dp, bottom = 5.dp)
+            .background(color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(50.dp))
     ) {
         // Action buttons
         Row(
@@ -100,6 +101,7 @@ fun CategoryItem(
                 .height(actionButtonHeight)
                 .padding(1.dp),
             horizontalArrangement = Arrangement.End
+
         ) {
             Box(
                 modifier = Modifier

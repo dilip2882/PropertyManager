@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,12 +58,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
+import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.biometrics.BiometricAuthState
 import com.propertymanager.domain.model.biometrics.BiometricCheckResult
 import propertymanager.presentation.components.ImageWrapper
 import propertymanager.presentation.components.LocalPreferenceHighlighted
 import propertymanager.presentation.components.LocalPreferenceMinHeight
 import propertymanager.presentation.components.TextPreferenceWidget
+import propertymanager.presentation.onboarding.UserViewModel
 
 @Composable
 fun StaffSettingsScreen(
@@ -132,7 +135,7 @@ fun StaffSettingsScreen(
             verticalArrangement = Arrangement.Top,
         ) {
             item {
-                Profile()
+                Profile(user = User())
             }
 
             item {
@@ -160,11 +163,8 @@ fun StaffSettingsScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            item {
                 if (biometricAvailability is BiometricCheckResult.Available) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     SettingsItem(
                         optionName = "Biometric Authentication",
                         isSwitch = true,
@@ -223,14 +223,20 @@ fun StaffSettingsScreen(
 }
 
 @Composable
-fun Profile() {
+fun Profile(user: User) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val userViewModel = hiltViewModel<UserViewModel>()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         selectedImageUri = uri
     }
 
     val uriHandler = LocalUriHandler.current
+
+    LaunchedEffect(key1 = true) {
+        val response = userViewModel.getUserData.value
+    }
 
     Column(
         modifier = Modifier
@@ -326,7 +332,7 @@ fun Profile() {
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(
-                text = "Dilip",
+                text = user.name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 color =  MaterialTheme.colorScheme.primary,
