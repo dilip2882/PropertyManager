@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     // biometric auth
-    implementation(androidx.biometric.auth.ktx)
+    implementation(androidx.biometricktx)
     
     implementation(kotlinx.immutables)
 }

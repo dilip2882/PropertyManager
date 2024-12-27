@@ -40,7 +40,7 @@ class BiometricAuthenticator @Inject constructor(
         biometricPrompt = BiometricPrompt(activity, executor, callback)
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("FD Tracker")
+            .setTitle("Property Manager")
             .setSubtitle("Scan your fingerprint to continue")
             /** negative button text can be used if device credentials are not used */
 //            .setNegativeButtonText("Close App")

@@ -9,14 +9,13 @@ serialization = "1.7.3"
 
 datastore = "1.1.1"
 
-biometric-version = "1.1.0"
+biometric-version = "1.2.0-alpha05"
 
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "agp_version" }
 
 annotation = "androidx.annotation:annotation:1.9.1"
 appcompat = "androidx.appcompat:appcompat:1.7.0"
-biometricktx = "androidx.biometric:biometric-ktx:1.2.0-alpha05"
 constraintlayout = "androidx.constraintlayout:constraintlayout:2.2.0"
 corektx = "androidx.core:core-ktx:1.13.1"
 splashscreen = "androidx.core:core-splashscreen:1.0.1"
@@ -36,7 +35,7 @@ lifecycle-runtimektx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", ve
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 # biometric-auth
-biometric-auth-ktx = {module = "androidx.biometric:biometric", version.ref = "biometric-version"}
+biometricktx = "androidx.biometric:biometric-ktx:1.2.0-alpha05"
 
 workmanager = "androidx.work:work-runtime:2.10.0"
 

@@ -40,7 +40,7 @@ dependencies {
     implementation(kotlinx.bundles.serialization)
 
     // biometric auth
-    implementation(androidx.biometric.auth.ktx)
+    implementation(androidx.biometricktx)
 
     implementation(kotlinx.reflect)
     implementation(kotlinx.immutables)

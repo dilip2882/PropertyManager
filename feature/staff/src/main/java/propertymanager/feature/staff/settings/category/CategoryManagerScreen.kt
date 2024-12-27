@@ -1,6 +1,7 @@
 package propertymanager.feature.staff.settings.category
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -82,7 +84,11 @@ fun CategoryManagerScreen(
             )
         },
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .background(color = MaterialTheme.colorScheme.background)
+        ) {
             when (categoriesResponse) {
                 is Response.Loading -> LoadingScreen()
                 is Response.Success -> {
@@ -92,8 +98,6 @@ fun CategoryManagerScreen(
                         items(categories) { category ->
                             CategoryItem(
                                 category = category,
-                                onMoveUp = { viewModel.moveCategoryUp(category) },
-                                onMoveDown = { viewModel.moveCategoryDown(category) },
                                 onEditCategory = {
                                     isEditMode = true
                                     showCategoryDialog = true

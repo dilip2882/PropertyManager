@@ -165,7 +165,6 @@ fun StaffSettingsScreen(
 
             item {
                 if (biometricAvailability is BiometricCheckResult.Available) {
-                    Spacer(modifier = Modifier.height(16.dp))
                     SettingsItem(
                         optionName = "Biometric Authentication",
                         isSwitch = true,
@@ -236,7 +235,7 @@ fun Profile() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
 
         ) {
         Box(
@@ -330,7 +329,7 @@ fun Profile() {
                 text = "Dilip",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = Color.Black,
+                color =  MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = "6-152    Residing Owner",

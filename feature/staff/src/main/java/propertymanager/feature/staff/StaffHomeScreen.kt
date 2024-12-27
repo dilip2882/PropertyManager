@@ -52,7 +52,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
@@ -214,7 +219,7 @@ fun StaffMaintenanceCard(
             // Issue Details
             Text(
                 text = request.issueDescription,
-                style = TextStyle(shadow = Shadow(color = Color.Black, blurRadius = 7.5f)),
+                style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 20.sp, fontWeight = FontWeight.Medium),
 
                 )
 
@@ -233,14 +238,6 @@ fun StaffMaintenanceCard(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
                     },
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = when (request.status) {
-                            RequestStatus.PENDING.label -> Color.Transparent
-                            RequestStatus.IN_PROGRESS.label -> MaterialTheme.colorScheme.primary
-                            RequestStatus.COMPLETED.label -> Color.Green
-                            else -> Color.White
-                        },
-                    ),
                     modifier = Modifier.menuAnchor(),
                 )
 
@@ -275,14 +272,6 @@ fun StaffMaintenanceCard(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityExpanded)
                     },
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = when (request.priority) {
-                            PriorityLevel.LOW.label -> Color.White
-                            PriorityLevel.HIGH.label -> MaterialTheme.colorScheme.error
-                            PriorityLevel.MEDIUM.label -> MaterialTheme.colorScheme.primary
-                            else -> Color.Transparent
-                        },
-                    ),
                     modifier = Modifier.menuAnchor(),
                 )
 

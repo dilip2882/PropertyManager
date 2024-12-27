@@ -1,7 +1,10 @@
 package com.propertymanager.data.repository
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -16,17 +19,23 @@ import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Role
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.repository.AuthRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
+    private val context: Activity
 ) : AuthRepository {
 
     private lateinit var verificationCode: String
@@ -80,99 +89,161 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    private suspend fun checkPlayServices(context: Activity): Boolean {
+        return try {
+            val googleApiAvailability = GoogleApiAvailability.getInstance()
+            val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(context)
+            resultCode == ConnectionResult.SUCCESS
+        } catch (e: Exception) {
+            Log.e("AuthRepo", "Error checking Play Services", e)
+            false
+        }
+    }
+
+    private suspend fun getFcmToken(): String? {
+        if (!checkPlayServices(context = context)) {
+            Log.w("AuthRepo", "Google Play Services not available")
+            return null
+        }
+
+        return try {
+            withTimeout(30000) { // 30 seconds timeout
+                var attempts = 0
+                var token: String? = null
+
+                while (attempts < 3 && token == null) {
+                    try {
+                        token = suspendCancellableCoroutine { continuation ->
+                            FirebaseMessaging.getInstance().token
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        continuation.resume(task.result)
+                                    } else {
+                                        Log.e("AuthRepo", "FCM token task failed", task.exception)
+                                        continuation.resume(null)
+                                    }
+                                }
+                        }
+
+                        if (token == null) {
+                            attempts++
+                            if (attempts < 3) {
+                                Log.d("AuthRepo", "FCM token attempt $attempts failed, retrying...")
+                                delay(2000L * attempts) // Exponential backoff
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("AuthRepo", "FCM token fetch attempt $attempts failed", e)
+                        attempts++
+                        if (attempts < 3) delay(2000L * attempts)
+                    }
+                }
+                token
+            }
+        } catch (e: Exception) {
+            Log.w("AuthRepo", "Failed to fetch FCM token after retries", e)
+            null
+        }
+    }
+
     override suspend fun signInWithCredential(otp: String): Flow<Response<String>> = callbackFlow {
         trySend(Response.Loading)
 
-        if (::verificationCode.isInitialized) {
+        if (!::verificationCode.isInitialized) {
+            trySend(Response.Error("Verification code not initialized"))
+            close()
+            return@callbackFlow
+        }
+
+        try {
             val credential = PhoneAuthProvider.getCredential(verificationCode, otp)
-            auth.signInWithCredential(credential)
-                .addOnCompleteListener { authTask ->
-                    if (authTask.isSuccessful) {
-                        val user = auth.currentUser
-                        Log.d("AuthRepo", "Current Firebase User: ${user?.uid}")
+            val authResult = auth.signInWithCredential(credential).await()
 
-                        if (user != null && user.uid.isNotEmpty()) {
-                            val userId = user.uid
-                            val userDocRef = firestore.collection(Constants.COLLECTION_NAME_USERS)
-                                .document(userId)
+            val user = authResult.user ?: run {
+                trySend(Response.Error("Authentication failed: User is null"))
+                close()
+                return@callbackFlow
+            }
 
-                            // Retrieve the document synchronously
-                            userDocRef.get()
-                                .addOnSuccessListener { documentSnapshot ->
-                                    // Forcefully retrieve and preserve the existing role
-                                    val existingRole = documentSnapshot.getString("role")
-                                        ?: documentSnapshot.get("role")?.toString()
-                                        ?: Role.TENANT.name // Default to TENANT if not found
+            if (user.uid.isEmpty()) {
+                trySend(Response.Error("User ID cannot be empty"))
+                close()
+                return@callbackFlow
+            }
 
-                                    Log.d("AuthRepo", "Existing Role in Document: $existingRole")
+            val userDocRef = firestore.collection(Constants.COLLECTION_NAME_USERS)
+                .document(user.uid)
 
-                                    // Retrieve the notification token before continuing
-                                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            val notificationToken = task.result
-                                            Log.d("AuthRepo", "FCM Token: $notificationToken")
+            // Fetch existing user data
+            val documentSnapshot = try {
+                userDocRef.get().await()
+            } catch (e: Exception) {
+                Log.e("AuthRepo", "Failed to fetch user document", e)
+                trySend(Response.Error("Failed to fetch user data: ${e.message}"))
+                close()
+                return@callbackFlow
+            }
 
-                                            val tokenList = notificationToken?.let { listOf(it) } ?: emptyList()
+            // Preserve existing role
+            val existingRole = documentSnapshot.getString("role")
+                ?: documentSnapshot.get("role")?.toString()
+                ?: Role.TENANT.name
 
-                                            // Prepare the update data with token
-                                            val updateData = mapOf(
-                                                "phone" to (user.phoneNumber ?: ""),
-                                                "updatedAt" to FieldValue.serverTimestamp(),
-                                                "token" to FieldValue.arrayUnion(notificationToken)
-                                            )
+            Log.d("AuthRepo", "Existing Role in Document: $existingRole")
 
-                                            // Update document without modifying the role
-                                            userDocRef.update(updateData)
-                                                .addOnSuccessListener {
-                                                    Log.d("AuthRepo", "User updated. Preserving role: $existingRole")
+            // Get FCM token with device compatibility check
+            val fcmToken = getFcmToken()
 
-                                                    // Explicitly set the role back to its original value if it was somehow changed
-                                                    val roleUpdateData = mapOf("role" to existingRole)
-                                                    userDocRef.update(roleUpdateData)
-                                                        .addOnSuccessListener {
-                                                            trySend(Response.Success("Signed in with role: $existingRole"))
-                                                        }
-                                                        .addOnFailureListener { e ->
-                                                            Log.e("AuthRepo", "Failed to preserve role", e)
-                                                            trySend(Response.Success("Signed in, but role preservation failed"))
-                                                        }
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    Log.e("AuthRepo", "User update failed", e)
-                                                    trySend(Response.Error("Update failed: ${e.message}"))
-                                                }
-                                        } else {
-                                            Log.e("AuthRepo", "Failed to fetch FCM token", task.exception)
-                                            trySend(Response.Error("Failed to fetch FCM token"))
-                                        }
-                                    }
-                                }
-                                .addOnFailureListener { e ->
-                                    Log.e("AuthRepo", "Document retrieval failed", e)
-                                    trySend(Response.Error("Retrieval failed: ${e.message}"))
-                                }
-                        } else {
-                            Log.e("AuthRepo", "User ID is empty or user is null!")
-                            trySend(Response.Error("User ID cannot be empty"))
-                        }
-                    } else {
-                        Log.e("AuthRepo", "Authentication failed", authTask.exception)
-                        trySend(Response.Error("Invalid OTP"))
+            // Prepare update data
+            val updateData = mutableMapOf(
+                "phone" to (user.phoneNumber ?: ""),
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+
+            try {
+                // First, update the basic user data
+                userDocRef.update(updateData).await()
+
+                // If we have an FCM token, update it in a separate transaction
+                if (fcmToken != null) {
+                    try {
+                        firestore.runTransaction { transaction ->
+                            val snapshot = transaction.get(userDocRef)
+                            val tokens = snapshot.get("token") as? List<String> ?: listOf()
+
+                            if (fcmToken !in tokens) {
+                                transaction.update(userDocRef, "token", FieldValue.arrayUnion(fcmToken))
+                            }
+                        }.await()
+                    } catch (e: Exception) {
+                        Log.e("AuthRepo", "Failed to update FCM token", e)
+                        // Continue without FCM token update
                     }
                 }
-                .addOnFailureListener { e ->
-                    Log.e("AuthRepo", "Sign-in credential failed", e)
-                    trySend(Response.Error(e.toString()))
+
+                // Finally, ensure role is preserved
+                userDocRef.update("role", existingRole).await()
+
+                val successMessage = if (fcmToken != null) {
+                    "Signed in with role: $existingRole"
+                } else {
+                    "Signed in with role: $existingRole (FCM token update skipped)"
                 }
-        } else {
-            trySend(Response.Error("Verification code not initialized"))
+
+                trySend(Response.Success(successMessage))
+            } catch (e: Exception) {
+                Log.e("AuthRepo", "Failed to update user document", e)
+                trySend(Response.Error("Failed to update user data: ${e.message}"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepo", "Authentication failed", e)
+            trySend(Response.Error(e.message ?: "Authentication failed"))
         }
 
         awaitClose {
             close()
         }
     }
-
 
     override suspend fun resendOtp(
         phone: String,

@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -60,8 +61,6 @@ enum class RevealState {
 @Composable
 fun CategoryItem(
     category: Category,
-    onMoveUp: (() -> Unit)? = null,
-    onMoveDown: (() -> Unit)? = null,
     onEditCategory: () -> Unit,
     onDeleteCategory: () -> Unit,
     onAddSubcategory: () -> Unit,
@@ -71,7 +70,9 @@ fun CategoryItem(
     var expanded by remember { mutableStateOf(false) }
     var revealState by remember { mutableStateOf(RevealState.Hidden) }
     var offsetX by remember { mutableFloatStateOf(0f) }
+
     val actionButtonWidth = 80.dp
+    val actionButtonHeight = 60.dp
     val maxOffset = with(LocalDensity.current) { -actionButtonWidth.times(2).toPx() }
 
     val swipeAnimation = remember {
@@ -96,22 +97,25 @@ fun CategoryItem(
         Row(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .height(IntrinsicSize.Min)
-                .shadow(8.dp, RoundedCornerShape(12.dp)),
+                .height(actionButtonHeight)
+                .padding(1.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Box(
                 modifier = Modifier
                     .width(actionButtonWidth)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
-                    .clickable(onClick = onEditCategory),
+                    .clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                    .background(if (revealState == RevealState.Revealed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background, RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
+                    .clickable {
+                        onEditCategory()
+                        offsetX = 0f
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -131,14 +135,17 @@ fun CategoryItem(
                 modifier = Modifier
                     .width(actionButtonWidth)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.error, RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
-                    .clickable(onClick = onDeleteCategory),
+                    .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
+                    .background(if (revealState == RevealState.Revealed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.background, RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp))
+                    .clickable {
+                        onDeleteCategory()
+                        offsetX = 0f
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(vertical = 8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -203,14 +210,6 @@ fun CategoryItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = category.name, style = MaterialTheme.typography.titleMedium)
-                    Row {
-                        IconButton(onClick = onMoveUp!!) {
-                            Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Move Up")
-                        }
-                        IconButton(onClick = onMoveDown!!) {
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Move Down")
-                        }
-                    }
                 }
 
                 // Subcategories and Add Subcategory

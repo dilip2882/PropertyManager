@@ -1,5 +1,7 @@
 package com.propertymanager.data.di
 
+import android.app.Activity
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.data.repository.AuthRepositoryImpl
@@ -14,6 +16,7 @@ import com.propertymanager.domain.usecase.auth.SignOutUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -24,7 +27,7 @@ object AuthModule {
     @Provides
     @Singleton
     fun providesAuthRepository(auth: FirebaseAuth, firestore: FirebaseFirestore): AuthRepository {
-        return AuthRepositoryImpl(auth = auth, firestore = firestore)
+        return AuthRepositoryImpl(auth = auth, firestore = firestore, context = Activity())
     }
 
     @Provides
