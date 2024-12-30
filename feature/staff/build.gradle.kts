@@ -21,6 +21,7 @@ dependencies {
     api(projects.core.data)
     api(projects.core.domain)
     api(projects.core.presentation)
+    api(projects.core.network)
     api(projects.i18n)
 
     // Hilt

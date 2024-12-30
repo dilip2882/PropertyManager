@@ -65,7 +65,6 @@ class MainActivity : FragmentActivity() {
             PropertyManagerTheme(
                 darkTheme = darkMode, dynamicColor = dynamicColor,
             ) {
-
                 MainNavigation(
                     navController = rememberNavController(),
                     appPreferences = appPreferences,

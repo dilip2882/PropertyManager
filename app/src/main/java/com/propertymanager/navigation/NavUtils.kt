@@ -89,7 +89,8 @@ sealed interface Dest {
     @Serializable
     data object SelectCountryScreen: Dest
     @Serializable
+    data object SelectStateScreen: Dest
+    @Serializable
     data object SelectCityScreen: Dest
-
 }
 

@@ -22,6 +22,7 @@ data class Property(
     // property address
     data class Address(
         val country: String = "",
+        val state: String = "",
         val city: String = "",
         val society: String = "",
         val building: String = "",
