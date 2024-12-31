@@ -9,4 +9,8 @@ interface PropertyRepository {
     suspend fun updateProperty(property: Property)
     suspend fun deleteProperty(propertyId: String)
     suspend fun getPropertyById(propertyId: String): Property?
+
+    suspend fun addAddress(propertyId: String, address: Property.Address)
+    suspend fun deleteAddress(propertyId: String)
+    suspend fun updateAddress(propertyId: String, address: Property.Address)
 }

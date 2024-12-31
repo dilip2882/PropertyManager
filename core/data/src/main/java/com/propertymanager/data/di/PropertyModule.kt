@@ -4,10 +4,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.data.repository.PropertyRepositoryImpl
 import com.propertymanager.domain.repository.PropertyRepository
 import com.propertymanager.domain.usecase.PropertyUseCases
+import com.propertymanager.domain.usecase.property.AddAddressUseCase
 import com.propertymanager.domain.usecase.property.AddPropertyUseCase
+import com.propertymanager.domain.usecase.property.DeleteAddressUseCase
 import com.propertymanager.domain.usecase.property.DeletePropertyUseCase
 import com.propertymanager.domain.usecase.property.GetPropertiesUseCase
 import com.propertymanager.domain.usecase.property.GetPropertyByIdUseCase
+import com.propertymanager.domain.usecase.property.UpdateAddressUseCase
 import com.propertymanager.domain.usecase.property.UpdatePropertyUseCase
 import dagger.Module
 import dagger.Provides
@@ -33,6 +36,9 @@ object PropertyModule {
             updateProperty = UpdatePropertyUseCase(repository),
             getProperties = GetPropertiesUseCase(repository),
             getPropertyById = GetPropertyByIdUseCase(repository),
+            addAddress = AddAddressUseCase(repository),
+            updateAddress = UpdateAddressUseCase(repository),
+            deleteAddress = DeleteAddressUseCase(repository)
         )
     }
 

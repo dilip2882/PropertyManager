@@ -35,4 +35,39 @@ class PropertyRepositoryImpl @Inject constructor(
         val snapshot = propertyCollection.document(propertyId).get().await()
         return snapshot.toObject(Property::class.java)?.copy(id = snapshot.id)
     }
+
+    override suspend fun addAddress(propertyId: String, address: Property.Address) {
+        val document = propertyCollection.document(propertyId)
+        val snapshot = document.get().await()
+        val property = snapshot.toObject(Property::class.java)
+
+        property?.let {
+            val updatedProperty = it.copy(address = address)
+            document.set(updatedProperty).await()
+        }
+    }
+
+    override suspend fun deleteAddress(propertyId: String) {
+        val document = propertyCollection.document(propertyId)
+        val snapshot = document.get().await()
+        val property = snapshot.toObject(Property::class.java)
+
+        property?.let {
+            val clearedAddress = Property.Address()
+            val updatedProperty = it.copy(address = clearedAddress)
+            document.set(updatedProperty).await()
+        }
+    }
+
+    override suspend fun updateAddress(propertyId: String, address: Property.Address) {
+        val document = propertyCollection.document(propertyId)
+        val snapshot = document.get().await()
+        val property = snapshot.toObject(Property::class.java)
+
+        property?.let {
+            val updatedProperty = it.copy(address = address)
+            document.set(updatedProperty).await()
+        }
+    }
+
 }

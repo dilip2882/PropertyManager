@@ -71,6 +71,7 @@ import propertymanager.presentation.onboarding.UserViewModel
 fun StaffSettingsScreen(
     onNavigateToCategoryManager: () -> Unit,
     onNavigateToPropertyManager: () -> Unit,
+    onNavigateToLocationManager: () -> Unit,
     onNavigateToRoles: () -> Unit,
 ) {
     val viewModel = hiltViewModel<ThemeViewModel>()
@@ -185,6 +186,20 @@ fun StaffSettingsScreen(
                     icon = Icons.Default.LocationOn,
                     onPreferenceClick = {
                         onNavigateToPropertyManager()
+                    },
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                TextPreferenceWidget(
+                    title = "Add Locations",
+                    icon = Icons.Default.LocationOn,
+                    onPreferenceClick = {
+                        onNavigateToLocationManager()
                     },
                 )
             }

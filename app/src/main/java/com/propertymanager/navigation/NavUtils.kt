@@ -81,6 +81,11 @@ sealed interface Dest {
     data object CategoryManagerScreen: Dest
 
     @Serializable
+    data object LocationScreen: Dest
+    @Serializable
+    data object LocationManagerScreen: Dest
+
+    @Serializable
     data object PropertyManagerScreen: Dest
     @Serializable
     data object AddPropertyScreen: Dest

@@ -83,6 +83,9 @@ fun StaffScreen(
                     onNavigateToPropertyManager = {
                         navController.navigate(Dest.PropertyManagerScreen)
                     },
+                    onNavigateToLocationManager = {
+                        navController.navigate(Dest.LocationManagerScreen)
+                    }
                 )
             }
 

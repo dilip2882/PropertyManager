@@ -7,13 +7,17 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.staff.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 import propertymanager.feature.staff.settings.category.CategoryManagerScreen
+import propertymanager.feature.staff.settings.location.LocationManagerScreen
+import propertymanager.feature.staff.settings.location.LocationScreen
 import propertymanager.feature.staff.settings.property.AddPropertyScreen
+import propertymanager.feature.staff.settings.property.AddressScreen
 import propertymanager.feature.staff.settings.property.LocationViewModel
 import propertymanager.feature.staff.settings.property.PropertyManagerScreen
 import propertymanager.feature.staff.settings.property.PropertyViewModel
@@ -40,11 +44,14 @@ fun NavGraphBuilder.staffNavGraph(
             StaffSettingsScreen(
                 onNavigateToRoles = {},
                 onNavigateToCategoryManager = {
-                    navController.navigate(Dest.MaintenanceCategoriesScreen)
+                    navController.navigate(Dest.CategoryManagerScreen)
                 },
                 onNavigateToPropertyManager = {
                     navController.navigate(Dest.PropertyManagerScreen)
                 },
+                onNavigateToLocationManager = {
+                    navController.navigate(Dest.LocationManagerScreen)
+                }
             )
         }
 
@@ -55,12 +62,32 @@ fun NavGraphBuilder.staffNavGraph(
         }
 
         composable<Dest.PropertyManagerScreen> {
-            val locationViewModel: LocationViewModel = hiltViewModel()
             PropertyManagerScreen(
                 onNavigateToAddProperty = {
                     navController.navigate(Dest.SelectCountryScreen)
                 },
+                onNavigateBack = {
+                    navController.navigateUp()
+                },
                 viewModel = hiltViewModel(),
+            )
+        }
+
+        composable<Dest.LocationManagerScreen> {
+            LocationManagerScreen(
+                viewModel = hiltViewModel(),
+                onNavigateBack = {
+                    navController.navigateUp()
+                }
+            )
+        }
+
+        composable<Dest.LocationScreen> {
+            LocationScreen(
+                viewModel = hiltViewModel(),
+                onNavigateBack = {
+                    navController.navigateUp()
+                }
             )
         }
 

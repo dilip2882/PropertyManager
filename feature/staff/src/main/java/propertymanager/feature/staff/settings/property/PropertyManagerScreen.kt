@@ -41,6 +41,7 @@ import propertymanager.presentation.screens.LoadingScreen
 @Composable
 fun PropertyManagerScreen(
     viewModel: PropertyViewModel,
+    onNavigateBack: () -> Unit,
     onNavigateToAddProperty: () -> Unit,
 ) {
     val propertiesResponse by viewModel.propertiesResponse.collectAsState()
@@ -49,16 +50,18 @@ fun PropertyManagerScreen(
         topBar = {
             TopAppBar(
                 title = { Text("My Properties") },
-                /*                colors = TopAppBarDefaults.topAppBarColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                                )*/
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
+                },
+
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToAddProperty,
-                containerColor = MaterialTheme.colorScheme.primary,
+//                containerColor = MaterialTheme.colorScheme.primary,
             ) {
                 Icon(Icons.Default.Add, "Add Property")
             }

@@ -28,17 +28,27 @@ class CategoryViewModel @Inject constructor(
         fetchCategories()
     }
 
+    private var categoriesLoaded = false
+
+    fun resetCategories() {
+        categoriesLoaded = false
+    }
+
     private fun fetchCategories() {
+        if (categoriesLoaded) return
+
         viewModelScope.launch {
             _categoriesResponse.value = Response.Loading
             try {
                 val categories = categoryUseCases.fetchCategories().sortedBy { it.name.lowercase() }
                 _categoriesResponse.value = Response.Success(categories)
+                categoriesLoaded = true
             } catch (e: Exception) {
                 _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")
             }
         }
     }
+
 
     fun toggleSortCategories() {
         if (_categoriesResponse.value is Response.Success) {
