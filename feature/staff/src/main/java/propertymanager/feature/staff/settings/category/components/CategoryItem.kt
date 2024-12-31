@@ -212,6 +212,8 @@ fun CategoryItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = category.name, style = MaterialTheme.typography.titleMedium)
+//                    if(category.subcategories.isNotEmpty())
+                        Text(text = "${category.subcategories.size} Subcategories", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 // Subcategories and Add Subcategory

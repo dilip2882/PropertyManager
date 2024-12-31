@@ -1,3 +1,5 @@
+@file:Suppress("Annotator")
+
 plugins {
     `kotlin-dsl`
 //    id("com.github.zellius.shortcut-helper")

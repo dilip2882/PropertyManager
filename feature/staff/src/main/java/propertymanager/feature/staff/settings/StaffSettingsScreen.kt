@@ -108,7 +108,7 @@ fun StaffSettingsScreen(
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = Color.Black,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = { Text("Settings") },
                 actions = {
@@ -347,7 +347,7 @@ fun Profile(user: User) {
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(
-                text = user.name,
+                text = "Dilip Patel",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 color =  MaterialTheme.colorScheme.primary,

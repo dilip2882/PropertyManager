@@ -15,7 +15,6 @@ import com.propertymanager.domain.usecase.location.UpdateCityUseCase
 import com.propertymanager.domain.usecase.location.UpdateCountryUseCase
 import com.propertymanager.domain.usecase.location.UpdateStateUseCase
 import com.propertymanager.domain.usecase.location.ValidateLocationUseCase
-import javax.inject.Inject
 
 data class LocationUseCases(
     val getCountries: GetCountriesUseCase,
