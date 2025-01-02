@@ -1,4 +1,4 @@
-package propertymanager.feature.staff
+package propertymanager.feature.staff.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -96,7 +96,6 @@ class BiometricViewModel @Inject constructor(
             AuthenticationResult.Success -> {
                 _hasAuthenticated.value = true
                 return
-                // Success state handled in the composable rendering below
             }
             AuthenticationResult.Uninitialized -> Unit
         }

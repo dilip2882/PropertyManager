@@ -23,7 +23,7 @@ import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.graphs.staffNavGraph
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
-import propertymanager.feature.staff.StaffHomeScreen
+import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 
 @Composable
@@ -76,7 +76,9 @@ fun StaffScreen(
 
             composable(StaffBottomNavItem.SETTINGS.route) {
                 StaffSettingsScreen(
-                    onNavigateToRoles = {},
+                    onNavigateToRoles = {
+                        navController.navigate(Dest.LocationScreen)
+                    },
                     onNavigateToCategoryManager = {
                         navController.navigate(Dest.CategoryManagerScreen)
                     },

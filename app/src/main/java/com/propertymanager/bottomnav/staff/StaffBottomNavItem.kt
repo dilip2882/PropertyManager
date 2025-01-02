@@ -60,11 +60,6 @@ enum class StaffBottomNavItem(
 }
 
 @Composable
-fun stringResource(id: StringResource, vararg args: Any): String {
-    return Strings(LocalContext.current).get(id, args.toList())
-}
-
-@Composable
 fun StaffNavBar(
     currentDestination: String?,
     onNavigate: (String) -> Unit,
@@ -94,7 +89,6 @@ fun StaffNavBar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-                        // Animate icon size
                         val iconSize by animateDpAsState(
                             targetValue = if (selected) 30.dp else 30.dp,
                             animationSpec = tween(durationMillis = 300),
@@ -166,6 +160,10 @@ fun StaffNavBar(
     }
 }
 
+@Composable
+fun stringResource(id: StringResource, vararg args: Any): String {
+    return Strings(LocalContext.current).get(id, args.toList())
+}
 
 @Preview(showBackground = true)
 @Composable

@@ -2,25 +2,21 @@ package com.propertymanager.navigation.graphs
 
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
-import propertymanager.feature.staff.StaffHomeScreen
+import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 import propertymanager.feature.staff.settings.category.CategoryManagerScreen
 import propertymanager.feature.staff.settings.location.LocationManagerScreen
 import propertymanager.feature.staff.settings.location.LocationScreen
+import propertymanager.feature.staff.settings.location.LocationViewModel
 import propertymanager.feature.staff.settings.property.AddPropertyScreen
-import propertymanager.feature.staff.settings.property.AddressScreen
-import propertymanager.feature.staff.settings.property.LocationViewModel
 import propertymanager.feature.staff.settings.property.PropertyManagerScreen
-import propertymanager.feature.staff.settings.property.PropertyViewModel
 import propertymanager.feature.staff.settings.property.componenets.SelectCityScreen
 import propertymanager.feature.staff.settings.property.componenets.SelectCountryScreen
 import propertymanager.feature.staff.settings.property.componenets.SelectStateScreen
@@ -42,7 +38,9 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.StaffSettingsScreen> {
             StaffSettingsScreen(
-                onNavigateToRoles = {},
+                onNavigateToRoles = {
+                    navController.navigate(Dest.LocationScreen)
+                },
                 onNavigateToCategoryManager = {
                     navController.navigate(Dest.CategoryManagerScreen)
                 },
@@ -97,7 +95,7 @@ fun NavGraphBuilder.staffNavGraph(
             )
             SelectCountryScreen(
                 viewModel = sharedViewModel,
-                onCountrySelected = {
+                onNavigateToState = {
                     navController.navigate(Dest.SelectStateScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },
@@ -110,7 +108,7 @@ fun NavGraphBuilder.staffNavGraph(
             )
             SelectStateScreen(
                 viewModel = sharedViewModel,
-                onStateSelected = {
+                onNavigateToCity = {
                     navController.navigate(Dest.SelectCityScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },
@@ -123,7 +121,7 @@ fun NavGraphBuilder.staffNavGraph(
             )
             SelectCityScreen(
                 viewModel = sharedViewModel,
-                onCitySelected = {
+                onNavigateToAddProperty = {
                     navController.navigate(Dest.AddPropertyScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },

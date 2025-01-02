@@ -35,14 +35,39 @@ class LocationRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun getStatesForCountry(countryId: Int): Flow<List<State>> {
-        TODO("Not yet implemented")
+    override suspend fun getStatesForCountry(countryId: Int): Flow<List<State>> = callbackFlow {
+        val subscription = locationsCollection
+            .document(countryId.toString())
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val country = snapshot?.toObject<Country>()
+                val states = country?.states ?: emptyList()
+                trySend(states)
+            }
+        awaitClose { subscription.remove() }
     }
 
-    override suspend fun getCitiesForState(stateId: Int): Flow<List<City>> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getCitiesForState(stateId: Int): Flow<List<City>> = callbackFlow {
+        val subscription = locationsCollection
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val cities = querySnapshot.documents
+                    .mapNotNull { it.toObject<Country>() }
+                    .flatMap { it.states }
+                    .find { it.id == stateId }
+                    ?.cities ?: emptyList()
+                trySend(cities)
+            }
+            .addOnFailureListener { error ->
+                close(error)
+            }
 
+        awaitClose {  }
+    }
     override suspend fun addCountry(country: Country): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             locationsCollection

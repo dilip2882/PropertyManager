@@ -67,7 +67,7 @@ fun PropertyCard(
             ) {
                 Column {
                     Text(
-                        text = "${property.address.society}, ${property.address.building}-${property.address.flatNo}",
+                        text = property.address.society,
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(

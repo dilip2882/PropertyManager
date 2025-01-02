@@ -350,7 +350,7 @@ fun Profile(user: User) {
                 text = "Dilip Patel",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color =  MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = "6-152    Residing Owner",
