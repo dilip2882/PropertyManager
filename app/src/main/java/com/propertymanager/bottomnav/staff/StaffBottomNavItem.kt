@@ -1,5 +1,6 @@
 package com.propertymanager.bottomnav.staff
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,14 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.propertymanager.common.i18n.Strings
-import dev.icerock.moko.resources.StringResource
+import propertymanager.i18n.MR
+import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.theme.PropertyManagerIcons
 
 enum class StaffBottomNavItem(
@@ -158,11 +158,6 @@ fun StaffNavBar(
             }
         }
     }
-}
-
-@Composable
-fun stringResource(id: StringResource, vararg args: Any): String {
-    return Strings(LocalContext.current).get(id, args.toList())
 }
 
 @Preview(showBackground = true)
