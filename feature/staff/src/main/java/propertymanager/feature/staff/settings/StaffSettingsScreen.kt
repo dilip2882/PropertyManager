@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.CameraAlt
@@ -269,7 +270,7 @@ fun StaffSettingsScreen(
             item {
                 TextPreferenceWidget(
                     title = stringResource(MR.strings.staff_property),
-                    icon = Icons.Default.LocationOn,
+                    icon = Icons.Default.LocationCity,
                     onPreferenceClick = {
                         onNavigateToPropertyManager()
                     },

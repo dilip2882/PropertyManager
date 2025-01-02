@@ -53,6 +53,8 @@ import com.propertymanager.domain.model.location.Country
 import com.propertymanager.domain.model.location.State
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import propertymanager.i18n.MR
+import propertymanager.presentation.i18n.stringResource
 
 @Composable
 fun LocationManagerScreen(
@@ -82,7 +84,7 @@ fun LocationManagerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Location Manager") },
+                title = { Text(stringResource(MR.strings.staff_location_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")

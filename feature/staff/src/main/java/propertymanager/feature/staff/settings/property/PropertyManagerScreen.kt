@@ -66,6 +66,7 @@ fun PropertyManagerScreen(
                         PropertyList(
                             properties = properties,
                             onEditProperty = {
+                                viewModel.updateProperty(it)
                             },
                             onDeleteProperty = { property ->
                                 viewModel.deleteProperty(propertyId = property.id)

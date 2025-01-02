@@ -54,11 +54,7 @@ enum class StaffBottomNavItem(
         route = "staff_settings",
     );
 
-    companion object {
-        fun getAllItems() = entries
-    }
 }
-
 
 @Composable
 fun StaffNavBar(
@@ -76,7 +72,7 @@ fun StaffNavBar(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            StaffBottomNavItem.getAllItems().forEach { item ->
+            StaffBottomNavItem.entries.forEach { item ->
                 val selected = currentDestination == item.route
 
                 Box(

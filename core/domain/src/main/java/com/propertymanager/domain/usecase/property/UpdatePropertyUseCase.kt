@@ -4,7 +4,6 @@ import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.repository.PropertyRepository
 import javax.inject.Inject
 
-
 class UpdatePropertyUseCase @Inject constructor(
     private val repository: PropertyRepository
 ) {
