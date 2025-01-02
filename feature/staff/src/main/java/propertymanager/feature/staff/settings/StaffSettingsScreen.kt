@@ -1,8 +1,10 @@
 package propertymanager.feature.staff.settings
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -61,11 +64,14 @@ import coil3.compose.rememberAsyncImagePainter
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.biometrics.BiometricAuthState
 import com.propertymanager.domain.model.biometrics.BiometricCheckResult
+import propertymanager.i18n.MR
 import propertymanager.presentation.components.ImageWrapper
 import propertymanager.presentation.components.LocalPreferenceHighlighted
 import propertymanager.presentation.components.LocalPreferenceMinHeight
 import propertymanager.presentation.components.TextPreferenceWidget
+import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.onboarding.UserViewModel
+import java.util.Locale
 
 @Composable
 fun StaffSettingsScreen(
@@ -103,6 +109,36 @@ fun StaffSettingsScreen(
 
     }
 
+    var expanded by remember { mutableStateOf(false) }
+    var selectedLanguage by remember { mutableStateOf("English") }
+
+    val languageOptions = listOf("English", "Hindi", "Spanish", "French")
+
+    fun changeLanguage(language: String) {
+        val locale = when (language) {
+            "Hindi" -> Locale("hi", "IN")
+            "Spanish" -> Locale("es", "ES")
+            "French" -> Locale("fr", "FR")
+            else -> Locale("en", "US")
+        }
+        val config = context.resources.configuration
+        config.setLocale(locale)
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+
+        val sharedPref = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("language", language)
+            apply()
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        val sharedPref = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val savedLanguage = sharedPref.getString("language", "English") ?: "English"
+        selectedLanguage = savedLanguage
+        changeLanguage(savedLanguage)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -110,7 +146,7 @@ fun StaffSettingsScreen(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
-                title = { Text("Settings") },
+                title = { Text(stringResource(MR.strings.staff_settings_title)) },
                 actions = {
                     IconButton(
                         onClick = {
@@ -139,13 +175,63 @@ fun StaffSettingsScreen(
                 Profile(user = User())
             }
 
+            // Language Dropdown
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AnimatedVisibility(visible = expanded) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        languageOptions.forEach { language ->
+                            LanguageDropdownItem(
+                                language = language,
+                                selectedLanguage = selectedLanguage,
+                                onClick = {
+                                    selectedLanguage = language
+                                    changeLanguage(language)
+                                    expanded = false
+                                },
+                            )
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .clickable { expanded = !expanded }
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(15.dp))
+                        .padding(16.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.background(
+                            MaterialTheme.colorScheme.secondaryContainer,
+                            RoundedCornerShape(8.dp),
+                        ),
+                    ) {
+                        Text(
+                            text = selectedLanguage,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown Arrow",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+            }
+
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             item {
                 SettingsItem(
-                    optionName = "Dark Mode",
+                    optionName = stringResource(MR.strings.staff_dark_mode),
                     isSwitch = true,
                     switchValue = darkMode,
                     onSwitchChanged = darkModeChange,
@@ -182,7 +268,7 @@ fun StaffSettingsScreen(
 
             item {
                 TextPreferenceWidget(
-                    title = "Add Property",
+                    title = stringResource(MR.strings.staff_property),
                     icon = Icons.Default.LocationOn,
                     onPreferenceClick = {
                         onNavigateToPropertyManager()
@@ -196,7 +282,7 @@ fun StaffSettingsScreen(
 
             item {
                 TextPreferenceWidget(
-                    title = "Add Locations",
+                    title = stringResource(MR.strings.staff_location),
                     icon = Icons.Default.LocationOn,
                     onPreferenceClick = {
                         onNavigateToLocationManager()
@@ -210,7 +296,7 @@ fun StaffSettingsScreen(
 
             item {
                 TextPreferenceWidget(
-                    title = "Add Category",
+                    title = stringResource(MR.strings.staff_category),
                     icon = Icons.Filled.Category,
                     onPreferenceClick = {
                         onNavigateToCategoryManager()
@@ -416,6 +502,7 @@ fun SettingsItem(
 
     Box(
         modifier = Modifier
+            .padding(start = 10.dp, end = 5.dp)
             .clip(RoundedCornerShape(15.dp))
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .clickable(enabled = !isSwitch) {
@@ -466,3 +553,29 @@ fun SettingsItem(
     }
 }
 
+@Composable
+fun LanguageDropdownItem(
+    language: String,
+    selectedLanguage: String,
+    onClick: () -> Unit,
+) {
+    val backgroundColor = if (language == selectedLanguage) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    } else {
+        Color.Transparent
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(backgroundColor)
+            .padding(16.dp),
+    ) {
+        Text(
+            text = language,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}

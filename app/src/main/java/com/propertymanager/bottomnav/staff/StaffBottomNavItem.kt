@@ -1,6 +1,5 @@
 package com.propertymanager.bottomnav.staff
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -31,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.icerock.moko.resources.StringResource
 import propertymanager.i18n.MR
 import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.theme.PropertyManagerIcons
@@ -38,19 +38,19 @@ import propertymanager.presentation.theme.PropertyManagerIcons
 enum class StaffBottomNavItem(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val label: String,
+    val labelResId: StringResource,
     val route: String,
 ) {
     HOME(
         selectedIcon = PropertyManagerIcons.Home,
         unselectedIcon = PropertyManagerIcons.HomeBorder,
-        label = "Home",
+        labelResId = MR.strings.staff_home,
         route = "staff_home",
     ),
     SETTINGS(
         selectedIcon = PropertyManagerIcons.Settings,
         unselectedIcon = PropertyManagerIcons.SettingsBorder,
-        label = "Settings",
+        labelResId = MR.strings.staff_settings,
         route = "staff_settings",
     );
 
@@ -58,6 +58,7 @@ enum class StaffBottomNavItem(
         fun getAllItems() = entries
     }
 }
+
 
 @Composable
 fun StaffNavBar(
@@ -126,7 +127,7 @@ fun StaffNavBar(
                         ) {
                             Icon(
                                 imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.label,
+                                contentDescription = stringResource(item.labelResId),
                                 modifier = Modifier.size(iconSize),
                                 tint = if (selected) Color.Black else Color.White,
                             )
@@ -145,7 +146,7 @@ fun StaffNavBar(
                         )
 
                         Text(
-                            text = item.label,
+                            text = stringResource(item.labelResId),
                             fontSize = labelFontSize.sp,
                             color = labelColor,
                             modifier = Modifier.padding(top = 4.dp),

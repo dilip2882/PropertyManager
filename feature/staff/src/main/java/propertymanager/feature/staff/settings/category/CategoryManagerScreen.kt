@@ -36,6 +36,8 @@ import com.propertymanager.domain.model.Category
 import propertymanager.feature.staff.settings.category.components.CategoryDialog
 import propertymanager.feature.staff.settings.category.components.CategoryItem
 import propertymanager.feature.staff.settings.category.components.SubcategoryDialog
+import propertymanager.i18n.MR
+import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
@@ -70,7 +72,7 @@ fun CategoryManagerScreen(
         },
         topBar = {
             TopAppBar(
-                title = { Text("Manage Categories") },
+                title = { Text(stringResource(MR.strings.staff_category_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onNavigateUp() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")

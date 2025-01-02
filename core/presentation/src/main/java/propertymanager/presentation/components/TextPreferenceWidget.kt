@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import propertymanager.presentation.util.secondaryItemAlpha
 
 @Composable
@@ -21,7 +22,9 @@ fun TextPreferenceWidget(
     onPreferenceClick: (() -> Unit)? = null,
 ) {
     BasePreferenceWidget(
-        modifier = modifier,
+        modifier = modifier
+            .padding(start = 10.dp, end = 5.dp)
+        ,
         title = title,
         subcomponent = if (!subtitle.isNullOrBlank()) {
             {

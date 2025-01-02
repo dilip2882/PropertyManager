@@ -1,4 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="name">नाम</string>
+    <string name="app_name" translatable="false">प्रॉपर्टी मैनेजर</string>
+
+    <!-- Bottom Navigation -->
+    <!-- Tenant -->
+    <string name="tenant_home">होम</string>
+    <string name="tenant_profile">प्रोफ़ाइल</string>
+    <!-- Staff -->
+    <string name="staff_home">होम</string>
+    <string name="tenant_settings">सेटिंग्स</string>
+
+    <!-- Screen titles -->
+    <!-- Tenant -->
+    <string name="tenant_home_title">मेंटेनेंस फीड</string>
+    <string name="tenant_profile_title">प्रोफ़ाइल</string>
+    <!-- Staff -->
+    <string name="staff_home_title">स्टाफ डैशबोर्ड</string>
+    <string name="staff_settings_title">सेटिंग्स</string>
+    <string name="staff_property_title">प्रॉपर्टीज़ प्रबंधित करें</string>
+    <string name="staff_location_title">स्थान प्रबंधित करें</string>
+    <string name="staff_category_title">श्रेणियाँ प्रबंधित करें</string>
+
+    <!-- Categories -->
+    <string name="category_car_parking">कार पार्किंग</string>
+    <string name="category_common_area">सामान्य क्षेत्र</string>
+    <string name="category_electrical">इलेक्ट्रिकल</string>
+    <string name="category_gardening">बगवानी</string>
+    <string name="category_payment">भुगतान</string>
+    <string name="category_plumbing">प्लंबिंग</string>
+    <string name="category_security">सुरक्षा</string>
+    <string name="category_swimming_pool">स्विमिंग पूल</string>
+
+    <!-- Staff Screens -->
+    <!-- Staff Home Screen -->
+
+    <!-- Staff Settings Screen -->
+    <string name="staff_dark_mode">डार्क मोड</string>
+    <string name="staff_property">प्रॉपर्टी</string>
+    <string name="staff_location">स्थान</string>
+    <string name="staff_category">श्रेणी</string>
+
+    <!-- Tenant Screens -->
+    <!-- Tenant Home Screen -->
+    <string name="maintenance_request_status_open">खुला</string>
+    <string name="maintenance_request_status_progress">प्रगति पर</string>
+    <string name="maintenance_request_status_completed">पूरा हुआ</string>
+    <!-- Tenant Profile Screen -->
+
+
+    <!-- Models -->
+
+    <!-- Login Phone Screen -->
+    <string name="login_phone_title">OTP सत्यापन</string>
+    <string name="login_phone_description">हम आपको इस मोबाइल नंबर पर एक बार का पासवर्ड (OTP) भेजेंगे</string>
+    <string name="login_phone_button_text">OTP उत्पन्न करें</string>
+
+    <!-- Login OTP Screen -->
+    <string name="login_otp_title">OTP सत्यापन</string>
+    <string name="login_otp_description">प्रविष्ट OTP %s को भेजा गया है</string>
+    <string name="login_otp_button_text">OTP सत्यापित करें</string>
+    <string name="login_otp_resend_text">OTP फिर से भेजें</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">अपनी प्रोफ़ाइल पूर्ण करें</string>
+    <string name="onboarding_button_text">प्रोफ़ाइल पूर्ण करें</string>
+
+    <!-- Crash Screen -->
+    <string name="crash_screen_title">उफ़!</string>
+    <string name="crash_screen_description">%s में एक अप्रत्याशित त्रुटि आई है।</string>
+    <string name="crash_screen_restart_application">एप्लिकेशन फिर से चालू करें</string>
+
 </resources>
