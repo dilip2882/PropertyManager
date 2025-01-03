@@ -174,7 +174,6 @@ class AuthRepositoryImpl @Inject constructor(
             val userDocRef = firestore.collection(Constants.COLLECTION_NAME_USERS)
                 .document(user.uid)
 
-            // Fetch existing user data
             val documentSnapshot = try {
                 userDocRef.get().await()
             } catch (e: Exception) {
@@ -182,6 +181,30 @@ class AuthRepositoryImpl @Inject constructor(
                 trySend(Response.Error("Failed to fetch user data: ${e.message}"))
                 close()
                 return@callbackFlow
+            }
+
+            // If document does not exist, create a new user document
+            if (!documentSnapshot.exists()) {
+                Log.d("AuthRepo", "User document not found, creating new user document.")
+                val newUser = User(
+                    username = user.displayName ?: "New User",
+                    email = user.email ?: "",
+                    userId = user.uid,
+                    name = "",
+                    phone = user.phoneNumber ?: "",
+                    address = "",
+                    location = GeoPoint(0.0, 0.0)
+                )
+
+                try {
+                    // Create a new user document
+                    userDocRef.set(newUser).await()
+                } catch (e: Exception) {
+                    Log.e("AuthRepo", "Failed to create new user document", e)
+                    trySend(Response.Error("Failed to create user: ${e.message}"))
+                    close()
+                    return@callbackFlow
+                }
             }
 
             // Preserve existing role
@@ -221,7 +244,6 @@ class AuthRepositoryImpl @Inject constructor(
                     }
                 }
 
-                // Finally, ensure role is preserved
                 userDocRef.update("role", existingRole).await()
 
                 val successMessage = if (fcmToken != null) {

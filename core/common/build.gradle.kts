@@ -24,6 +24,8 @@ dependencies {
 //    api(kotlinx.serialization.json)
 //    api(kotlinx.serialization.json.okio)
 
+    api(libs.logcat)
+
     // Image loading
     implementation(platform(libs.coil.bom))
     implementation(libs.bundles.coil)

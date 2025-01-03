@@ -63,7 +63,7 @@ class MaintenanceRequestViewModel @Inject constructor(
 
     fun fetchMaintenanceRequests() {
         viewModelScope.launch {
-            repository.getMaintenanceRequests().collectLatest { response ->
+            repository.getMaintenanceRequestsByUser().collectLatest { response ->
                 _maintenanceRequests.value = response
             }
         }

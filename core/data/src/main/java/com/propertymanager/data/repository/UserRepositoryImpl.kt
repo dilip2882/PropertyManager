@@ -54,24 +54,19 @@ class UserRepositoryImpl @Inject constructor(
             }
 
             val userMap = user.toMap()
-            Log.d("UserRepositoryImpl", "Uploading user: $userMap") // Logging user details
-
             firebaseFirestore.collection(COLLECTION_NAME_USERS)
                 .document(user.userId!!)
                 .set(userMap)
                 .await()
 
-            Log.d("UserRepositoryImpl", "User uploaded successfully")
             emit(Response.Success(true))
         } catch (e: Exception) {
-            Log.e("UserRepositoryImpl", "Error setting user details: ${e.message}")
             emit(Response.Error(e.message ?: "Failed to set user details"))
         }
     }
 
-
     private fun User.toMap(): Map<String, Any?> {
-        val map = mapOf(
+        return mapOf(
             "userId" to userId,
             "name" to name,
             "username" to username,
@@ -89,8 +84,6 @@ class UserRepositoryImpl @Inject constructor(
             "role" to role,
             "token" to token
         )
-        Log.d("UserMap", "Converting User to Map: role = ${map["role"]}")
-        return map
     }
 }
 

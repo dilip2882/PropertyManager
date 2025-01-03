@@ -1,6 +1,8 @@
 package propertymanager.feature.staff.home
 
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,13 +55,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.rememberAsyncImagePainter
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.PriorityLevel
 import com.propertymanager.domain.model.RequestStatus
+import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.WorkerDetails
 import com.propertymanager.domain.model.formatDate
 import propertymanager.feature.staff.settings.StaffViewModel
+import propertymanager.presentation.user.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,9 +177,22 @@ fun StaffMaintenanceCard(
     onStatusChange: (String) -> Unit,
     onPriorityChange: (String) -> Unit,
     onAssignWorker: () -> Unit,
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
     var statusExpanded by remember { mutableStateOf(false) }
     var priorityExpanded by remember { mutableStateOf(false) }
+
+    var tenantData by remember { mutableStateOf<User?>(null) }
+
+    LaunchedEffect(request.tenantId) {
+        userViewModel.getUserDetailsByIdFlow(request.tenantId).collect { response ->
+            when (response) {
+                is Response.Success -> tenantData = response.data
+                is Response.Error -> Log.e("StaffMaintenanceCard", "Error fetching tenant: ${response.message}")
+                is Response.Loading -> {  }
+            }
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -188,17 +206,39 @@ fun StaffMaintenanceCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
-                )
+                val imageUrl = tenantData?.profileImage ?: tenantData?.imageUrl
+
+                if (imageUrl.isNullOrEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Default Profile Icon",
+                            modifier = Modifier.size(40.dp),
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    }
+
+                } else {
+                    Image(
+                        painter = rememberAsyncImagePainter(imageUrl),
+                        contentDescription = "Profile Image",
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Column {
                     Text(
-                        text = "Tenant",
+                        text = when {
+                            tenantData != null -> tenantData!!.name
+                            else -> "Loading..."
+                        },
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(

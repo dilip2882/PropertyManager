@@ -1,4 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="name">Nom</string>
+    <string name="app_name" translatable="false">PropertyManager</string>
+
+    <!-- Bottom Navigation -->
+    <!-- // tenant -->
+    <string name="tenant_home">Accueil</string>
+    <string name="tenant_profile">Profil</string>
+    // staff
+    <string name="staff_home">Accueil</string>
+    <string name="tenant_settings">Paramètres</string>
+
+    <!-- Screen titles -->
+    <!-- // Tenant -->
+    <string name="tenant_home_title">Historique de Maintenance</string>
+    <string name="tenant_profile_title">Profil</string>
+    //staff
+    <string name="staff_home_title">Tableau - Personel</string>
+    <string name="staff_settings_title">Paramètres</string>
+    <string name="staff_property">Mes Propriétés</string>
+    <string name="staff_location">Mes Sites</string>
+    <string name="staff_category">Mes Catégories</string>
+
+    <!-- Categories -->
+    <string name="category_car_parking">Parking</string>
+    <string name="category_common_area">Espace Commun</string>
+    <string name="category_electrical">Électrique</string>
+    <string name="category_gardening">Jardinage</string>
+    <string name="category_payment">Paiement</string>
+    <string name="category_plumbing">Plomberie</string>
+    <string name="category_security">Sécurité</string>
+    <string name="category_swimming_pool">Piscine</string>
+
+    <!-- Staff Screens-->
+    <!-- // Staff Home Screen -->
+
+    <!-- // Staff Settings Screen -->
+    <string name="staff_dark_mode">Mode Sombre</string>
+    <string name="staff_property">Propriété</string>
+    <string name="staff_location">Site</string>
+    <string name="staff_category">Catégorie</string>
+
+    <!-- Tenant Screens-->
+    <!-- // Tenant Home Screen -->
+    <string name="maintenance_request_status_open">Ouvert</string>
+    <string name="maintenance_request_status_progress">En Cour</string>
+    <string name="maintenance_request_status_completed">Terminé</string>
+    <!-- // Tenant Profile Screen -->
+
+
+    <!-- Models -->
+
+    <!-- Login Phone Screen -->
+    <string name="login_phone_title">Vérification OTP</string>
+    <string name="login_phone_description">Nous vous enverrons un code d'accès à usage unique (OTP) sur ce numéro de téléphone.</string>
+    <string name="login_phone_button_text">Générer l'OTP</string>
+
+    <!-- Login OTP Screen -->
+    <string name="login_otp_title">Vérification OTP</string>
+    <string name="login_otp_description">OTP saisi envoyé à %s</string>
+    <string name="login_otp_button_text">Vérifier l'OTP</string>"
+    <string name="login_otp_resend_text">Renvoyer l'OTP</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">Complétez votre profil</string>
+    <string name="onboarding_button_text">Profil complet</string>
+
+    <!-- Crash Screen -->
+    <string name="crash_screen_title">Oups!</string>
+    <string name="crash_screen_description">%s a rencontré une erreur inattendue.</string>
+    <string name="crash_screen_restart_application">Redémarrer l'application</string>
+
 </resources>

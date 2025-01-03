@@ -38,6 +38,9 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.StaffSettingsScreen> {
             StaffSettingsScreen(
+                onNavigateToProfile = {
+                    navController.navigate(Dest.OnboardingFormScreen)
+                },
                 onNavigateToRoles = {
                     navController.navigate(Dest.LocationScreen)
                 },

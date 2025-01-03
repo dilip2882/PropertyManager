@@ -65,10 +65,11 @@ fun OnboardingFormScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val geocoder = remember { Geocoder(context, Locale.getDefault()) }
 
-    val  viewModel = viewModel<OnboardingViewModel>()
+    val viewModel = viewModel<OnboardingViewModel>()
     val existingRole by viewModel.existingRole.collectAsState()
 
     var username by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var location by remember { mutableStateOf(GeoPoint(0.0, 0.0)) }
@@ -131,6 +132,14 @@ fun OnboardingFormScreen(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
@@ -209,6 +218,7 @@ fun OnboardingFormScreen(
                 if (isEmailValid) {
                     val user = User(
                         username = username,
+                        name = name,
                         email = email,
                         address = address,
                         role = existingRole ?: "TENANT"

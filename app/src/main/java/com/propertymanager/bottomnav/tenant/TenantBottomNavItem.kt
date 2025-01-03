@@ -117,8 +117,8 @@ fun TenantNavBar(
                                 .background(
                                     color = if (selected) Color(0xFFE7EF9F) else Color.Transparent,
                                     shape = RoundedCornerShape(iconShape),
-                                )
-                                .graphicsLayer(rotationZ = rotation),
+                                ),
+//                                .graphicsLayer(rotationZ = rotation),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(

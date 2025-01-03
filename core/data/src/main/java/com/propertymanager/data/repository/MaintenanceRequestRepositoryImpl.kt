@@ -1,6 +1,7 @@
 package com.propertymanager.data.repository
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
@@ -13,6 +14,7 @@ import kotlinx.coroutines.tasks.await
 
 class MaintenanceRequestRepositoryImpl(
     private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) : MaintenanceRequestRepository {
 
     override fun getMaintenanceRequests(): Flow<Response<List<MaintenanceRequest>>> = callbackFlow {
@@ -37,6 +39,38 @@ class MaintenanceRequestRepositoryImpl(
 
         awaitClose { listener.remove() }
     }
+
+    override fun getMaintenanceRequestsByUser(): Flow<Response<List<MaintenanceRequest>>> = callbackFlow {
+        trySend(Response.Loading)
+
+        val currentUserId = auth.currentUser?.uid // current user ID
+        if (currentUserId == null) {
+            trySend(Response.Error("User not authenticated"))
+            return@callbackFlow
+        }
+
+        val listener = firestore.collection("maintenance_requests")
+            .whereEqualTo("tenantId", currentUserId) // requests for the current user
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    trySend(Response.Error(error.localizedMessage ?: "Unknown error"))
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val requests = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(MaintenanceRequest::class.java)?.copy(
+                            maintenanceRequestsId = doc.id,
+                        )
+                    }
+                    trySend(Response.Success(requests))
+                }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
 
     override fun getMaintenanceRequestById(requestId: String): Flow<Response<MaintenanceRequest>> = callbackFlow {
         trySend(Response.Loading)

@@ -1,6 +1,5 @@
 package propertymanager.feature.tenant.profile
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,22 +21,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,12 +47,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.rememberAsyncImagePainter
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.messaging.FirebaseMessaging
-import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
+import com.propertymanager.common.utils.Response
+import com.propertymanager.domain.model.User
+import propertymanager.presentation.screens.LoadingScreen
+import propertymanager.presentation.user.UserViewModel
 
 @Composable
 fun TenantProfileScreen(
@@ -84,275 +81,204 @@ fun TenantProfileScreen(
 
         Column(modifier = Modifier.padding(padding)) {
 
-            Profile()
+            Profile(user = User())
 
-            /*            Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = CardDefaults.cardElevation(4.dp),
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    // Profile Image
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF556E8D)),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Text(
-                                            text = "D",
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 18.sp,
-                                        )
-                                    }
-                                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                                        Text(
-                                            text = "Dilip",
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color.Black,
-                                        )
-                                        Text(
-                                            text = "Gorwa, Vadodara",
-                                            fontSize = 12.sp,
-                                            color = Color.Gray,
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    text = "I have water problem",
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 16.sp,
-                                    color = Color.Black,
-                                )
-                                Text(
-                                    text = "Only single bed without mattress",
-                                    fontSize = 14.sp,
-                                    color = Color.Gray,
-                                    modifier = Modifier.padding(top = 4.dp),
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                        }*/
         }
     }
 }
 
-@SuppressLint("InvalidColorHexValue")
 @Composable
-fun Profile() {
+fun Profile(user: User) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val userViewModel = hiltViewModel<UserViewModel>()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         selectedImageUri = uri
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
+    LaunchedEffect(key1 = true) {
+        userViewModel.getUserInfo()
+    }
 
-        ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(15.dp),
-        ) {
-            Box(
+    LaunchedEffect(selectedImageUri) {
+        selectedImageUri?.let {
+            val imageUrl = try {
+                // Upload image and get the URL
+                userViewModel.uploadImageToFirebase(it, user.userId!!)
+            } catch (e: Exception) {
+                Log.e("Profile", "Error uploading image: ${e.message}")
+                null
+            }
+            if (imageUrl != null) {
+                userViewModel.setUserInfo(user.copy(profileImage = imageUrl))
+            }
+        }
+    }
+
+    val userDataState by userViewModel.getUserData.collectAsState()
+
+    when (val response = userDataState) {
+        is Response.Loading -> {
+            LoadingScreen()
+        }
+
+        is Response.Error -> {
+            Text(text = "Error: ${response.message}")
+        }
+
+        is Response.Success -> {
+            val fetchedUser = response.data ?: user
+            Log.d("Profile", "Fetched User: $fetchedUser")
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        Brush.run {
-                            linearGradient(
-                                listOf(Color(0xFF5CD6FF), Color(0xFF5CD6FF)),
-                            )
-                        },
-                    ),
-
-                )
-
-            Icon(
-                imageVector = Icons.Outlined.CameraAlt,
-                contentDescription = "Camera Icon",
-                tint = Color.White,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(10.dp)
-                    .size(28.dp),
-            )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 20.dp, top = 50.dp)
-                    .offset(y = 15.dp),
-
-                ) {
-
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+            ) {
+                // Profile Header
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF556E8D)),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(15.dp),
                 ) {
-
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Default Profile Icon",
-                        modifier = Modifier.size(50.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFF5CD6FF), Color(0xFF5CD6FF)),
+                                ),
+                            ),
                     )
 
+                    Icon(
+                        imageVector = Icons.Outlined.CameraAlt,
+                        contentDescription = "Camera Icon",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                            .size(28.dp),
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(start = 20.dp, top = 50.dp)
+                            .offset(y = 15.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF556E8D)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            // Profile Image
+                            if (fetchedUser.profileImage.isNullOrEmpty()) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Default Profile Icon",
+                                    modifier = Modifier.size(50.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                )
+                            } else {
+                                Image(
+                                    painter = rememberAsyncImagePainter(fetchedUser.profileImage),
+                                    contentDescription = "Profile Image",
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .align(Alignment.BottomEnd)
+                                .offset(y = 0.dp, x = (-2).dp)
+                                .clickable { imagePickerLauncher.launch("image/*") },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                modifier = Modifier.size(20.dp),
+                                contentDescription = "Edit Icon",
+                                tint = Color.Black,
+                            )
+                            if (selectedImageUri != null) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(selectedImageUri),
+                                    contentDescription = "Selected Image",
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
+                        }
+                    }
                 }
 
-                // Edit Icon
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .align(Alignment.BottomEnd)
-                        .offset(y = 0.dp, x = (-2).dp)
-                        .clickable { imagePickerLauncher.launch("image/*") },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        modifier = Modifier.size(20.dp),
-                        contentDescription = "Edit Icon",
-                        tint = Color.Black,
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Name
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(
+                        text = fetchedUser.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.primary,
                     )
-                    if (selectedImageUri != null) {
-                        Image(
-                            painter = rememberAsyncImagePainter(selectedImageUri),
-                            contentDescription = "Selected Image",
-                            modifier = Modifier.fillMaxSize(),
+                    Text(
+                        text = fetchedUser.role,
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bio Section
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Bio",
+                            tint = Color.Black,
+                            modifier = Modifier.size(24.dp),
                         )
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(
+                                text = "Add bio",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp,
+                                color = Color.Black,
+                            )
+                            Text(
+                                text = "Tell your neighbours about yourself",
+                                fontSize = 12.sp,
+                                color = Color.Gray,
+                            )
+                        }
                     }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(
-                text = "Dilip",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = Color.Black,
-            )
-            Text(
-                text = "6-152    Residing Owner",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Bio Section
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Bio",
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp),
-                )
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(
-                        text = "Add bio",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = Color.Black,
-                    )
-                    Text(
-                        text = "Tell your neighbours about yourself",
-                        fontSize = 12.sp,
-                        color = Color.Gray,
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Add Work & Hometown
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Row {
-                Icon(
-                    imageVector = Icons.Default.Work,
-                    contentDescription = "Work",
-                    tint = Color(0xFF007AFF),
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = "Add work",
-                    color = Color(0xFF007AFF),
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
-            Row {
-
-                Icon(
-                    imageVector = Icons.Default.Place,
-                    contentDescription = "Hometown",
-                    tint = Color(0xFF007AFF),
-                    modifier = Modifier.size(24.dp),
-                )
-
-                Text(
-                    text = "Add Address",
-                    color = Color(0xFF007AFF),
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 2.dp),
-                )
-            }
-
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Interests
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(
-                text = "Interests",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                color = Color.Black,
-            )
-            OutlinedButton(
-                onClick = { /* Add Interests Click */ },
-                modifier = Modifier.padding(top = 8.dp),
-                shape = RoundedCornerShape(50),
-            ) {
-                Text(text = "+ Add Interests", color = Color(0xFF007AFF))
-            }
-        }
-
     }
 }
 

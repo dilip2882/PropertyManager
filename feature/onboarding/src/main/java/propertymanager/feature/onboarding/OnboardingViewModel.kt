@@ -113,12 +113,13 @@ class OnboardingViewModel @Inject constructor(
                 val imageUrl = imageUri?.let { uploadImageToFirebase(it, currentUser.uid) }
 
                 val updateData = mutableMapOf<String, Any?>(
+                    "username" to user.username,
+                    "name" to user.name,
                     "role" to (existingRole ?: "TENANT"),
                     "imageUrl" to (imageUrl ?: user.imageUrl),
                     "updatedAt" to FieldValue.serverTimestamp()
                 )
 
-                // Only update the necessary fields
                 firestore.collection("users").document(currentUser.uid)
                     .update(updateData)
                     .await()

@@ -76,8 +76,11 @@ fun StaffScreen(
 
             composable(StaffBottomNavItem.SETTINGS.route) {
                 StaffSettingsScreen(
+                    onNavigateToProfile = {
+                        navController.navigate(Dest.OnboardingFormScreen)
+                    },
                     onNavigateToRoles = {
-                        navController.navigate(Dest.LocationScreen)
+
                     },
                     onNavigateToCategoryManager = {
                         navController.navigate(Dest.CategoryManagerScreen)

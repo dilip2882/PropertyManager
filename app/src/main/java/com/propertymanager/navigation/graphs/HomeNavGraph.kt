@@ -11,22 +11,32 @@ import com.propertymanager.navigation.SubGraph
 import com.propertymanager.ui.PropertyManagerApp
 import propertymanager.presentation.home.HomeScreen
 
+import androidx.activity.compose.BackHandler
+
 fun NavGraphBuilder.homeNavGraph(navController: NavController) {
 
     navigation<SubGraph.Home>(startDestination = Dest.HomeScreen) {
-        // Home Screen
-        composable<Dest.HomeScreen>{
+        composable<Dest.HomeScreen> {
+            BackHandler {
+                navController.popBackStack()
+            }
+
             HomeScreen(
                 onNavigateToTenantScreen = {
                     navController.navigate(Dest.TenantScreen) {
+                        popUpTo(Dest.HomeScreen) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onNavigateToLandlordScreen = {
-                    navController.navigate(Dest.LandlordScreen)
+                    navController.navigate(Dest.LandlordScreen) {
+                        popUpTo(Dest.HomeScreen) { inclusive = true }
+                    }
                 },
                 onNavigateToManagerScreen = {
-                    navController.navigate(Dest.StaffScreen)
+                    navController.navigate(Dest.StaffScreen) {
+                        popUpTo(Dest.HomeScreen) { inclusive = true }
+                    }
                 },
             )
         }

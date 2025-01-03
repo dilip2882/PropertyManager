@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface MaintenanceRequestRepository {
     fun getMaintenanceRequests(): Flow<Response<List<MaintenanceRequest>>>
+    fun getMaintenanceRequestsByUser(): Flow<Response<List<MaintenanceRequest>>>
     fun getMaintenanceRequestById(requestId: String): Flow<Response<MaintenanceRequest>>
     fun createMaintenanceRequest(request: MaintenanceRequest): Flow<Response<MaintenanceRequest>>
     fun updateMaintenanceRequest(request: MaintenanceRequest): Flow<Response<MaintenanceRequest>>

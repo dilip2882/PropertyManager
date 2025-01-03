@@ -11,6 +11,7 @@
     <string name="staff_settings">Settings</string>
 
     <!-- Screen titles -->
+    <string name="label_default">Default</string>
     // Tenant
     <string name="tenant_home_title">Maintenance Feed</string>
     <string name="tenant_profile_title">Profile</string>
@@ -69,5 +70,25 @@
     <string name="crash_screen_title">Whoops!</string>
     <string name="crash_screen_description">%s ran into an unexpected error.</string>
     <string name="crash_screen_restart_application">Restart the application</string>
+
+    <!-- General section -->
+    <string name="pref_category_theme">Theme</string>
+    <string name="pref_app_theme">App theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_monet">Dynamic</string>
+    <string name="theme_greenapple">Green Apple</string>
+    <string name="theme_lavender">Lavender</string>
+    <string name="theme_midnightdusk">Midnight Dusk</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_strawberrydaiquiri">Strawberry Daiquiri</string>
+    <string name="theme_tako">Tako</string>
+    <string name="theme_tealturquoise">Teal &amp; Turquoise</string>
+    <string name="theme_yinyang">Yin &amp; Yang</string>
+    <string name="theme_yotsuba">Yotsuba</string>
+    <string name="theme_tidalwave">Tidal Wave</string>
+    <string name="pref_dark_theme_pure_black">Pure black dark mode</string>
+    <string name="pref_relative_format">Relative timestamps</string>
 
 </resources>
