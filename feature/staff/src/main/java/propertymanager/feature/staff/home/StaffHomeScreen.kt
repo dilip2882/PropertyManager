@@ -44,9 +44,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -63,6 +65,7 @@ import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.WorkerDetails
 import com.propertymanager.domain.model.formatDate
+import kotlinx.coroutines.launch
 import propertymanager.feature.staff.settings.StaffViewModel
 import propertymanager.presentation.user.UserViewModel
 
@@ -179,6 +182,7 @@ fun StaffMaintenanceCard(
     onAssignWorker: () -> Unit,
     userViewModel: UserViewModel = hiltViewModel()
 ) {
+    val scope = rememberCoroutineScope()
     var statusExpanded by remember { mutableStateOf(false) }
     var priorityExpanded by remember { mutableStateOf(false) }
 
@@ -188,8 +192,11 @@ fun StaffMaintenanceCard(
         userViewModel.getUserDetailsByIdFlow(request.tenantId).collect { response ->
             when (response) {
                 is Response.Success -> tenantData = response.data
-                is Response.Error -> Log.e("StaffMaintenanceCard", "Error fetching tenant: ${response.message}")
-                is Response.Loading -> {  }
+                is Response.Error -> {
+                    Log.e("StaffMaintenanceCard", "Error fetching tenant: ${response.message}")
+                }
+                is Response.Loading -> {
+                }
             }
         }
     }
@@ -206,8 +213,7 @@ fun StaffMaintenanceCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val imageUrl = tenantData?.profileImage ?: tenantData?.imageUrl
-
+                val imageUrl = tenantData?.imageUrl
                 if (imageUrl.isNullOrEmpty()) {
                     Box(
                         modifier = Modifier
@@ -222,23 +228,23 @@ fun StaffMaintenanceCard(
                             tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
-
                 } else {
                     Image(
                         painter = rememberAsyncImagePainter(imageUrl),
                         contentDescription = "Profile Image",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 }
+
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Column {
                     Text(
-                        text = when {
-                            tenantData != null -> tenantData!!.name
-                            else -> "Loading..."
-                        },
+                        text = tenantData?.name ?: "Loading...",
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
@@ -254,8 +260,7 @@ fun StaffMaintenanceCard(
             Text(
                 text = request.issueDescription,
                 style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 20.sp, fontWeight = FontWeight.Medium),
-
-                )
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

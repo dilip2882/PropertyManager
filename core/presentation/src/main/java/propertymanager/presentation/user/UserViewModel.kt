@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -51,8 +52,14 @@ class UserViewModel @Inject constructor(
     }
 
     fun getUserDetailsByIdFlow(userId: String): Flow<Response<User>> {
+        if (userId.isBlank()) {
+            return flow {
+                emit(Response.Error("Invalid user ID"))
+            }
+        }
         return userUseCases.getUserDetailsUseCases(userId)
     }
+
 
     suspend fun uploadImageToFirebase(uri: Uri, userId: String): String {
         val storageRef = firebaseStorage.reference.child("profile_pictures/$userId.jpg")

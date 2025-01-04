@@ -116,7 +116,7 @@ class OnboardingViewModel @Inject constructor(
                     "username" to user.username,
                     "name" to user.name,
                     "role" to (existingRole ?: "TENANT"),
-                    "imageUrl" to (imageUrl ?: user.imageUrl),
+                    "imageUrl" to (imageUrl ?: user.profileImage),
                     "updatedAt" to FieldValue.serverTimestamp()
                 )
 

@@ -27,19 +27,21 @@ class UserRepositoryImpl @Inject constructor(
             .document(userid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    trySend(Response.Error(error.message ?: "Unknown error")).isSuccess
+                    trySend(Response.Error(error.message ?: "Unknown error"))
                     return@addSnapshotListener
                 }
 
                 if (snapshot != null && snapshot.exists()) {
                     val user = snapshot.toObject(User::class.java)
                     if (user != null) {
-                        trySend(Response.Success(user)).isSuccess
+
+                        val userWithId = user.copy(userId = snapshot.id)
+                        trySend(Response.Success(userWithId))
                     } else {
-                        trySend(Response.Error("Failed to deserialize user")).isSuccess
+                        trySend(Response.Error("Failed to deserialize user"))
                     }
                 } else {
-                    trySend(Response.Error("User not found")).isSuccess
+                    trySend(Response.Error("User not found"))
                 }
             }
 
@@ -54,19 +56,24 @@ class UserRepositoryImpl @Inject constructor(
             }
 
             val userMap = user.toMap()
+            Log.d("UserRepositoryImpl", "Uploading user: $userMap") // Logging user details
+
             firebaseFirestore.collection(COLLECTION_NAME_USERS)
                 .document(user.userId!!)
                 .set(userMap)
                 .await()
 
+            Log.d("UserRepositoryImpl", "User uploaded successfully")
             emit(Response.Success(true))
         } catch (e: Exception) {
+            Log.e("UserRepositoryImpl", "Error setting user details: ${e.message}")
             emit(Response.Error(e.message ?: "Failed to set user details"))
         }
     }
 
+
     private fun User.toMap(): Map<String, Any?> {
-        return mapOf(
+        val map = mapOf(
             "userId" to userId,
             "name" to name,
             "username" to username,
@@ -84,6 +91,8 @@ class UserRepositoryImpl @Inject constructor(
             "role" to role,
             "token" to token
         )
+        Log.d("UserMap", "Converting User to Map: role = ${map["role"]}")
+        return map
     }
 }
 
