@@ -4,27 +4,22 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,18 +36,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.rememberAsyncImagePainter
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.User
 import propertymanager.presentation.screens.LoadingScreen
+import propertymanager.presentation.user.ProfileScreen
 import propertymanager.presentation.user.UserViewModel
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun TenantProfileScreen(
@@ -65,30 +60,41 @@ fun TenantProfileScreen(
                     containerColor = Color.Transparent,
                     titleContentColor = Color.Black,
                 ),
-                title = { Text("") },
-                actions = {
-                    IconButton(onClick = onNavigateToEditProfile) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Edit Profile",
-                            tint = Color.Black,
-                        )
-                    }
-                },
+                title = { Text("Profile") },
             )
         },
     ) { padding ->
 
-        Column(modifier = Modifier.padding(padding)) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            item {
+                ProfileScreen(
+                    onNavigateToEditProfile = {
+                        onNavigateToEditProfile()
+                    },
+                )
+            }
 
-            Profile(user = User())
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                ProfileBody(user = User())
+
+            }
 
         }
     }
 }
 
 @Composable
-fun Profile(user: User) {
+fun ProfileBody(user: User) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val userViewModel = hiltViewModel<UserViewModel>()
@@ -131,155 +137,53 @@ fun Profile(user: User) {
             val fetchedUser = response.data ?: user
             Log.d("Profile", "Fetched User: $fetchedUser")
 
+            // Member Since Section
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface,
+                        RoundedCornerShape(8.dp),
+                    )
+                    .padding(16.dp),
             ) {
-                // Profile Header
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(15.dp),
+                Text(
+                    "Member Since",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(Color(0xFF5CD6FF), Color(0xFF5CD6FF)),
-                                ),
-                            ),
-                    )
-
                     Icon(
-                        imageVector = Icons.Outlined.CameraAlt,
-                        contentDescription = "Camera Icon",
+                        Icons.Default.DateRange,
+                        contentDescription = "Date",
                         tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(10.dp)
-                            .size(28.dp),
+                        modifier = Modifier.size(20.dp),
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(start = 20.dp, top = 50.dp)
-                            .offset(y = 15.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF556E8D)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            // Profile Image
-                            if (fetchedUser.profileImage.isNullOrEmpty()) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Default Profile Icon",
-                                    modifier = Modifier.size(50.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                )
-                            } else {
-                                Image(
-                                    painter = rememberAsyncImagePainter(fetchedUser.profileImage),
-                                    contentDescription = "Profile Image",
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .align(Alignment.BottomEnd)
-                                .offset(y = 0.dp, x = (-2).dp)
-                                .clickable { imagePickerLauncher.launch("image/*") },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                modifier = Modifier.size(20.dp),
-                                contentDescription = "Edit Icon",
-                                tint = Color.Black,
-                            )
-                            if (selectedImageUri != null) {
-                                Image(
-                                    painter = rememberAsyncImagePainter(selectedImageUri),
-                                    contentDescription = "Selected Image",
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Name
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Text(
-                        text = fetchedUser.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        text = fetchedUser.role,
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
+                        text = user.createdAt?.let { timestamp ->
+                            val timestampInMillis = timestamp.seconds
 
-                Spacer(modifier = Modifier.height(16.dp))
+                            val instant = Instant.ofEpochMilli(timestampInMillis)
 
-                // Bio Section
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Bio",
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp),
-                        )
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
-                            Text(
-                                text = "Add bio",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = Color.Black,
-                            )
-                            Text(
-                                text = "Tell your neighbours about yourself",
-                                fontSize = 12.sp,
-                                color = Color.Gray,
-                            )
-                        }
-                    }
+                            val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+
+                            val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm:ss")
+                            localDateTime.format(formatter)
+                        } ?: "Invalid Date",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+
                 }
             }
         }
     }
+
 }
 
 

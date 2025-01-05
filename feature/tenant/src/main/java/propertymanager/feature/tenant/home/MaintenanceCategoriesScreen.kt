@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Category
+import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
 fun MaintenanceCategoriesScreen(
@@ -76,12 +77,7 @@ fun MaintenanceCategoriesScreen(
 
             when (categoriesResponse) {
                 is Response.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    LoadingScreen()
                 }
 
                 is Response.Success -> {

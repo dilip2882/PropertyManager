@@ -3,17 +3,18 @@ package com.propertymanager.domain.model
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.GeoPoint
+import com.google.gson.annotations.SerializedName
 import java.util.Date
 
 data class User(
-    @DocumentId val userId: String? = null, // based on role - can be manager, tenant, landlord
+    val userId: String? = null, // based on role - can be manager, tenant, landlord
     val name: String = "",
-    var username: String = "",
-    var imageUrl: String = "",
+    val username: String,
+    var imageUrl: String? = null,
     var bio: String = "",
     var url: String = "",
     val phone: String = "",
-    val email: String = "",
+    val email: String,
     val passwordHash: String? = null,
     val role: String = Role.TENANT.name,
     val token: List<String> = listOf(),
@@ -22,14 +23,15 @@ data class User(
     val associatedProperties: List<String> = emptyList(),
     val createdAt: Timestamp? = Timestamp.now(),
     val updatedAt: Timestamp? = Timestamp.now(),
-    var profileImage: String? = null
+    var profileImage: String? = null,
+    val bannerImage: String? = null
 ) {
     // No-argument constructor for Firestore
     constructor() : this(
         userId = "",
         name = "",
         username = "",
-        imageUrl = "",
+        imageUrl = null,
         bio = "",
         url = "",
         phone = "",
@@ -42,7 +44,8 @@ data class User(
         associatedProperties = emptyList(),
         createdAt = Timestamp.now(),
         updatedAt = Timestamp.now(),
-        profileImage = null
+        profileImage = null,
+        bannerImage = null
     )
 }
 

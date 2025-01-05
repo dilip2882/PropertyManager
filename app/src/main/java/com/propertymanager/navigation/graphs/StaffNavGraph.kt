@@ -20,6 +20,9 @@ import propertymanager.feature.staff.settings.property.PropertyManagerScreen
 import propertymanager.feature.staff.settings.property.componenets.SelectCityScreen
 import propertymanager.feature.staff.settings.property.componenets.SelectCountryScreen
 import propertymanager.feature.staff.settings.property.componenets.SelectStateScreen
+import propertymanager.presentation.user.EditProfileScreen
+import propertymanager.presentation.user.ProfileScreen
+import propertymanager.presentation.user.UserViewModel
 
 fun NavGraphBuilder.staffNavGraph(
     navController: NavHostController,
@@ -36,10 +39,28 @@ fun NavGraphBuilder.staffNavGraph(
             )
         }
 
+        composable<Dest.ProfileScreen> {
+            ProfileScreen(
+                onNavigateToEditProfile = {
+                    navController.navigate(Dest.EditProfileScreen)
+                },
+                viewModel = hiltViewModel<UserViewModel>()
+            )
+        }
+
+        composable<Dest.EditProfileScreen> {
+           EditProfileScreen(
+               viewModel = hiltViewModel(),
+               onNavigateBack = {
+                   navController.navigateUp()
+               }
+           )
+        }
+
         composable<Dest.StaffSettingsScreen> {
             StaffSettingsScreen(
-                onNavigateToProfile = {
-                    navController.navigate(Dest.OnboardingFormScreen)
+                onNavigateToEditProfile = {
+                    navController.navigate(Dest.EditProfileScreen)
                 },
                 onNavigateToRoles = {
                     navController.navigate(Dest.LocationScreen)

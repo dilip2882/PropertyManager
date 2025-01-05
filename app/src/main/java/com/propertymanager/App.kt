@@ -21,7 +21,7 @@ class App : Application() {
                 "PropertyManager Notification Channel",
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
-                description = "This channel is used for property manager notifications" // Optional description
+                description = "This channel is used for property manager notifications"
             }
 
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

@@ -32,6 +32,8 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.google.firebase.auth.ktx)
 
+    implementation("com.google.accompanist:accompanist-permissions:0.37.0")
+
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.play.services.location)

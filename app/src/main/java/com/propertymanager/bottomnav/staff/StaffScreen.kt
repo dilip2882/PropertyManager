@@ -25,6 +25,9 @@ import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
+import propertymanager.presentation.user.EditProfileScreen
+import propertymanager.presentation.user.ProfileScreen
+import propertymanager.presentation.user.UserViewModel
 
 @Composable
 fun StaffScreen(
@@ -76,8 +79,8 @@ fun StaffScreen(
 
             composable(StaffBottomNavItem.SETTINGS.route) {
                 StaffSettingsScreen(
-                    onNavigateToProfile = {
-                        navController.navigate(Dest.OnboardingFormScreen)
+                    onNavigateToEditProfile = {
+                        navController.navigate(Dest.EditProfileScreen)
                     },
                     onNavigateToRoles = {
 
@@ -90,6 +93,24 @@ fun StaffScreen(
                     },
                     onNavigateToLocationManager = {
                         navController.navigate(Dest.LocationManagerScreen)
+                    }
+                )
+            }
+
+            composable<Dest.ProfileScreen> {
+                ProfileScreen(
+                    onNavigateToEditProfile = {
+                        navController.navigate(Dest.EditProfileScreen)
+                    },
+                    viewModel = hiltViewModel<UserViewModel>()
+                )
+            }
+
+            composable<Dest.EditProfileScreen> {
+                EditProfileScreen(
+                    viewModel = hiltViewModel(),
+                    onNavigateBack = {
+                        navController.navigateUp()
                     }
                 )
             }

@@ -27,7 +27,8 @@ dependencies {
 
     // Data serialization (JSON, protobuf, xml, retrofit)
     implementation(kotlinx.bundles.serialization)
-    
+    implementation(libs.gson)
+
     implementation(platform(kotlinx.coroutines.bom))
     implementation(kotlinx.bundles.coroutines)
     implementation(kotlinx.bundles.serialization)

@@ -32,10 +32,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -57,7 +54,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,12 +70,13 @@ import propertymanager.presentation.components.LocalPreferenceMinHeight
 import propertymanager.presentation.components.TextPreferenceWidget
 import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.screens.LoadingScreen
+import propertymanager.presentation.user.ProfileScreen
 import propertymanager.presentation.user.UserViewModel
 import java.util.Locale
 
 @Composable
 fun StaffSettingsScreen(
-    onNavigateToProfile: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onNavigateToCategoryManager: () -> Unit,
     onNavigateToPropertyManager: () -> Unit,
     onNavigateToLocationManager: () -> Unit,
@@ -152,19 +149,7 @@ fun StaffSettingsScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = { Text(stringResource(MR.strings.staff_settings_title)) },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            onNavigateToProfile()
-                        },
-                    ) {
-                        Icon(
-                            Icons.Filled.Person,
-                            contentDescription = "Edit Profile",
-                            tint = Color.Black,
-                        )
-                    }
-                },
+
             )
         },
     ) { padding ->
@@ -177,7 +162,12 @@ fun StaffSettingsScreen(
             verticalArrangement = Arrangement.Top,
         ) {
             item {
-                Profile(user = User())
+                ProfileScreen(
+                    onNavigateToEditProfile = {
+                        onNavigateToEditProfile()
+                    },
+                )
+//                Profile(user = User())
             }
 
             // Language Dropdown
@@ -363,9 +353,11 @@ fun Profile(user: User) {
         is Response.Loading -> {
             LoadingScreen()
         }
+
         is Response.Error -> {
             Text(text = "Error: ${response.message}")
         }
+
         is Response.Success -> {
             val fetchedUser = response.data ?: user
             Log.d("Profile", "Fetched User: $fetchedUser")
@@ -373,7 +365,7 @@ fun Profile(user: User) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.colorScheme.background),
             ) {
                 // Profile Header
                 Box(
@@ -390,8 +382,8 @@ fun Profile(user: User) {
                             .background(
                                 Brush.linearGradient(
                                     listOf(Color(0xFF5CD6FF), Color(0xFF5CD6FF)),
-                                )
-                            )
+                                ),
+                            ),
                     )
 
                     Icon(
@@ -466,7 +458,7 @@ fun Profile(user: User) {
                 // Name
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Text(
-                        text = fetchedUser.name ?: "Name not available",
+                        text = fetchedUser.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = MaterialTheme.colorScheme.primary,

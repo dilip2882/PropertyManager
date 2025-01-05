@@ -44,6 +44,11 @@ sealed interface Dest {
     @Serializable
     data object StaffScreen : Dest
 
+    @Serializable
+    data object ProfileScreen: Dest
+    @Serializable
+    data object EditProfileScreen: Dest
+
     /* ----------------- * Tenant screens * ----------------- */
     @Serializable
     data object MaintenanceListScreen : Dest

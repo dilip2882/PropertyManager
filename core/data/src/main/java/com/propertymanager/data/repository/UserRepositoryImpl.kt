@@ -88,6 +88,7 @@ class UserRepositoryImpl @Inject constructor(
             "createdAt" to createdAt,
             "updatedAt" to updatedAt,
             "profileImage" to profileImage,
+            "bannerImage" to bannerImage,
             "role" to role,
             "token" to token
         )

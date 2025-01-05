@@ -25,6 +25,7 @@ import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.tenant.home.MaintenanceListScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
+import propertymanager.presentation.user.EditProfileScreen
 
 @Composable
 fun TenantScreen(
@@ -83,8 +84,22 @@ fun TenantScreen(
             composable(TenantBottomNavItem.Person.route) {
                 TenantProfileScreen(
                     onNavigateToEditProfile = {
-                        navController.navigate(Dest.OnboardingFormScreen)
+                        navController.navigate(Dest.EditProfileScreen)
                     },
+                )
+            }
+
+            composable<Dest.ProfileScreen> {
+                TenantProfileScreen(
+                    onNavigateToEditProfile = {
+                        navController.navigate(Dest.EditProfileScreen)
+                    },
+                )
+            }
+
+            composable<Dest.EditProfileScreen> {
+                EditProfileScreen(
+                    onNavigateBack = { navController.popBackStack() },
                 )
             }
 
