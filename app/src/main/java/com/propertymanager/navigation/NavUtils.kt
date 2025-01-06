@@ -51,6 +51,8 @@ sealed interface Dest {
 
     /* ----------------- * Tenant screens * ----------------- */
     @Serializable
+    data object TenantHomeScreen : Dest
+    @Serializable
     data object MaintenanceListScreen : Dest
     @Serializable
     data class MaintenanceDetailsScreen(

@@ -67,7 +67,7 @@ import com.propertymanager.domain.model.WorkerDetails
 import com.propertymanager.domain.model.formatDate
 import kotlinx.coroutines.launch
 import propertymanager.feature.staff.settings.StaffViewModel
-import propertymanager.presentation.user.UserViewModel
+import propertymanager.presentation.components.user.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

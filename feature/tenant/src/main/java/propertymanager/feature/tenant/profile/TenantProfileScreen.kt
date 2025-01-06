@@ -42,8 +42,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.User
 import propertymanager.presentation.screens.LoadingScreen
-import propertymanager.presentation.user.ProfileScreen
-import propertymanager.presentation.user.UserViewModel
+import propertymanager.presentation.components.user.ProfileScreen
+import propertymanager.presentation.components.user.UserViewModel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId

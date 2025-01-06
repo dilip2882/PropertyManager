@@ -27,33 +27,38 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.icerock.moko.resources.StringResource
+import propertymanager.i18n.MR
+import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.theme.PropertyManagerIcons
 
-sealed class TenantBottomNavItem(
-    val route: String,
+enum class TenantBottomNavItem(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val label: String,
+    val labelResId: StringResource,
+    val route: String,
 ) {
-    data object Home : TenantBottomNavItem(
-        route = "tenant_home",
+    HOME(
         selectedIcon = PropertyManagerIcons.Home,
         unselectedIcon = PropertyManagerIcons.HomeBorder,
-        label = "Home",
-    )
-
-    data object Person : TenantBottomNavItem(
-        route = "tenant_profile",
-        selectedIcon = PropertyManagerIcons.Person,
-        unselectedIcon = PropertyManagerIcons.PersonBorder,
-        label = "Profile",
-    )
-
-    companion object {
-        fun getAllItems() = listOf(Home, Person)
-    }
+        labelResId = MR.strings.tenant_home,
+        route = "tenant_home",
+    ),
+    SUPPORT(
+        selectedIcon = PropertyManagerIcons.Support,
+        unselectedIcon = PropertyManagerIcons.SupportBorder,
+        labelResId = MR.strings.tenant_support,
+        route = "tenant_support",
+    ),
+    SETTINGS(
+        selectedIcon = PropertyManagerIcons.Settings,
+        unselectedIcon = PropertyManagerIcons.SettingsBorder,
+        labelResId = MR.strings.tenant_settings,
+        route = "tenant_settings",
+    );
 }
 
 @Composable
@@ -72,7 +77,7 @@ fun TenantNavBar(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            TenantBottomNavItem.getAllItems().forEach { item ->
+            TenantBottomNavItem.entries.forEach { item ->
                 val selected = currentDestination == item.route
 
                 Box(
@@ -89,25 +94,25 @@ fun TenantNavBar(
                         val iconSize by animateDpAsState(
                             targetValue = if (selected) 30.dp else 30.dp,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Icon Size"
+                            label = "Icon Size",
                         )
 
                         val iconShape by animateFloatAsState(
                             targetValue = if (selected) 35f else 20f,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Icon Shape"
+                            label = "Icon Shape",
                         )
 
                         val backgroundWidth by animateDpAsState(
                             targetValue = if (selected) 60.dp else 40.dp,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Background Width"
+                            label = "Background Width",
                         )
 
                         val rotation by animateFloatAsState(
-                            targetValue = if (selected && item is TenantBottomNavItem.Person) 90f else 0f,
+                            targetValue = if (selected && item == TenantBottomNavItem.SUPPORT && item == TenantBottomNavItem.SETTINGS) 90f else 0f,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Rotation"
+                            label = "Rotation",
                         )
 
                         Box(
@@ -117,13 +122,13 @@ fun TenantNavBar(
                                 .background(
                                     color = if (selected) Color(0xFFE7EF9F) else Color.Transparent,
                                     shape = RoundedCornerShape(iconShape),
-                                ),
-//                                .graphicsLayer(rotationZ = rotation),
+                                )
+                                .graphicsLayer(rotationZ = rotation),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.label,
+                                contentDescription = stringResource(item.labelResId),
                                 modifier = Modifier.size(iconSize),
                                 tint = if (selected) Color.Black else Color.White,
                             )
@@ -132,17 +137,17 @@ fun TenantNavBar(
                         val labelColor by animateColorAsState(
                             targetValue = if (selected) Color(0xFFE7EF9F) else Color.White,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Label Color"
+                            label = "Label Color",
                         )
 
                         val labelFontSize by animateFloatAsState(
                             targetValue = if (selected) 14f else 12f,
                             animationSpec = tween(durationMillis = 300),
-                            label = "Label Font Size"
+                            label = "Label Font Size",
                         )
 
                         Text(
-                            text = item.label,
+                            text = stringResource(item.labelResId),
                             fontSize = labelFontSize.sp,
                             color = labelColor,
                             modifier = Modifier.padding(top = 4.dp),
@@ -154,7 +159,18 @@ fun TenantNavBar(
                 }
             }
         }
-
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TenantNavBarPreview() {
+    val currentDestination = "home"
+    val onNavigate: (String) -> Unit = { }
+
+    TenantNavBar(
+        currentDestination = currentDestination,
+        onNavigate = onNavigate,
+    )
 }
 

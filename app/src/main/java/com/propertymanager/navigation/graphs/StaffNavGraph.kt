@@ -12,17 +12,17 @@ import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 import propertymanager.feature.staff.settings.category.CategoryManagerScreen
-import propertymanager.feature.staff.settings.location.LocationManagerScreen
-import propertymanager.feature.staff.settings.location.LocationScreen
-import propertymanager.feature.staff.settings.location.LocationViewModel
-import propertymanager.feature.staff.settings.property.AddPropertyScreen
 import propertymanager.feature.staff.settings.property.PropertyManagerScreen
-import propertymanager.feature.staff.settings.property.componenets.SelectCityScreen
-import propertymanager.feature.staff.settings.property.componenets.SelectCountryScreen
-import propertymanager.feature.staff.settings.property.componenets.SelectStateScreen
-import propertymanager.presentation.user.EditProfileScreen
-import propertymanager.presentation.user.ProfileScreen
-import propertymanager.presentation.user.UserViewModel
+import propertymanager.presentation.components.location.LocationManagerScreen
+import propertymanager.presentation.components.location.LocationScreen
+import propertymanager.presentation.components.location.LocationViewModel
+import propertymanager.presentation.components.property.AddPropertyScreen
+import propertymanager.presentation.components.property.SelectCityScreen
+import propertymanager.presentation.components.property.SelectCountryScreen
+import propertymanager.presentation.components.property.SelectStateScreen
+import propertymanager.presentation.components.user.EditProfileScreen
+import propertymanager.presentation.components.user.ProfileScreen
+import propertymanager.presentation.components.user.UserViewModel
 
 fun NavGraphBuilder.staffNavGraph(
     navController: NavHostController,
@@ -97,10 +97,7 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.LocationManagerScreen> {
             LocationManagerScreen(
-                viewModel = hiltViewModel(),
-                onNavigateBack = {
-                    navController.navigateUp()
-                }
+                viewModel = hiltViewModel()
             )
         }
 

@@ -70,8 +70,8 @@ import propertymanager.presentation.components.LocalPreferenceMinHeight
 import propertymanager.presentation.components.TextPreferenceWidget
 import propertymanager.presentation.i18n.stringResource
 import propertymanager.presentation.screens.LoadingScreen
-import propertymanager.presentation.user.ProfileScreen
-import propertymanager.presentation.user.UserViewModel
+import propertymanager.presentation.components.user.ProfileScreen
+import propertymanager.presentation.components.user.UserViewModel
 import java.util.Locale
 
 @Composable

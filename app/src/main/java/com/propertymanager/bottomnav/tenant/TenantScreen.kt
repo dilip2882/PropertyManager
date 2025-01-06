@@ -23,9 +23,12 @@ import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.graphs.tenantNavGraph
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
-import propertymanager.feature.tenant.home.MaintenanceListScreen
+import propertymanager.feature.tenant.home.TenantHomeScreen
 import propertymanager.feature.tenant.profile.TenantProfileScreen
-import propertymanager.presentation.user.EditProfileScreen
+import propertymanager.feature.tenant.support.MaintenanceListScreen
+import propertymanager.presentation.components.location.LocationViewModel
+import propertymanager.presentation.components.property.AddPropertyScreen
+import propertymanager.presentation.components.user.EditProfileScreen
 
 @Composable
 fun TenantScreen(
@@ -35,8 +38,9 @@ fun TenantScreen(
 
     val isBottomBarVisible = remember(currentDestination) {
         when (currentDestination?.route) {
-            TenantBottomNavItem.Home.route,
-            TenantBottomNavItem.Person.route,
+            TenantBottomNavItem.HOME.route,
+            TenantBottomNavItem.SUPPORT.route,
+            TenantBottomNavItem.SETTINGS.route,
                 -> true
 
             else -> false
@@ -67,10 +71,19 @@ fun TenantScreen(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = TenantBottomNavItem.Home.route,
+            startDestination = TenantBottomNavItem.HOME.route,
             modifier = Modifier.padding(paddingValues),
         ) {
-            composable(TenantBottomNavItem.Home.route) {
+            composable(TenantBottomNavItem.HOME.route) {
+                TenantHomeScreen(
+                    propertyViewModel = hiltViewModel(),
+                    onNavigateToAddProperty = {
+                        navController.navigate(Dest.AddPropertyScreen)
+                    },
+                )
+            }
+
+            composable(TenantBottomNavItem.SUPPORT.route) {
                 MaintenanceListScreen(
                     onNavigateToMaintenanceRequest = {
                         navController.navigate(Dest.MaintenanceCategoriesScreen)
@@ -81,11 +94,36 @@ fun TenantScreen(
                 )
             }
 
-            composable(TenantBottomNavItem.Person.route) {
+            composable(TenantBottomNavItem.SETTINGS.route) {
                 TenantProfileScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.EditProfileScreen)
                     },
+                )
+            }
+
+            composable<Dest.TenantHomeScreen> {
+                TenantHomeScreen(
+                    propertyViewModel = hiltViewModel(),
+                    onNavigateToAddProperty = {
+                        navController.navigate(Dest.AddPropertyScreen)
+                    },
+                )
+            }
+
+            composable<Dest.AddPropertyScreen> {
+                val sharedViewModel: LocationViewModel = hiltViewModel(
+                    remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
+                )
+                AddPropertyScreen(
+                    viewModel = hiltViewModel(),
+                    locationViewModel = sharedViewModel,
+                    onPropertyAdded = {
+                        navController.navigate(TenantBottomNavItem.HOME.route) {
+                            popUpTo(Dest.TenantHomeScreen) { inclusive = true }
+                        }
+                    },
+                    onNavigateBack = { navController.navigateUp() },
                 )
             }
 

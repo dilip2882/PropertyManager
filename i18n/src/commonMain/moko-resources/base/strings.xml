@@ -5,7 +5,8 @@
     <!-- Bottom Navigation -->
     // tenant
     <string name="tenant_home">Home</string>
-    <string name="tenant_profile">Profile</string>
+    <string name="tenant_support">Support</string>
+    <string name="tenant_settings">Settings</string>
     // staff
     <string name="staff_home">Home</string>
     <string name="staff_settings">Settings</string>

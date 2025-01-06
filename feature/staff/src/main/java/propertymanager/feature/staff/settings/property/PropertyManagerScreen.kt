@@ -21,6 +21,7 @@ import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Property
 import propertymanager.feature.staff.settings.property.componenets.EmptyPropertyList
 import propertymanager.feature.staff.settings.property.componenets.PropertyList
+import propertymanager.presentation.components.property.PropertyViewModel
 import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
