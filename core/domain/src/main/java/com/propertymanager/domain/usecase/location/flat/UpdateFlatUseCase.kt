@@ -7,7 +7,8 @@ import javax.inject.Inject
 class UpdateFlatUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(towerId: Int, flat: Flat): Result<Unit> =
-        repository.updateFlat(towerId, flat)
+    suspend operator fun invoke(flat: Flat): Result<Unit> {
+        return repository.updateFlat(flat)
+    }
 }
 

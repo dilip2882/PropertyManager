@@ -6,6 +6,7 @@ import javax.inject.Inject
 class DeleteBlockUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(societyId: Int, blockId: Int): Result<Unit> =
-        repository.deleteBlock(societyId, blockId)
+    suspend operator fun invoke(blockId: Int): Result<Unit> {
+        return repository.deleteBlock(blockId)
+    }
 }

@@ -15,18 +15,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class LocationRepositoryImpl @Inject constructor(
-    firestore: FirebaseFirestore,
+    private val firestore: FirebaseFirestore
 ) : LocationRepository {
-    private val locationsCollection = firestore.collection("locations")
 
-    /* ----------------- * Country * ----------------- */
+    private val locationsRef = firestore.collection("locations")
+
+    // subcollections
+    private fun countriesRef() = locationsRef.document("root").collection("countries")
+    private fun statesRef(countryId: Int) = countriesRef().document(countryId.toString()).collection("states")
+    private fun citiesRef(countryId: Int, stateId: Int) =
+        statesRef(countryId).document(stateId.toString()).collection("cities")
+    private fun societiesRef(countryId: Int, stateId: Int, cityId: Int) =
+        citiesRef(countryId, stateId).document(cityId.toString()).collection("societies")
+    private fun blocksRef(countryId: Int, stateId: Int, cityId: Int, societyId: Int) =
+        societiesRef(countryId, stateId, cityId).document(societyId.toString()).collection("blocks")
+    private fun towersRef(countryId: Int, stateId: Int, cityId: Int, societyId: Int) =
+        societiesRef(countryId, stateId, cityId).document(societyId.toString()).collection("towers")
+    private fun flatsRef(countryId: Int, stateId: Int, cityId: Int, societyId: Int, parentType: String, parentId: Int) =
+        when (parentType) {
+            "block" -> blocksRef(countryId, stateId, cityId, societyId).document(parentId.toString()).collection("flats")
+            "tower" -> towersRef(countryId, stateId, cityId, societyId).document(parentId.toString()).collection("flats")
+            else -> societiesRef(countryId, stateId, cityId).document(societyId.toString()).collection("flats")
+        }
+
+    // Country operations
     override suspend fun getCountries(): Flow<List<Country>> = callbackFlow {
-        val subscription = locationsCollection
+        val subscription = countriesRef()
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -42,9 +62,8 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun findCountryById(countryId: Int): Result<Country?> = withContext(Dispatchers.IO) {
         try {
-            val document = locationsCollection.document(countryId.toString()).get().await()
-            val country = document.toObject<Country>()
-            Result.success(country)
+            val document = countriesRef().document(countryId.toString()).get().await()
+            Result.success(document.toObject<Country>())
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -52,9 +71,7 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun addCountry(country: Country): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            locationsCollection
-                .document(country.id.toString())
-                .set(country)
+            countriesRef().document(country.id.toString()).set(country).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -63,9 +80,7 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun updateCountry(country: Country): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            locationsCollection
-                .document(country.id.toString())
-                .set(country, SetOptions.merge())
+            countriesRef().document(country.id.toString()).set(country, SetOptions.merge()).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -74,25 +89,24 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun deleteCountry(countryId: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            locationsCollection.document(countryId.toString()).delete().await()
+            countriesRef().document(countryId.toString()).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    /* ----------------- * State * ----------------- */
+    // State operations
     override suspend fun getStatesForCountry(countryId: Int): Flow<List<State>> = callbackFlow {
-        val subscription = locationsCollection
-            .document(countryId.toString())
+        val subscription = statesRef(countryId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
-
-                val country = snapshot?.toObject<Country>()
-                val states = country?.states ?: emptyList()
+                val states = snapshot?.documents?.mapNotNull {
+                    it.toObject<State>()
+                } ?: emptyList()
                 trySend(states)
             }
         awaitClose { subscription.remove() }
@@ -100,800 +114,568 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun findStateById(stateId: Int): Result<State?> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val state = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .flatMap { it.states }
-                .find { it.id == stateId }
-            Result.success(state)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun addState(countryId: Int, state: State): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val countryDoc = locationsCollection.document(countryId.toString()).get().await()
-            val country =
-                countryDoc.toObject<Country>() ?: return@withContext Result.failure(Exception("Country not found"))
-
-            val updatedStates = country.states.toMutableList().apply { add(state) }
-            locationsCollection.document(countryId.toString())
-                .update("states", updatedStates)
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun updateState(countryId: Int, state: State): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val countryDoc = locationsCollection.document(countryId.toString()).get().await()
-            val country =
-                countryDoc.toObject<Country>() ?: return@withContext Result.failure(Exception("Country not found"))
-
-            val updatedStates = country.states.map {
-                if (it.id == state.id) state else it
+            // First find the country that contains this state
+            val querySnapshot = countriesRef().get().await()
+            for (countryDoc in querySnapshot.documents) {
+                val stateDoc = statesRef(countryDoc.id.toInt()).document(stateId.toString()).get().await()
+                if (stateDoc.exists()) {
+                    return@withContext Result.success(stateDoc.toObject<State>())
+                }
             }
-            locationsCollection.document(countryId.toString())
-                .update("states", updatedStates)
-                .await()
-
-            Result.success(Unit)
+            Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteState(countryId: Int, stateId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun addState(state: State): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val countryDoc = locationsCollection.document(countryId.toString()).get().await()
-            val country =
-                countryDoc.toObject<Country>() ?: return@withContext Result.failure(Exception("Country not found"))
-
-            val updatedStates = country.states.filter { it.id != stateId }
-            locationsCollection.document(countryId.toString())
-                .update("states", updatedStates)
-                .await()
-
+            statesRef(state.countryId).document(state.id.toString()).set(state).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    /* ----------------- * City * ----------------- */
+    override suspend fun updateState(state: State): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            statesRef(state.countryId).document(state.id.toString())
+                .set(state, SetOptions.merge()).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteState(stateId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val state = findStateById(stateId).getOrNull() ?:
+                return@withContext Result.failure(Exception("State not found"))
+            statesRef(state.countryId).document(stateId.toString()).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // City operations
     override suspend fun getCitiesForState(stateId: Int): Flow<List<City>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val cities = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .find { it.id == stateId }
-                    ?.cities ?: emptyList()
+        val state = findStateById(stateId).getOrNull() ?: return@callbackFlow
+
+        val subscription = citiesRef(state.countryId, stateId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val cities = snapshot?.documents?.mapNotNull {
+                    it.toObject<City>()
+                } ?: emptyList()
                 trySend(cities)
             }
-            .addOnFailureListener { error ->
-                close(error)
-            }
-
-        awaitClose { }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun findCityById(cityId: Int): Result<City?> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val city = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .flatMap { it.states }
-                .flatMap { it.cities }
-                .find { it.id == cityId }
-            Result.success(city)
+            val querySnapshot = countriesRef().get().await()
+            for (countryDoc in querySnapshot.documents) {
+                val countryId = countryDoc.id.toInt()
+                val statesSnapshot = statesRef(countryId).get().await()
+                for (stateDoc in statesSnapshot.documents) {
+                    val cityDoc = citiesRef(countryId, stateDoc.id.toInt())
+                        .document(cityId.toString()).get().await()
+                    if (cityDoc.exists()) {
+                        return@withContext Result.success(cityDoc.toObject<City>())
+                    }
+                }
+            }
+            Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun addCity(stateId: Int, city: City): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun addCity(city: City): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val countryDoc = locationsCollection.get().await()
-            val country = countryDoc.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { it.states.any { state -> state.id == stateId } }
-                ?: return@withContext Result.failure(Exception("State not found"))
-
-            val updatedStates = country.states.map { state ->
-                if (state.id == stateId) {
-                    state.copy(cities = state.cities + city)
-                } else state
-            }
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            citiesRef(city.countryId, city.stateId)
+                .document(city.id.toString())
+                .set(city)
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateCity(stateId: Int, city: City): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updateCity(city: City): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val countryDoc = locationsCollection.get().await()
-            val country = countryDoc.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { it.states.any { state -> state.id == stateId } }
-                ?: return@withContext Result.failure(Exception("State not found"))
-
-            val updatedStates = country.states.map { state ->
-                if (state.id == stateId) {
-                    state.copy(cities = state.cities.map { if (it.id == city.id) city else it })
-                } else state
-            }
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            citiesRef(city.countryId, city.stateId)
+                .document(city.id.toString())
+                .set(city, SetOptions.merge())
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteCity(stateId: Int, cityId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun deleteCity(cityId: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val countryDoc = locationsCollection.get().await()
-            val country = countryDoc.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { it.states.any { state -> state.id == stateId } }
-                ?: return@withContext Result.failure(Exception("State not found"))
-
-            val updatedStates = country.states.map { state ->
-                if (state.id == stateId) {
-                    state.copy(cities = state.cities.filter { it.id != cityId })
-                } else state
-            }
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            val city = findCityById(cityId).getOrNull() ?:
+                return@withContext Result.failure(Exception("City not found"))
+            citiesRef(city.countryId, city.stateId)
+                .document(cityId.toString())
+                .delete()
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    /* ----------------- * Society * ----------------- */
+    // Society operations
     override suspend fun getSocietiesForCity(cityId: Int): Flow<List<Society>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val societies = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .flatMap { it.cities }
-                    .find { it.id == cityId }
-                    ?.societies ?: emptyList()
+        val city = findCityById(cityId).getOrNull() ?: return@callbackFlow
+
+        val subscription = societiesRef(city.countryId, city.stateId, cityId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val societies = snapshot?.documents?.mapNotNull {
+                    it.toObject<Society>()
+                } ?: emptyList()
                 trySend(societies)
             }
-            .addOnFailureListener { error ->
-                close(error)
-            }
-        awaitClose { }
-    }
-
-    override suspend fun addSociety(cityId: Int, society: Society): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val countryDoc = locationsCollection.get().await()
-            val country = countryDoc.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { it.states.any { state -> state.cities.any { city -> city.id == cityId } } }
-                ?: return@withContext Result.failure(Exception("City not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        if (city.id == cityId) city.copy(societies = city.societies + society) else city
-                    },
-                )
-            }
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun updateSociety(cityId: Int, society: Society): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val countryDoc = locationsCollection.get().await()
-            val country = countryDoc.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { it.states.any { state -> state.cities.any { city -> city.id == cityId } } }
-                ?: return@withContext Result.failure(Exception("City not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        if (city.id == cityId) city.copy(societies = city.societies.map { if (it.id == society.id) society else it }) else city
-                    },
-                )
-            }
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun deleteSociety(cityId: Int, societyId: Int): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val countryDoc = locationsCollection.get().await()
-            val country = countryDoc.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { it.states.any { state -> state.cities.any { city -> city.id == cityId } } }
-                ?: return@withContext Result.failure(Exception("City not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        if (city.id == cityId) city.copy(societies = city.societies.filter { it.id != societyId }) else city
-                    },
-                )
-            }
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun findSocietyById(societyId: Int): Result<Society?> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val society = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .flatMap { it.states }
-                .flatMap { it.cities }
-                .flatMap { it.societies }
-                .find { it.id == societyId }
-            Result.success(society)
+            val querySnapshot = countriesRef().get().await()
+            for (countryDoc in querySnapshot.documents) {
+                val countryId = countryDoc.id.toInt()
+                val statesSnapshot = statesRef(countryId).get().await()
+                for (stateDoc in statesSnapshot.documents) {
+                    val stateId = stateDoc.id.toInt()
+                    val citiesSnapshot = citiesRef(countryId, stateId).get().await()
+                    for (cityDoc in citiesSnapshot.documents) {
+                        val societyDoc = societiesRef(countryId, stateId, cityDoc.id.toInt())
+                            .document(societyId.toString()).get().await()
+                        if (societyDoc.exists()) {
+                            return@withContext Result.success(societyDoc.toObject<Society>())
+                        }
+                    }
+                }
+            }
+            Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    /* ----------------- * Block * ----------------- */
+    override suspend fun addSociety(society: Society): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            societiesRef(society.countryId, society.stateId, society.cityId)
+                .document(society.id.toString())
+                .set(society)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateSociety(society: Society): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            societiesRef(society.countryId, society.stateId, society.cityId)
+                .document(society.id.toString())
+                .set(society, SetOptions.merge())
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteSociety(societyId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val society = findSocietyById(societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
+            societiesRef(society.countryId, society.stateId, society.cityId)
+                .document(societyId.toString())
+                .delete()
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Block operations
     override suspend fun getBlocksForSociety(societyId: Int): Flow<List<Block>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val blocks = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .flatMap { it.cities }
-                    .flatMap { it.societies }
-                    .find { it.id == societyId }
-                    ?.blocks ?: emptyList()
+        val society = findSocietyById(societyId).getOrNull() ?: return@callbackFlow
+
+        val subscription = blocksRef(society.countryId, society.stateId, society.cityId, societyId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val blocks = snapshot?.documents?.mapNotNull {
+                    it.toObject<Block>()
+                } ?: emptyList()
                 trySend(blocks)
             }
-            .addOnFailureListener { error ->
-                close(error)
-            }
-        awaitClose { }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun findBlockById(blockId: Int): Result<Block?> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val block = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .flatMap { it.states }
-                .flatMap { it.cities }
-                .flatMap { it.societies }
-                .flatMap { it.blocks }
-                .find { it.id == blockId }
-            Result.success(block)
+            val societies = findAllSocieties()
+            for (society in societies) {
+                val blockDoc = blocksRef(society.countryId, society.stateId, society.cityId, society.id)
+                    .document(blockId.toString()).get().await()
+                if (blockDoc.exists()) {
+                    return@withContext Result.success(blockDoc.toObject<Block>())
+                }
+            }
+            Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun addBlock(societyId: Int, block: Block): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun addBlock(block: Block): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { it.id == societyId }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Society not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                if (society.id == societyId) {
-                                    society.copy(blocks = society.blocks + block)
-                                } else society
-                            },
-                        )
-                    },
-                )
-            }
-
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            val society = findSocietyById(block.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
+            blocksRef(society.countryId, society.stateId, society.cityId, society.id)
+                .document(block.id.toString())
+                .set(block)
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateBlock(societyId: Int, block: Block): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updateBlock(block: Block): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { it.id == societyId }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Society not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                if (society.id == societyId) {
-                                    society.copy(
-                                        blocks = society.blocks.map {
-                                            if (it.id == block.id) block else it
-                                        },
-                                    )
-                                } else society
-                            },
-                        )
-                    },
-                )
-            }
-
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            val society = findSocietyById(block.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
+            blocksRef(society.countryId, society.stateId, society.cityId, society.id)
+                .document(block.id.toString())
+                .set(block, SetOptions.merge())
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteBlock(societyId: Int, blockId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun deleteBlock(blockId: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { it.id == societyId }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Society not found"))
+            val block = findBlockById(blockId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Block not found"))
+            val society = findSocietyById(block.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
 
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                if (society.id == societyId) {
-                                    society.copy(blocks = society.blocks.filter { it.id != blockId })
-                                } else society
-                            },
-                        )
-                    },
-                )
-            }
-
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            blocksRef(society.countryId, society.stateId, society.cityId, society.id)
+                .document(blockId.toString())
+                .delete()
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    /* ----------------- * Tower * ----------------- */
+    // Tower operations
     override suspend fun getTowersForSociety(societyId: Int): Flow<List<Tower>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val towers = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .flatMap { it.cities }
-                    .flatMap { it.societies }
-                    .find { it.id == societyId }
-                    ?.towers ?: emptyList()
+        val society = findSocietyById(societyId).getOrNull() ?: return@callbackFlow
+
+        val subscription = towersRef(society.countryId, society.stateId, society.cityId, societyId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val towers = snapshot?.documents?.mapNotNull {
+                    it.toObject<Tower>()
+                } ?: emptyList()
                 trySend(towers)
             }
-            .addOnFailureListener { error ->
-                close(error)
+        awaitClose { subscription.remove() }
+    }
+
+    override suspend fun getTowersForBlock(blockId: Int): Flow<List<Tower>> = callbackFlow {
+        val block = findBlockById(blockId).getOrNull() ?: return@callbackFlow
+        val society = findSocietyById(block.societyId).getOrNull() ?: return@callbackFlow
+
+        val subscription = towersRef(society.countryId, society.stateId, society.cityId, society.id)
+            .whereEqualTo("blockId", blockId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val towers = snapshot?.documents?.mapNotNull {
+                    it.toObject<Tower>()
+                } ?: emptyList()
+                trySend(towers)
             }
-        awaitClose { }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun findTowerById(towerId: Int): Result<Tower?> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val tower = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .flatMap { it.states }
-                .flatMap { it.cities }
-                .flatMap { it.societies }
-                .flatMap { it.towers }
-                .find { it.id == towerId }
-            Result.success(tower)
+            val societies = findAllSocieties()
+            for (society in societies) {
+                val towerDoc = towersRef(society.countryId, society.stateId, society.cityId, society.id)
+                    .document(towerId.toString()).get().await()
+                if (towerDoc.exists()) {
+                    return@withContext Result.success(towerDoc.toObject<Tower>())
+                }
+            }
+            Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun addTower(blockId: Int, tower: Tower): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun addTower(tower: Tower): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { society ->
-                                society.blocks.any { it.id == blockId }
-                            }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Block not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                if (society.blocks.any { it.id == blockId }) {
-                                    society.copy(towers = society.towers + tower)
-                                } else society
-                            },
-                        )
-                    },
-                )
-            }
-
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            val society = findSocietyById(tower.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
+            towersRef(society.countryId, society.stateId, society.cityId, society.id)
+                .document(tower.id.toString())
+                .set(tower)
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateTower(blockId: Int, tower: Tower): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updateTower(tower: Tower): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { society ->
-                                society.blocks.any { it.id == blockId }
-                            }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Block not found"))
-
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                if (society.blocks.any { it.id == blockId }) {
-                                    society.copy(
-                                        towers = society.towers.map {
-                                            if (it.id == tower.id) tower else it
-                                        },
-                                    )
-                                } else society
-                            },
-                        )
-                    },
-                )
-            }
-
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            val society = findSocietyById(tower.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
+            towersRef(society.countryId, society.stateId, society.cityId, society.id)
+                .document(tower.id.toString())
+                .set(tower, SetOptions.merge())
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteTower(blockId: Int, towerId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun deleteTower(towerId: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { society ->
-                                society.blocks.any { it.id == blockId }
-                            }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Block not found"))
+            val tower = findTowerById(towerId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Tower not found"))
+            val society = findSocietyById(tower.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
 
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                if (society.blocks.any { it.id == blockId }) {
-                                    society.copy(towers = society.towers.filter { it.id != towerId })
-                                } else society
-                            },
-                        )
-                    },
-                )
-            }
-
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            towersRef(society.countryId, society.stateId, society.cityId, society.id)
+                .document(towerId.toString())
+                .delete()
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    /* ----------------- * Flat * ----------------- */
+    // Flat operations
     override suspend fun getFlatsForSociety(societyId: Int): Flow<List<Flat>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val flats = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .flatMap { it.cities }
-                    .flatMap { it.societies }
-                    .find { it.id == societyId }
-                    ?.flats ?: emptyList()
+        val society = findSocietyById(societyId).getOrNull() ?: return@callbackFlow
+
+        val subscription = flatsRef(society.countryId, society.stateId, society.cityId, society.id, "society", society.id)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val flats = snapshot?.documents?.mapNotNull {
+                    it.toObject<Flat>()
+                } ?: emptyList()
                 trySend(flats)
             }
-            .addOnFailureListener { error ->
-                close(error)
-            }
-        awaitClose { }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun getFlatsForBlock(blockId: Int): Flow<List<Flat>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val flats = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .flatMap { it.cities }
-                    .flatMap { it.societies }
-                    .flatMap { it.blocks }
-                    .find { it.id == blockId }
-                    ?.flats ?: emptyList()
+        val block = findBlockById(blockId).getOrNull() ?: return@callbackFlow
+        val society = findSocietyById(block.societyId).getOrNull() ?: return@callbackFlow
+
+        val subscription = flatsRef(society.countryId, society.stateId, society.cityId, society.id, "block", blockId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val flats = snapshot?.documents?.mapNotNull {
+                    it.toObject<Flat>()
+                } ?: emptyList()
                 trySend(flats)
             }
-            .addOnFailureListener { error ->
-                close(error)
-            }
-        awaitClose { }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun getFlatsForTower(towerId: Int): Flow<List<Flat>> = callbackFlow {
-        val subscription = locationsCollection
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val flats = querySnapshot.documents
-                    .mapNotNull { it.toObject<Country>() }
-                    .flatMap { it.states }
-                    .flatMap { it.cities }
-                    .flatMap { it.societies }
-                    .flatMap { it.towers }
-                    .find { it.id == towerId }
-                    ?.flats ?: emptyList()
+        val tower = findTowerById(towerId).getOrNull() ?: return@callbackFlow
+        val society = findSocietyById(tower.societyId).getOrNull() ?: return@callbackFlow
+
+        val subscription = flatsRef(society.countryId, society.stateId, society.cityId, society.id, "tower", towerId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val flats = snapshot?.documents?.mapNotNull {
+                    it.toObject<Flat>()
+                } ?: emptyList()
                 trySend(flats)
             }
-            .addOnFailureListener { error ->
-                close(error)
-            }
-        awaitClose { }
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun findFlatById(flatId: Int): Result<Flat?> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val flat = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .flatMap { it.states }
-                .flatMap { it.cities }
-                .flatMap { it.societies }
-                .flatMap { society ->
-                    society.blocks.flatMap { it.flats } +
-                        society.towers.flatMap { it.flats } +
-                        society.flats
+            val societies = findAllSocieties()
+            for (society in societies) {
+                // Check society flats
+                val societyFlatDoc = flatsRef(society.countryId, society.stateId, society.cityId, society.id, "society", society.id)
+                    .document(flatId.toString()).get().await()
+                if (societyFlatDoc.exists()) {
+                    return@withContext Result.success(societyFlatDoc.toObject<Flat>())
                 }
-                .find { it.id == flatId }
-            Result.success(flat)
+
+                // Check block flats
+                val blocks = getBlocksForSociety(society.id).first()
+                for (block in blocks) {
+                    val blockFlatDoc = flatsRef(society.countryId, society.stateId, society.cityId, society.id, "block", block.id)
+                        .document(flatId.toString()).get().await()
+                    if (blockFlatDoc.exists()) {
+                        return@withContext Result.success(blockFlatDoc.toObject<Flat>())
+                    }
+                }
+
+                // Check tower flats
+                val towers = getTowersForSociety(society.id).first()
+                for (tower in towers) {
+                    val towerFlatDoc = flatsRef(society.countryId, society.stateId, society.cityId, society.id, "tower", tower.id)
+                        .document(flatId.toString()).get().await()
+                    if (towerFlatDoc.exists()) {
+                        return@withContext Result.success(towerFlatDoc.toObject<Flat>())
+                    }
+                }
+            }
+            Result.success(null)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun addFlat(towerId: Int, flat: Flat): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun addFlat(flat: Flat): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { society ->
-                                society.towers.any { it.id == towerId }
-                            }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Tower not found"))
+            val society = findSocietyById(flat.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
 
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                society.copy(
-                                    towers = society.towers.map { tower ->
-                                        if (tower.id == towerId) {
-                                            tower.copy(flats = tower.flats + flat)
-                                        } else tower
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
+            val parentType = when {
+                flat.towerId != null -> "tower"
+                flat.blockId != null -> "block"
+                else -> "society"
             }
+            val parentId = flat.towerId ?: flat.blockId ?: flat.societyId
 
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            flatsRef(society.countryId, society.stateId, society.cityId, society.id, parentType, parentId)
+                .document(flat.id.toString())
+                .set(flat)
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateFlat(towerId: Int, flat: Flat): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updateFlat(flat: Flat): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { society ->
-                                society.towers.any { it.id == towerId }
-                            }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Tower not found"))
+            val society = findSocietyById(flat.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
 
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                society.copy(
-                                    towers = society.towers.map { tower ->
-                                        if (tower.id == towerId) {
-                                            tower.copy(
-                                                flats = tower.flats.map {
-                                                    if (it.id == flat.id) flat else it
-                                                },
-                                            )
-                                        } else tower
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
+            val parentType = when {
+                flat.towerId != null -> "tower"
+                flat.blockId != null -> "block"
+                else -> "society"
             }
+            val parentId = flat.towerId ?: flat.blockId ?: flat.societyId
 
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            flatsRef(society.countryId, society.stateId, society.cityId, society.id, parentType, parentId)
+                .document(flat.id.toString())
+                .set(flat, SetOptions.merge())
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun deleteFlat(towerId: Int, flatId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun deleteFlat(flatId: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val querySnapshot = locationsCollection.get().await()
-            val country = querySnapshot.documents
-                .mapNotNull { it.toObject<Country>() }
-                .firstOrNull { country ->
-                    country.states.any { state ->
-                        state.cities.any { city ->
-                            city.societies.any { society ->
-                                society.towers.any { it.id == towerId }
-                            }
-                        }
-                    }
-                } ?: return@withContext Result.failure(Exception("Tower not found"))
+            val flat = findFlatById(flatId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Flat not found"))
+            val society = findSocietyById(flat.societyId).getOrNull() ?:
+                return@withContext Result.failure(Exception("Society not found"))
 
-            val updatedStates = country.states.map { state ->
-                state.copy(
-                    cities = state.cities.map { city ->
-                        city.copy(
-                            societies = city.societies.map { society ->
-                                society.copy(
-                                    towers = society.towers.map { tower ->
-                                        if (tower.id == towerId) {
-                                            tower.copy(flats = tower.flats.filter { it.id != flatId })
-                                        } else tower
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
+            val parentType = when {
+                flat.towerId != null -> "tower"
+                flat.blockId != null -> "block"
+                else -> "society"
             }
+            val parentId = flat.towerId ?: flat.blockId ?: flat.societyId
 
-            locationsCollection.document(country.id.toString())
-                .update("states", updatedStates)
+            flatsRef(society.countryId, society.stateId, society.cityId, society.id, parentType, parentId)
+                .document(flatId.toString())
+                .delete()
                 .await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // ... Continue with remaining methods for Tower and Flat operations ...
+
+    // Helper method to find all societies
+    private suspend fun findAllSocieties(): List<Society> {
+        val societies = mutableListOf<Society>()
+        val countriesSnapshot = countriesRef().get().await()
+
+        for (countryDoc in countriesSnapshot.documents) {
+            val countryId = countryDoc.id.toInt()
+            val statesSnapshot = statesRef(countryId).get().await()
+
+            for (stateDoc in statesSnapshot.documents) {
+                val stateId = stateDoc.id.toInt()
+                val citiesSnapshot = citiesRef(countryId, stateId).get().await()
+
+                for (cityDoc in citiesSnapshot.documents) {
+                    val cityId = cityDoc.id.toInt()
+                    val societiesSnapshot = societiesRef(countryId, stateId, cityId).get().await()
+
+                    societies.addAll(societiesSnapshot.documents.mapNotNull {
+                        it.toObject<Society>()
+                    })
+                }
+            }
+        }
+        return societies
     }
 }
 

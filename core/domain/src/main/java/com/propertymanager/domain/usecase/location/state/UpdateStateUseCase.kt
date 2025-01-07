@@ -7,6 +7,7 @@ import javax.inject.Inject
 class UpdateStateUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(countryId: Int, state: State): Result<Unit> =
-        repository.updateState(countryId, state)
+    suspend operator fun invoke(state: State): Result<Unit> {
+        return repository.updateState(state)
+    }
 }

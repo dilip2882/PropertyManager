@@ -8,6 +8,7 @@ import javax.inject.Inject
 class GetSocietiesForCityUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(cityId: Int): Flow<List<Society>> =
-        repository.getSocietiesForCity(cityId)
+    suspend operator fun invoke(cityId: Int): Flow<List<Society>> {
+        return repository.getSocietiesForCity(cityId)
+    }
 }

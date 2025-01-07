@@ -8,6 +8,7 @@ import javax.inject.Inject
 class GetFlatsForTowerUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(towerId: Int): Flow<List<Flat>> =
-        repository.getFlatsForTower(towerId)
+    suspend operator fun invoke(towerId: Int): Flow<List<Flat>> {
+        return repository.getFlatsForTower(towerId)
+    }
 }

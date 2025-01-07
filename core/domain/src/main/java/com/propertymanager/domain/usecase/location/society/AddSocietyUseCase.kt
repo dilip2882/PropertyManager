@@ -7,6 +7,7 @@ import javax.inject.Inject
 class AddSocietyUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(cityId: Int, society: Society): Result<Unit> =
-        repository.addSociety(cityId, society)
+    suspend operator fun invoke(society: Society): Result<Unit> {
+        return repository.addSociety(society)
+    }
 }

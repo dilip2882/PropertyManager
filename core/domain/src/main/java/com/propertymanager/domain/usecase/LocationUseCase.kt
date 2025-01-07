@@ -8,10 +8,12 @@ import com.propertymanager.domain.usecase.location.block.GetBlocksForSocietyUseC
 import com.propertymanager.domain.usecase.location.block.UpdateBlockUseCase
 import com.propertymanager.domain.usecase.location.city.AddCityUseCase
 import com.propertymanager.domain.usecase.location.city.DeleteCityUseCase
+import com.propertymanager.domain.usecase.location.city.FindCityByIdUseCase
 import com.propertymanager.domain.usecase.location.city.GetCitiesForStateUseCase
 import com.propertymanager.domain.usecase.location.city.UpdateCityUseCase
 import com.propertymanager.domain.usecase.location.country.AddCountryUseCase
 import com.propertymanager.domain.usecase.location.country.DeleteCountryUseCase
+import com.propertymanager.domain.usecase.location.country.FindCountryByIdUseCase
 import com.propertymanager.domain.usecase.location.country.GetCountriesUseCase
 import com.propertymanager.domain.usecase.location.country.UpdateCountryUseCase
 import com.propertymanager.domain.usecase.location.flat.AddFlatUseCase
@@ -28,6 +30,7 @@ import com.propertymanager.domain.usecase.location.society.GetSocietiesForCityUs
 import com.propertymanager.domain.usecase.location.society.UpdateSocietyUseCase
 import com.propertymanager.domain.usecase.location.state.AddStateUseCase
 import com.propertymanager.domain.usecase.location.state.DeleteStateUseCase
+import com.propertymanager.domain.usecase.location.state.FindStateByIdUseCase
 import com.propertymanager.domain.usecase.location.state.GetStatesForCountryUseCase
 import com.propertymanager.domain.usecase.location.state.UpdateStateUseCase
 import com.propertymanager.domain.usecase.location.tower.AddTowerUseCase
@@ -40,14 +43,19 @@ data class LocationUseCases(
 
     // Country-State-City
     val getCountries: GetCountriesUseCase,
-    val getStatesForCountry: GetStatesForCountryUseCase,
-    val getCitiesForState: GetCitiesForStateUseCase,
+    val findCountryById: FindCountryByIdUseCase,
     val addCountry: AddCountryUseCase,
     val updateCountry: UpdateCountryUseCase,
     val deleteCountry: DeleteCountryUseCase,
+
+    val getStatesForCountry: GetStatesForCountryUseCase,
+    val findStateById: FindStateByIdUseCase,
     val addState: AddStateUseCase,
     val updateState: UpdateStateUseCase,
     val deleteState: DeleteStateUseCase,
+
+    val getCitiesForState: GetCitiesForStateUseCase,
+    val findCityById: FindCityByIdUseCase,
     val addCity: AddCityUseCase,
     val updateCity: UpdateCityUseCase,
     val deleteCity: DeleteCityUseCase,

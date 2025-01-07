@@ -6,6 +6,7 @@ import javax.inject.Inject
 class DeleteFlatUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(towerId: Int, flatId: Int): Result<Unit> =
-        repository.deleteFlat(towerId, flatId)
+    suspend operator fun invoke(flatId: Int): Result<Unit> {
+        return repository.deleteFlat(flatId)
+    }
 }

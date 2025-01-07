@@ -5,14 +5,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Flat(
     val id: Int,
-    val number: String = "",  // e.g., "1A", "1B", "1C"
-    val floor: Int = 0,       // The floor number (e.g., 1, 2, 3)
-    val type: String = "",    // e.g., "2BHK", "3BHK"
-    val area: Double = 0.0,   // Area in square feet or square meters
-    val status: String = ""   // e.g., "occupied", "vacant"
+    val societyId: Int,
+    val blockId: Int?,
+    val towerId: Int?,
+    val number: String = "",
+    val floor: Int = 0,
+    val type: String = "",
+    val area: Double = 0.0,
+    val status: String = ""
 ) {
     constructor() : this(
         id = 0,
+        societyId = 0,
+        blockId = null,
+        towerId = null,
         number = "",
         floor = 0,
         type = "",

@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class State(
     val id: Int,
+    val countryId: Int,
     val name: String = "",
     val stateCode: String = "",
     val latitude: String = "",
@@ -14,11 +15,11 @@ data class State(
 ) {
     constructor() : this(
         id = 0,
+        countryId = 0,
         name = "",
         stateCode = "",
         latitude = "",
         longitude = "",
-        type = "",
-        cities = emptyList()
+        type = ""
     )
 }

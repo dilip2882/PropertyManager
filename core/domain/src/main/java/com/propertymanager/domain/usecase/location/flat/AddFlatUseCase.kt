@@ -7,6 +7,7 @@ import javax.inject.Inject
 class AddFlatUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(towerId: Int, flat: Flat): Result<Unit> =
-        repository.addFlat(towerId, flat)
+    suspend operator fun invoke(flat: Flat): Result<Unit> {
+        return repository.addFlat(flat)
+    }
 }

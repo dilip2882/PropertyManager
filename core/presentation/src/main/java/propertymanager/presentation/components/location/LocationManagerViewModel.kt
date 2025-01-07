@@ -1,5 +1,6 @@
 package propertymanager.presentation.components.location
 
+import LocationManagerEvent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.propertymanager.domain.model.location.Block
@@ -10,11 +11,8 @@ import com.propertymanager.domain.model.location.Society
 import com.propertymanager.domain.model.location.State
 import com.propertymanager.domain.model.location.Tower
 import com.propertymanager.domain.usecase.LocationUseCases
-import com.propertymanager.domain.usecase.location.ValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -22,480 +20,362 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocationManagerViewModel @Inject constructor(
-    private val locationUseCases: LocationUseCases,
+    private val locationUseCases: LocationUseCases
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocationManagerState())
     val state: StateFlow<LocationManagerState> = _state
 
-    private val _uiEvent = MutableSharedFlow<UiEvent>()
-    val uiEvent: SharedFlow<UiEvent> = _uiEvent
-
     init {
-        loadLocations()
+        loadCountries()
+    }
+
+    private fun loadCountries() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            locationUseCases.getCountries().collect { countries ->
+                _state.update { 
+                    it.copy(
+                        countries = countries,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun onCountrySelected(country: Country) {
+        viewModelScope.launch {
+            _state.update { 
+                it.copy(
+                    selectedCountry = country,
+                    selectedState = null,
+                    selectedCity = null,
+                    selectedSociety = null,
+                    selectedBlock = null,
+                    selectedTower = null
+                ) 
+            }
+            locationUseCases.getStatesForCountry(country.id).collect { states ->
+                _state.update { it.copy(states = states) }
+            }
+        }
+    }
+
+    fun onStateSelected(state: State) {
+        viewModelScope.launch {
+            _state.update { 
+                it.copy(
+                    selectedState = state,
+                    selectedCity = null,
+                    selectedSociety = null,
+                    selectedBlock = null,
+                    selectedTower = null
+                ) 
+            }
+            locationUseCases.getCitiesForState(state.id).collect { cities ->
+                _state.update { it.copy(cities = cities) }
+            }
+        }
+    }
+
+    fun onCitySelected(city: City) {
+        viewModelScope.launch {
+            _state.update { 
+                it.copy(
+                    selectedCity = city,
+                    selectedSociety = null,
+                    selectedBlock = null,
+                    selectedTower = null
+                ) 
+            }
+            locationUseCases.getSocietiesForCity(city.id).collect { societies ->
+                _state.update { it.copy(societies = societies) }
+            }
+        }
+    }
+
+    fun onSocietySelected(society: Society) {
+        viewModelScope.launch {
+            _state.update { 
+                it.copy(
+                    selectedSociety = society,
+                    selectedBlock = null,
+                    selectedTower = null
+                ) 
+            }
+            // Load blocks, towers and flats
+            locationUseCases.getBlocksForSociety(society.id).collect { blocks ->
+                _state.update { it.copy(blocks = blocks) }
+            }
+            locationUseCases.getTowersForSociety(society.id).collect { towers ->
+                _state.update { it.copy(towers = towers) }
+            }
+            locationUseCases.getFlatsForSociety(society.id).collect { flats ->
+                _state.update { it.copy(flats = flats) }
+            }
+        }
+    }
+
+    fun onBlockSelected(block: Block) {
+        viewModelScope.launch {
+            _state.update { 
+                it.copy(
+                    selectedBlock = block,
+                    selectedTower = null
+                ) 
+            }
+            locationUseCases.getFlatsForBlock(block.id).collect { flats ->
+                _state.update { it.copy(flats = flats) }
+            }
+        }
+    }
+
+    fun onTowerSelected(tower: Tower) {
+        viewModelScope.launch {
+            _state.update { 
+                it.copy(
+                    selectedTower = tower,
+                    selectedBlock = null
+                ) 
+            }
+            locationUseCases.getFlatsForTower(tower.id).collect { flats ->
+                _state.update { it.copy(flats = flats) }
+            }
+        }
     }
 
     fun onEvent(event: LocationManagerEvent) {
         when (event) {
-            is LocationManagerEvent.LoadLocations -> loadLocations()
-
-            // Country
-            is LocationManagerEvent.AddCountry -> addCountry(event.country)
-            is LocationManagerEvent.UpdateCountry -> updateCountry(event.country)
-            is LocationManagerEvent.DeleteCountry -> deleteCountry(event.countryId)
-
-            // State
-            is LocationManagerEvent.AddState -> addState(event.countryId, event.state)
-            is LocationManagerEvent.UpdateState -> updateState(event.countryId, event.state)
-            is LocationManagerEvent.DeleteState -> deleteState(event.countryId, event.stateId)
-
-            // City
-            is LocationManagerEvent.AddCity -> addCity(event.stateId, event.city)
-            is LocationManagerEvent.UpdateCity -> updateCity(event.stateId, event.city)
-            is LocationManagerEvent.DeleteCity -> deleteCity(event.stateId, event.cityId)
-
-            // Society
-            is LocationManagerEvent.AddSociety -> addSociety(event.cityId, event.society)
-            is LocationManagerEvent.UpdateSociety -> updateSociety(event.cityId, event.society)
-            is LocationManagerEvent.DeleteSociety -> deleteSociety(event.cityId, event.societyId)
-
-            // Block
-            is LocationManagerEvent.AddBlock -> addBlock(event.societyId, event.block)
-            is LocationManagerEvent.UpdateBlock -> updateBlock(event.societyId, event.block)
-            is LocationManagerEvent.DeleteBlock -> deleteBlock(event.societyId, event.blockId)
-
-            // Tower
-            is LocationManagerEvent.AddTower -> addTower(event.blockId, event.tower)
-            is LocationManagerEvent.UpdateTower -> updateTower(event.blockId, event.tower)
-            is LocationManagerEvent.DeleteTower -> deleteTower(event.blockId, event.towerId)
-
-            // Flat
-            is LocationManagerEvent.AddFlat -> addFlat(event.towerId, event.flat)
-            is LocationManagerEvent.UpdateFlat -> updateFlat(event.towerId, event.flat)
-            is LocationManagerEvent.DeleteFlat -> deleteFlat(event.towerId, event.flatId)
-        }
-    }
-
-    private fun loadLocations() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.getCountries().collect { countries ->
-                    _state.update {
-                        it.copy(
-                            countries = countries,
-                            isLoading = false,
-                        )
+            is LocationManagerEvent.LoadLocations -> {
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+                    locationUseCases.getCountries().collect { countries ->
+                        _state.update { 
+                            it.copy(
+                                countries = countries,
+                                isLoading = false
+                            )
+                        }
                     }
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun addCountry(country: Country) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                when (val result = locationUseCases.validateLocation(country, null, null)) {
-                    is ValidationResult.Success -> {
-                        locationUseCases.addCountry(country)
-                            .onSuccess {
-                                _uiEvent.emit(UiEvent.Success("Country added successfully"))
-                                loadLocations()
-                            }
-                            .onFailure { handleError(it) }
-                    }
-
-                    is ValidationResult.Error -> {
-                        _uiEvent.emit(UiEvent.Error(result.message))
-                        _state.update { it.copy(isLoading = false) }
-                    }
+            // Country operations
+            is LocationManagerEvent.AddCountry -> {
+                viewModelScope.launch {
+                    locationUseCases.addCountry(event.country)
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun updateCountry(country: Country) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                when (val result = locationUseCases.validateLocation(country, null, null)) {
-                    is ValidationResult.Success -> {
-                        locationUseCases.updateCountry(country)
-                            .onSuccess {
-                                _uiEvent.emit(UiEvent.Success("Country updated successfully"))
-                                loadLocations()
-                            }
-                            .onFailure { handleError(it) }
-                    }
-
-                    is ValidationResult.Error -> {
-                        _uiEvent.emit(UiEvent.Error(result.message))
-                        _state.update { it.copy(isLoading = false) }
-                    }
+            is LocationManagerEvent.UpdateCountry -> {
+                viewModelScope.launch {
+                    locationUseCases.updateCountry(event.country)
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun deleteCountry(countryId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteCountry(countryId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Country deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
-            }
-        }
-    }
-
-    private fun addState(countryId: Int, state: State) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                when (val result = locationUseCases.validateLocation(null, state, null)) {
-                    is ValidationResult.Success -> {
-                        locationUseCases.addState(countryId, state)
-                            .onSuccess {
-                                _uiEvent.emit(UiEvent.Success("State added successfully"))
-                                loadLocations()
-                            }
-                            .onFailure { handleError(it) }
-                    }
-
-                    is ValidationResult.Error -> {
-                        _uiEvent.emit(UiEvent.Error(result.message))
-                        _state.update { it.copy(isLoading = false) }
-                    }
+            is LocationManagerEvent.DeleteCountry -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteCountry(event.countryId)
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun updateState(countryId: Int, state: State) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                when (val result = locationUseCases.validateLocation(null, state, null)) {
-                    is ValidationResult.Success -> {
-                        locationUseCases.updateState(countryId, state)
-                            .onSuccess {
-                                _uiEvent.emit(UiEvent.Success("State updated successfully"))
-                                loadLocations()
-                            }
-                            .onFailure { handleError(it) }
-                    }
-
-                    is ValidationResult.Error -> {
-                        _uiEvent.emit(UiEvent.Error(result.message))
-                        _state.update { it.copy(isLoading = false) }
-                    }
+            // State operations
+            is LocationManagerEvent.AddState -> {
+                viewModelScope.launch {
+                    val state = State(
+                        id = event.state.id,
+                        countryId = event.countryId,
+                        name = event.state.name,
+                        stateCode = event.state.stateCode,
+                        latitude = event.state.latitude,
+                        longitude = event.state.longitude,
+                        type = event.state.type
+                    )
+                    locationUseCases.addState(state)
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun deleteState(countryId: Int, stateId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteState(countryId, stateId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("State deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
-            }
-        }
-    }
-
-    private fun addCity(stateId: Int, city: City) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                when (val result = locationUseCases.validateLocation(null, null, city)) {
-                    is ValidationResult.Success -> {
-                        locationUseCases.addCity(stateId, city)
-                            .onSuccess {
-                                _uiEvent.emit(UiEvent.Success("City added successfully"))
-                                loadLocations()
-                            }
-                            .onFailure { handleError(it) }
-                    }
-
-                    is ValidationResult.Error -> {
-                        _uiEvent.emit(UiEvent.Error(result.message))
-                        _state.update { it.copy(isLoading = false) }
-                    }
+            is LocationManagerEvent.UpdateState -> {
+                viewModelScope.launch {
+                    val state = event.state.copy(countryId = event.countryId)
+                    locationUseCases.updateState(state)
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun updateCity(stateId: Int, city: City) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                when (val result = locationUseCases.validateLocation(null, null, city)) {
-                    is ValidationResult.Success -> {
-                        locationUseCases.updateCity(stateId, city)
-                            .onSuccess {
-                                _uiEvent.emit(UiEvent.Success("City updated successfully"))
-                                loadLocations()
-                            }
-                            .onFailure { handleError(it) }
-                    }
-
-                    is ValidationResult.Error -> {
-                        _uiEvent.emit(UiEvent.Error(result.message))
-                        _state.update { it.copy(isLoading = false) }
-                    }
+            is LocationManagerEvent.DeleteState -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteState(event.stateId)
                 }
-            } catch (e: Exception) {
-                handleError(e)
             }
-        }
-    }
 
-    private fun deleteCity(stateId: Int, cityId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteCity(stateId, cityId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("City deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            // City operations
+            is LocationManagerEvent.AddCity -> {
+                viewModelScope.launch {
+                    val city = City(
+                        id = event.city.id,
+                        countryId = event.countryId,
+                        stateId = event.stateId,
+                        name = event.city.name,
+                        latitude = event.city.latitude,
+                        longitude = event.city.longitude
+                    )
+                    locationUseCases.addCity(city)
+                }
             }
-        }
-    }
 
-    // Society
-    private fun addSociety(cityId: Int, society: Society) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.addSociety(cityId, society)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Society added successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.UpdateCity -> {
+                viewModelScope.launch {
+                    val city = event.city.copy(
+                        countryId = event.countryId,
+                        stateId = event.stateId
+                    )
+                    locationUseCases.updateCity(city)
+                }
             }
-        }
-    }
 
-    private fun updateSociety(cityId: Int, society: Society) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.updateSociety(cityId, society)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Society updated successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.DeleteCity -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteCity(event.cityId)
+                }
             }
-        }
-    }
 
-    private fun deleteSociety(cityId: Int, societyId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteSociety(cityId, societyId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Society deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            // Society operations
+            is LocationManagerEvent.AddSociety -> {
+                viewModelScope.launch {
+                    val society = Society(
+                        id = event.society.id,
+                        countryId = event.countryId,
+                        stateId = event.stateId,
+                        cityId = event.cityId,
+                        name = event.society.name,
+                        latitude = event.society.latitude,
+                        longitude = event.society.longitude
+                    )
+                    locationUseCases.addSociety(society)
+                }
             }
-        }
-    }
 
-    // Block
-    private fun addBlock(societyId: Int, block: Block) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.addBlock(societyId, block)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Block added successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.UpdateSociety -> {
+                viewModelScope.launch {
+                    val society = event.society.copy(
+                        countryId = event.countryId,
+                        stateId = event.stateId,
+                        cityId = event.cityId
+                    )
+                    locationUseCases.updateSociety(society)
+                }
             }
-        }
-    }
 
-    private fun updateBlock(societyId: Int, block: Block) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.updateBlock(societyId, block)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Block updated successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.DeleteSociety -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteSociety(event.societyId)
+                }
             }
-        }
-    }
 
-    private fun deleteBlock(societyId: Int, blockId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteBlock(societyId, blockId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Block deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            // Block operations
+            is LocationManagerEvent.AddBlock -> {
+                viewModelScope.launch {
+                    val block = Block(
+                        id = event.block.id,
+                        societyId = event.societyId,
+                        name = event.block.name,
+                        type = event.block.type
+                    )
+                    locationUseCases.addBlock(block)
+                }
             }
-        }
-    }
 
-    // Tower
-    private fun addTower(blockId: Int, tower: Tower) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.addTower(blockId, tower)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Tower added successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.UpdateBlock -> {
+                viewModelScope.launch {
+                    val block = event.block.copy(societyId = event.societyId)
+                    locationUseCases.updateBlock(block)
+                }
             }
-        }
-    }
 
-    private fun updateTower(blockId: Int, tower: Tower) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.updateTower(blockId, tower)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Tower updated successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.DeleteBlock -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteBlock(event.blockId)
+                }
             }
-        }
-    }
 
-    private fun deleteTower(blockId: Int, towerId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteTower(blockId, towerId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Tower deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            // Tower operations
+            is LocationManagerEvent.AddTower -> {
+                viewModelScope.launch {
+                    val tower = Tower(
+                        id = event.tower.id,
+                        societyId = event.societyId,
+                        blockId = event.blockId,
+                        name = event.tower.name
+                    )
+                    locationUseCases.addTower(tower)
+                }
             }
-        }
-    }
 
-    // Flat
-    private fun addFlat(towerId: Int, flat: Flat) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.addFlat(towerId, flat)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Flat added successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.UpdateTower -> {
+                viewModelScope.launch {
+                    val tower = event.tower.copy(
+                        societyId = event.societyId,
+                        blockId = event.blockId
+                    )
+                    locationUseCases.updateTower(tower)
+                }
             }
-        }
-    }
 
-    private fun updateFlat(towerId: Int, flat: Flat) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.updateFlat(towerId, flat)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Flat updated successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            is LocationManagerEvent.DeleteTower -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteTower(event.towerId)
+                }
             }
-        }
-    }
 
-    private fun deleteFlat(towerId: Int, flatId: Int) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            try {
-                locationUseCases.deleteFlat(towerId, flatId)
-                    .onSuccess {
-                        _uiEvent.emit(UiEvent.Success("Flat deleted successfully"))
-                        loadLocations()
-                    }
-                    .onFailure { handleError(it) }
-            } catch (e: Exception) {
-                handleError(e)
+            // Flat operations
+            is LocationManagerEvent.AddFlat -> {
+                viewModelScope.launch {
+                    val flat = Flat(
+                        id = event.flat.id,
+                        societyId = event.societyId,
+                        blockId = if (event.parentId == event.societyId) null else event.parentId,
+                        towerId = if (event.parentId != event.societyId) event.parentId else null,
+                        number = event.flat.number,
+                        floor = event.flat.floor,
+                        type = event.flat.type,
+                        area = event.flat.area,
+                        status = event.flat.status
+                    )
+                    locationUseCases.addFlat(flat)
+                }
             }
-        }
-    }
 
-    private suspend fun handleError(e: Throwable) {
-        _uiEvent.emit(UiEvent.Error(e.message ?: "An unknown error occurred"))
-        _state.update { it.copy(isLoading = false) }
+            is LocationManagerEvent.UpdateFlat -> {
+                viewModelScope.launch {
+                    val flat = event.flat.copy(
+                        societyId = event.societyId,
+                        blockId = if (event.parentId == event.societyId) null else event.parentId,
+                        towerId = if (event.parentId != event.societyId) event.parentId else null
+                    )
+                    locationUseCases.updateFlat(flat)
+                }
+            }
+
+            is LocationManagerEvent.DeleteFlat -> {
+                viewModelScope.launch {
+                    locationUseCases.deleteFlat(event.flatId)
+                }
+            }
+
+            else -> {}
+        }
     }
 }
 
 data class LocationManagerState(
     val countries: List<Country> = emptyList(),
+    val selectedCountry: Country? = null,
+    val selectedState: State? = null,
+    val selectedCity: City? = null,
+    val selectedSociety: Society? = null,
+    val selectedBlock: Block? = null,
+    val selectedTower: Tower? = null,
     val states: List<State> = emptyList(),
     val cities: List<City> = emptyList(),
     val societies: List<Society> = emptyList(),
@@ -503,43 +383,5 @@ data class LocationManagerState(
     val towers: List<Tower> = emptyList(),
     val flats: List<Flat> = emptyList(),
     val isLoading: Boolean = false,
+    val error: String? = null
 )
-
-sealed class LocationManagerEvent {
-    object LoadLocations : LocationManagerEvent()
-
-    // Country
-    data class AddCountry(val country: Country) : LocationManagerEvent()
-    data class UpdateCountry(val country: Country) : LocationManagerEvent()
-    data class DeleteCountry(val countryId: Int) : LocationManagerEvent()
-
-    // State
-    data class AddState(val countryId: Int, val state: State) : LocationManagerEvent()
-    data class UpdateState(val countryId: Int, val state: State) : LocationManagerEvent()
-    data class DeleteState(val countryId: Int, val stateId: Int) : LocationManagerEvent()
-
-    // City
-    data class AddCity(val stateId: Int, val city: City) : LocationManagerEvent()
-    data class UpdateCity(val stateId: Int, val city: City) : LocationManagerEvent()
-    data class DeleteCity(val stateId: Int, val cityId: Int) : LocationManagerEvent()
-
-    // Society
-    data class AddSociety(val cityId: Int, val society: Society) : LocationManagerEvent()
-    data class UpdateSociety(val cityId: Int, val society: Society) : LocationManagerEvent()
-    data class DeleteSociety(val cityId: Int, val societyId: Int) : LocationManagerEvent()
-
-    // Block
-    data class AddBlock(val societyId: Int, val block: Block) : LocationManagerEvent()
-    data class UpdateBlock(val societyId: Int, val block: Block) : LocationManagerEvent()
-    data class DeleteBlock(val societyId: Int, val blockId: Int) : LocationManagerEvent()
-
-    // Tower
-    data class AddTower(val blockId: Int, val tower: Tower) : LocationManagerEvent()
-    data class UpdateTower(val blockId: Int, val tower: Tower) : LocationManagerEvent()
-    data class DeleteTower(val blockId: Int, val towerId: Int) : LocationManagerEvent()
-
-    // Flat
-    data class AddFlat(val towerId: Int, val flat: Flat) : LocationManagerEvent()
-    data class UpdateFlat(val towerId: Int, val flat: Flat) : LocationManagerEvent()
-    data class DeleteFlat(val towerId: Int, val flatId: Int) : LocationManagerEvent()
-}

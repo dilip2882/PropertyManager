@@ -7,6 +7,7 @@ import javax.inject.Inject
 class UpdateBlockUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(societyId: Int, block: Block): Result<Unit> =
-        repository.updateBlock(societyId, block)
+    suspend operator fun invoke(block: Block): Result<Unit> {
+        return repository.updateBlock(block)
+    }
 }

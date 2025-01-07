@@ -48,8 +48,7 @@ data class Country(
         latitude = "",
         longitude = "",
         emoji = "",
-        emojiU = "",
-        states = emptyList()
+        emojiU = ""
     )
 }
 

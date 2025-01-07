@@ -6,6 +6,7 @@ import javax.inject.Inject
 class DeleteTowerUseCase @Inject constructor(
     private val repository: LocationRepository
 ) {
-    suspend operator fun invoke(blockId: Int, towerId: Int): Result<Unit> =
-        repository.deleteTower(blockId, towerId)
+    suspend operator fun invoke(towerId: Int): Result<Unit> {
+        return repository.deleteTower(towerId)
+    }
 }
