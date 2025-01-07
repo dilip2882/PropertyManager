@@ -130,6 +130,11 @@ class LocationViewModel @Inject constructor(
             }
         }
     }
+
+    private suspend fun handleError(e: Throwable) {
+        _uiEvent.emit(UiEvent.Error(e.message ?: "An unknown error occurred"))
+        _state.update { it.copy(isLoading = false) }
+    }
 }
 
 data class LocationState(

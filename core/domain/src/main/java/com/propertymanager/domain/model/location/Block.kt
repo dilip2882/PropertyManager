@@ -7,12 +7,12 @@ data class Block(
     val id: Int,
     val name: String = "",    // e.g., "Block A", "Block B", "Community Hall"
     val type: String = "",    // e.g., "residential", "amenity"
-    val towers: List<Tower> = emptyList()
+    val flats: List<Flat> = emptyList()
 ) {
     constructor() : this(
         id = 0,
         name = "",
         type = "",
-        towers = emptyList()
+        flats = emptyList()
     )
 }

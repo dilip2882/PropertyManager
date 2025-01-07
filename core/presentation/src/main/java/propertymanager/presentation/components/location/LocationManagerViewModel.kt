@@ -35,7 +35,6 @@ class LocationManagerViewModel @Inject constructor(
         loadLocations()
     }
 
-
     fun onEvent(event: LocationManagerEvent) {
         when (event) {
             is LocationManagerEvent.LoadLocations -> loadLocations()
@@ -369,11 +368,9 @@ class LocationManagerViewModel @Inject constructor(
                         loadLocations()
                     }
                     .onFailure { handleError(it) }
-
             } catch (e: Exception) {
                 handleError(e)
             }
-
         }
     }
 
@@ -381,19 +378,16 @@ class LocationManagerViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                locationUseCases.deleteCity(societyId, blockId)
+                locationUseCases.deleteBlock(societyId, blockId)
                     .onSuccess {
                         _uiEvent.emit(UiEvent.Success("Block deleted successfully"))
                         loadLocations()
                     }
-                    .onFailure {
-                        handleError(it)
-                    }
+                    .onFailure { handleError(it) }
             } catch (e: Exception) {
                 handleError(e)
             }
         }
-
     }
 
     // Tower
@@ -494,11 +488,9 @@ class LocationManagerViewModel @Inject constructor(
         }
     }
 
-    private fun handleError(error: Throwable) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = false) }
-            _uiEvent.emit(UiEvent.Error(error.message ?: "An unknown error occurred"))
-        }
+    private suspend fun handleError(e: Throwable) {
+        _uiEvent.emit(UiEvent.Error(e.message ?: "An unknown error occurred"))
+        _state.update { it.copy(isLoading = false) }
     }
 }
 

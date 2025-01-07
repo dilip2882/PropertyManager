@@ -19,19 +19,25 @@ import com.propertymanager.domain.usecase.location.state.UpdateStateUseCase
 import com.propertymanager.domain.usecase.location.ValidateLocationUseCase
 import com.propertymanager.domain.usecase.location.block.AddBlockUseCase
 import com.propertymanager.domain.usecase.location.block.DeleteBlockUseCase
+import com.propertymanager.domain.usecase.location.block.FindBlockByIdUseCase
 import com.propertymanager.domain.usecase.location.block.GetBlocksForSocietyUseCase
 import com.propertymanager.domain.usecase.location.block.UpdateBlockUseCase
 import com.propertymanager.domain.usecase.location.flat.AddFlatUseCase
 import com.propertymanager.domain.usecase.location.flat.DeleteFlatUseCase
+import com.propertymanager.domain.usecase.location.flat.FindFlatByIdUseCase
+import com.propertymanager.domain.usecase.location.flat.GetFlatsForBlockUseCase
+import com.propertymanager.domain.usecase.location.flat.GetFlatsForSocietyUseCase
 import com.propertymanager.domain.usecase.location.flat.GetFlatsForTowerUseCase
 import com.propertymanager.domain.usecase.location.flat.UpdateFlatUseCase
 import com.propertymanager.domain.usecase.location.society.AddSocietyUseCase
 import com.propertymanager.domain.usecase.location.society.DeleteSocietyUseCase
+import com.propertymanager.domain.usecase.location.society.FindSocietyByIdUseCase
 import com.propertymanager.domain.usecase.location.society.GetSocietiesForCityUseCase
 import com.propertymanager.domain.usecase.location.society.UpdateSocietyUseCase
 import com.propertymanager.domain.usecase.location.tower.AddTowerUseCase
 import com.propertymanager.domain.usecase.location.tower.DeleteTowerUseCase
-import com.propertymanager.domain.usecase.location.tower.GetTowersForBlockUseCase
+import com.propertymanager.domain.usecase.location.tower.FindTowerByIdUseCase
+import com.propertymanager.domain.usecase.location.tower.GetTowersForSocietyUseCase
 import com.propertymanager.domain.usecase.location.tower.UpdateTowerUseCase
 import dagger.Module
 import dagger.Provides
@@ -72,29 +78,34 @@ object LocationModule {
 
             // Society
             getSocietiesForCity = GetSocietiesForCityUseCase(repository),
+            findSocietyById = FindSocietyByIdUseCase(repository),
             addSociety = AddSocietyUseCase(repository),
             updateSociety = UpdateSocietyUseCase(repository),
             deleteSociety = DeleteSocietyUseCase(repository),
 
             // Block
             getBlocksForSociety = GetBlocksForSocietyUseCase(repository),
+            findBlockById = FindBlockByIdUseCase(repository),
             addBlock = AddBlockUseCase(repository),
             updateBlock = UpdateBlockUseCase(repository),
             deleteBlock = DeleteBlockUseCase(repository),
 
             // Tower
-            getTowersForBlock = GetTowersForBlockUseCase(repository),
+            getTowersForSociety = GetTowersForSocietyUseCase(repository),
+            findTowerById = FindTowerByIdUseCase(repository),
             addTower = AddTowerUseCase(repository),
             updateTower = UpdateTowerUseCase(repository),
             deleteTower = DeleteTowerUseCase(repository),
 
             // Flat
             getFlatsForTower = GetFlatsForTowerUseCase(repository),
+            getFlatsForBlock = GetFlatsForBlockUseCase(repository),
+            getFlatsForSociety = GetFlatsForSocietyUseCase(repository),
+            findFlatById = FindFlatByIdUseCase(repository),
             addFlat = AddFlatUseCase(repository),
             updateFlat = UpdateFlatUseCase(repository),
             deleteFlat = DeleteFlatUseCase(repository)
         )
     }
-
 
 }

@@ -8,13 +8,17 @@ data class Society(
     val name: String = "",
     val latitude: String = "",
     val longitude: String = "",
-    val blocks: List<Block> = emptyList()
+    val blocks: List<Block> = emptyList(),
+    val towers: List<Tower> = emptyList(),
+    val flats: List<Flat> = emptyList()
 ) {
     constructor() : this(
         id = 0,
         name = "",
         latitude = "",
         longitude = "",
-        blocks = emptyList()
+        blocks = emptyList(),
+        towers = emptyList(),
+        flats = emptyList()
     )
 }

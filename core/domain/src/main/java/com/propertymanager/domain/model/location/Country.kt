@@ -52,3 +52,23 @@ data class Country(
         states = emptyList()
     )
 }
+
+/*
+locations/
+├── countries/
+│   ├── {countryId}/
+│   │   └── states/
+│   │       ├── {stateId}/
+│   │       │   └── cities/
+│   │       │       ├── {cityId}/
+│   │       │       │   └── societies/
+│   │       │       │       ├── flats/
+│   │       │       │       ├── {societyId}/
+│   │       │       │       │   ├── blocks/
+│   │       │       │       │   │   ├── {blockId}/
+│   │       │       │       │   │   │   └── flats/
+│   │       │       │       │   └── towers/
+│   │       │       │       │       ├── {towerId}/
+│   │       │       │       │       │   └── flats/
+
+ */

@@ -11,4 +11,3 @@ class GetCitiesForStateUseCase @Inject constructor(
     suspend operator fun invoke(stateId: Int): Flow<List<City>> =
         repository.getCitiesForState(stateId)
 }
-

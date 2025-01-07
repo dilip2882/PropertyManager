@@ -410,17 +410,7 @@ private fun NavigationPanel(
                                                         onAddChild = { onAddClick(DialogType.ADD_TOWER) },
                                                         indentLevel = 4,
                                                     )
-                                                    if (block == selectedBlock) {
-                                                        block.towers.forEach { tower ->
-                                                            LocationTreeItem(
-                                                                name = tower.name,
-                                                                isSelected = tower == selectedTower,
-                                                                onClick = { onTowerSelected(tower) },
-                                                                onAddChild = { onAddClick(DialogType.ADD_FLAT) },
-                                                                indentLevel = 4,
-                                                            )
-                                                        }
-                                                    }
+
                                                 }
                                             }
                                         }
