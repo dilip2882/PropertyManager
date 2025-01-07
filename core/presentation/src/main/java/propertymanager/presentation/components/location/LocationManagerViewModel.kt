@@ -14,6 +14,7 @@ import com.propertymanager.domain.usecase.LocationUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class LocationManagerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocationManagerState())
-    val state: StateFlow<LocationManagerState> = _state
+    val state: StateFlow<LocationManagerState> = _state.asStateFlow()
 
     init {
         loadCountries()
@@ -33,11 +34,21 @@ class LocationManagerViewModel @Inject constructor(
     private fun loadCountries() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            locationUseCases.getCountries().collect { countries ->
+            try {
+                locationUseCases.getCountries().collect { countries ->
+                    _state.update { 
+                        it.copy(
+                            countries = countries,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
                 _state.update { 
                     it.copy(
-                        countries = countries,
-                        isLoading = false
+                        isLoading = false,
+                        error = e.message
                     )
                 }
             }
@@ -53,11 +64,21 @@ class LocationManagerViewModel @Inject constructor(
                     selectedCity = null,
                     selectedSociety = null,
                     selectedBlock = null,
-                    selectedTower = null
+                    selectedTower = null,
+                    states = emptyList(),
+                    cities = emptyList(),
+                    societies = emptyList(),
+                    blocks = emptyList(),
+                    towers = emptyList(),
+                    flats = emptyList()
                 ) 
             }
-            locationUseCases.getStatesForCountry(country.id).collect { states ->
-                _state.update { it.copy(states = states) }
+            try {
+                locationUseCases.getStatesForCountry(country.id).collect { states ->
+                    _state.update { it.copy(states = states) }
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.message) }
             }
         }
     }
@@ -164,19 +185,47 @@ class LocationManagerViewModel @Inject constructor(
             // Country operations
             is LocationManagerEvent.AddCountry -> {
                 viewModelScope.launch {
-                    locationUseCases.addCountry(event.country)
+                    locationUseCases.addCountry(event.country).onSuccess {
+                        loadCountries()
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 
             is LocationManagerEvent.UpdateCountry -> {
                 viewModelScope.launch {
-                    locationUseCases.updateCountry(event.country)
+                    locationUseCases.updateCountry(event.country).onSuccess {
+                        loadCountries()
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 
             is LocationManagerEvent.DeleteCountry -> {
                 viewModelScope.launch {
-                    locationUseCases.deleteCountry(event.countryId)
+                    locationUseCases.deleteCountry(event.countryId).onSuccess {
+                        _state.update {
+                            it.copy(
+                                selectedCountry = null,
+                                selectedState = null,
+                                selectedCity = null,
+                                selectedSociety = null,
+                                selectedBlock = null,
+                                selectedTower = null,
+                                states = emptyList(),
+                                cities = emptyList(),
+                                societies = emptyList(),
+                                blocks = emptyList(),
+                                towers = emptyList(),
+                                flats = emptyList()
+                            )
+                        }
+                        loadCountries()
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 
