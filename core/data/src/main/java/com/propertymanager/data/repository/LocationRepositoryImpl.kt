@@ -462,7 +462,7 @@ class LocationRepositoryImpl @Inject constructor(
             .whereEqualTo("blockId", blockId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                close(error)
                     return@addSnapshotListener
                 }
                 val towers = snapshot?.documents?.mapNotNull {

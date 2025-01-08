@@ -4,13 +4,14 @@ import AddOptionsBottomSheet
 import DialogType
 import LocationDetails
 import LocationDialog
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,29 +24,43 @@ import com.propertymanager.domain.model.location.*
 import com.propertymanager.domain.model.location.State
 import propertymanager.presentation.screens.LoadingScreen
 
+/*
+Countries
+└── States
+    └── Cities
+        └── Societies
+            ├── Blocks
+            │   └── Flats (if block selected)
+            ├── Towers
+            │   └── Flats (if tower selected)
+            └── Flats (direct society flats)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationManagerScreen(
-    viewModel: LocationManagerViewModel = hiltViewModel()
+    viewModel: LocationManagerViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var currentDialog by remember { mutableStateOf<DialogType?>(null) }
     var showAddOptions by remember { mutableStateOf(false) }
-
-    LaunchedEffect(state.error) {
-        state.error?.let { error ->
-            // Show error snackbar or dialog
-        }
-    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Location Manager") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.primary
+                ),
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -59,12 +74,7 @@ fun LocationManagerScreen(
         }
     ) { padding ->
         if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            LoadingScreen()
         } else {
             Row(
                 modifier = Modifier
@@ -79,16 +89,124 @@ fun LocationManagerScreen(
                         .padding(8.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    LocationTreeList(
-                        state = state,
-                        onCountrySelected = viewModel::onCountrySelected,
-                        onStateSelected = viewModel::onStateSelected,
-                        onCitySelected = viewModel::onCitySelected,
-                        onSocietySelected = viewModel::onSocietySelected,
-                        onBlockSelected = viewModel::onBlockSelected,
-                        onTowerSelected = viewModel::onTowerSelected,
-                        onAddClick = { showAddOptions = true }
-                    )
+                    LazyColumn {
+                        items(state.countries) { country ->
+                            LocationTreeItem(
+                                name = country.name,
+                                isSelected = country.id == state.selectedCountry?.id,
+                                isExpanded = state.selectedCountry?.id == country.id,
+                                level = 0,
+                                onClick = { viewModel.onCountrySelected(country) },
+                                onAddClick = { currentDialog = DialogType.ADD_STATE }
+                            )
+
+                            if (state.selectedCountry?.id == country.id) {
+                                state.states.forEach { stateItem ->
+                                    LocationTreeItem(
+                                        name = stateItem.name,
+                                        isSelected = stateItem.id == state.selectedState?.id,
+                                        isExpanded = state.selectedState?.id == stateItem.id,
+                                        level = 1,
+                                        onClick = { viewModel.onStateSelected(stateItem) },
+                                        onAddClick = { currentDialog = DialogType.ADD_CITY }
+                                    )
+
+                                    if (state.selectedState?.id == stateItem.id) {
+                                        state.cities.forEach { city ->
+                                            LocationTreeItem(
+                                                name = city.name,
+                                                isSelected = city.id == state.selectedCity?.id,
+                                                isExpanded = state.selectedCity?.id == city.id,
+                                                level = 2,
+                                                onClick = { viewModel.onCitySelected(city) },
+                                                onAddClick = { currentDialog = DialogType.ADD_SOCIETY }
+                                            )
+
+                                            if (state.selectedCity?.id == city.id) {
+                                                state.societies.forEach { society ->
+                                                    LocationTreeItem(
+                                                        name = society.name,
+                                                        isSelected = society.id == state.selectedSociety?.id,
+                                                        isExpanded = state.selectedSociety?.id == society.id,
+                                                        level = 3,
+                                                        onClick = { viewModel.onSocietySelected(society) },
+                                                        onAddClick = { showAddOptions = true }
+                                                    )
+
+                                                    if (state.selectedSociety?.id == society.id) {
+                                                        // Blocks
+                                                        state.blocks.forEach { block ->
+                                                            LocationTreeItem(
+                                                                name = block.name,
+                                                                isSelected = block.id == state.selectedBlock?.id,
+                                                                isExpanded = state.selectedBlock?.id == block.id,
+                                                                level = 4,
+                                                                onClick = { viewModel.onBlockSelected(block) },
+                                                                onAddClick = { currentDialog = DialogType.ADD_FLAT }
+                                                            )
+
+                                                            if (state.selectedBlock?.id == block.id) {
+                                                                state.flats.filter { it.blockId == block.id }
+                                                                    .forEach { flat ->
+                                                                        LocationTreeItem(
+                                                                            name = "Flat ${flat.number}",
+                                                                            isSelected = false,
+                                                                            isExpanded = false,
+                                                                            level = 5,
+                                                                            onClick = { },
+                                                                            onAddClick = { }
+                                                                        )
+                                                                    }
+                                                            }
+                                                        }
+
+                                                        // Towers
+                                                        state.towers.forEach { tower ->
+                                                            LocationTreeItem(
+                                                                name = tower.name,
+                                                                isSelected = tower.id == state.selectedTower?.id,
+                                                                isExpanded = state.selectedTower?.id == tower.id,
+                                                                level = 4,
+                                                                onClick = { viewModel.onTowerSelected(tower) },
+                                                                onAddClick = { currentDialog = DialogType.ADD_FLAT }
+                                                            )
+
+                                                            if (state.selectedTower?.id == tower.id) {
+                                                                state.flats.filter { it.towerId == tower.id }
+                                                                    .forEach { flat ->
+                                                                        LocationTreeItem(
+                                                                            name = "Flat ${flat.number}",
+                                                                            isSelected = false,
+                                                                            isExpanded = false,
+                                                                            level = 5,
+                                                                            onClick = { },
+                                                                            onAddClick = { }
+                                                                        )
+                                                                    }
+                                                            }
+                                                        }
+
+                                                        // Society direct flats
+                                                        state.flats.filter { it.blockId == null && it.towerId == null }
+                                                            .forEach { flat ->
+                                                                LocationTreeItem(
+                                                                    name = "Flat ${flat.number}",
+                                                                    isSelected = false,
+                                                                    isExpanded = false,
+                                                                    level = 4,
+                                                                    onClick = { },
+                                                                    onAddClick = { }
+                                                                )
+                                                            }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Right Panel - Details
@@ -111,7 +229,7 @@ fun LocationManagerScreen(
             }
         }
 
-        // Dialogs and Bottom Sheets
+        // Dialogs
         if (showAddOptions) {
             AddOptionsBottomSheet(
                 state = state,
@@ -123,116 +241,16 @@ fun LocationManagerScreen(
             )
         }
 
-    currentDialog?.let { dialogType ->
+        currentDialog?.let { dialogType ->
             LocationDialog(
                 dialogType = dialogType,
                 state = state,
-                    onDismiss = { currentDialog = null },
+                onDismiss = { currentDialog = null },
                 onConfirm = { entity ->
                     handleDialogConfirm(dialogType, entity, viewModel, state)
-                        currentDialog = null
-                    }
-                )
-            }
-    }
-}
-
-@Composable
-private fun LocationTreeList(
-    state: LocationManagerState,
-    onCountrySelected: (Country) -> Unit,
-    onStateSelected: (State) -> Unit,
-    onCitySelected: (City) -> Unit,
-    onSocietySelected: (Society) -> Unit,
-    onBlockSelected: (Block) -> Unit,
-    onTowerSelected: (Tower) -> Unit,
-    onAddClick: () -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.padding(8.dp)
-    ) {
-        // Countries
-        items(
-            items = state.countries,
-            key = { it.id }
-        ) { country ->
-            Column {
-                    LocationTreeItem(
-                        name = country.name,
-                    isSelected = country == state.selectedCountry,
-                    isExpanded = state.selectedCountry == country,
-                    level = 0,
-                        onClick = { onCountrySelected(country) },
-                    onAddClick = onAddClick
-                    )
-
-                // States
-                if (state.selectedCountry == country) {
-                    state.states.forEach { stateItem ->
-                            LocationTreeItem(
-                            name = stateItem.name,
-                            isSelected = stateItem == state.selectedState,
-                            isExpanded = state.selectedState == stateItem,
-                            level = 1,
-                            onClick = { onStateSelected(stateItem) },
-                            onAddClick = onAddClick
-                        )
-
-                        // Cities
-                        if (state.selectedState == stateItem) {
-                                state.cities.forEach { city ->
-                                    LocationTreeItem(
-                                        name = city.name,
-                                    isSelected = city == state.selectedCity,
-                                    isExpanded = state.selectedCity == city,
-                                    level = 2,
-                                        onClick = { onCitySelected(city) },
-                                    onAddClick = onAddClick
-                                )
-
-                                // Societies
-                                if (state.selectedCity == city) {
-                                    state.societies.forEach { society ->
-                                            LocationTreeItem(
-                                                name = society.name,
-                                            isSelected = society == state.selectedSociety,
-                                            isExpanded = state.selectedSociety == society,
-                                            level = 3,
-                                                onClick = { onSocietySelected(society) },
-                                            onAddClick = onAddClick
-                                        )
-
-                                        // Blocks and Towers
-                                        if (state.selectedSociety == society) {
-                                            state.blocks.forEach { block ->
-                                                    LocationTreeItem(
-                                                    name = "Block ${block.name}",
-                                                    isSelected = block == state.selectedBlock,
-                                                    isExpanded = state.selectedBlock == block,
-                                                    level = 4,
-                                                        onClick = { onBlockSelected(block) },
-                                                    onAddClick = onAddClick
-                                                )
-                                            }
-
-                                            state.towers.forEach { tower ->
-                                                LocationTreeItem(
-                                                    name = "Tower ${tower.name}",
-                                                    isSelected = tower == state.selectedTower,
-                                                    isExpanded = state.selectedTower == tower,
-                                                    level = 4,
-                                                    onClick = { onTowerSelected(tower) },
-                                                    onAddClick = onAddClick
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    currentDialog = null
                 }
-            }
+            )
         }
     }
 }
@@ -288,6 +306,26 @@ private fun LocationTreeItem(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LocationItem(
+    name: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer 
+                else MaterialTheme.colorScheme.surface,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = name,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 

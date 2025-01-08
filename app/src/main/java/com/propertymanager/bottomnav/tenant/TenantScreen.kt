@@ -78,7 +78,7 @@ fun TenantScreen(
                 TenantHomeScreen(
                     propertyViewModel = hiltViewModel(),
                     onNavigateToAddProperty = {
-                        navController.navigate(Dest.AddPropertyScreen)
+                        navController.navigate(Dest.SelectCountryScreen)
                     },
                 )
             }

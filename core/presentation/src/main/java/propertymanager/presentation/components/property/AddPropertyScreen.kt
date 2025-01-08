@@ -95,6 +95,17 @@ fun AddPropertyScreen(
                 )
             }
 
+            AnimatedVisibility(visible = locationState.selectedCity != null) {
+                LocationDropdown(
+                    label = "Select Society",
+                    items = locationState.societies,
+                    selectedItem = locationState.selectedSociety,
+                    onItemSelected = { society ->
+                        locationViewModel.onEvent(LocationEvent.SelectSociety(society))
+                    },
+                )
+            }
+
             // Society
             OutlinedTextField(
                 value = society,

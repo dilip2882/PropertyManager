@@ -37,16 +37,16 @@ fun LocationDetails(
         modifier = modifier.padding(16.dp)
     ) {
         selectedItem?.let { item ->
-            Row(
+            Column (
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = getItemTitle(item),
                     style = MaterialTheme.typography.headlineMedium
                 )
-                Row {
+                Column {
                     IconButton(onClick = { onEdit(item) }) {
                         Icon(Icons.Default.Edit, "Edit")
                     }
@@ -76,69 +76,78 @@ private fun ItemDetails(item: Any) {
 
 @Composable
 private fun CountryDetails(country: Country) {
-    DetailItem("Name", country.name)
-    DetailItem("ISO3", country.iso3)
-    DetailItem("ISO2", country.iso2)
-    DetailItem("Phone Code", country.phoneCode)
-    DetailItem("Capital", country.capital)
-    DetailItem("Currency", country.currency)
-    DetailItem("Region", country.region)
+    DetailItem(null, country.name)
+//    DetailItem("Name", country.name)
+//    DetailItem("ISO3", country.iso3)
+//    DetailItem("ISO2", country.iso2)
+//    DetailItem("Phone Code", country.phoneCode)
+//    DetailItem("Capital", country.capital)
+//    DetailItem("Currency", country.currency)
+//    DetailItem("Region", country.region)
 }
 
 @Composable
 private fun StateDetails(state: State) {
-    DetailItem("Name", state.name)
-    DetailItem("State Code", state.stateCode)
-    DetailItem("Type", state.type)
+    DetailItem(null, state.name)
+//    DetailItem("Name", state.name)
+//    DetailItem("State Code", state.stateCode)
+//    DetailItem("Type", state.type)
 }
 
 @Composable
 private fun CityDetails(city: City) {
-    DetailItem("Name", city.name)
-    DetailItem("Latitude", city.latitude)
-    DetailItem("Longitude", city.longitude)
+    DetailItem(null, city.name)
+//    DetailItem("Name", city.name)
+//    DetailItem("Latitude", city.latitude)
+//    DetailItem("Longitude", city.longitude)
 }
 
 @Composable
 private fun SocietyDetails(society: Society) {
-    DetailItem("Name", society.name)
-    DetailItem("Latitude", society.latitude)
-    DetailItem("Longitude", society.longitude)
+    DetailItem(null, society.name)
+//    DetailItem("Name", society.name)
+//    DetailItem("Latitude", society.latitude)
+//    DetailItem("Longitude", society.longitude)
 }
 
 @Composable
 private fun BlockDetails(block: Block) {
-    DetailItem("Name", block.name)
-    DetailItem("Type", block.type)
+    DetailItem(null, block.name)
+//    DetailItem("Name", block.name)
+//    DetailItem("Type", block.type)
 }
 
 @Composable
 private fun TowerDetails(tower: Tower) {
-    DetailItem("Name", tower.name)
+    DetailItem(null, tower.name)
+//    DetailItem("Name", tower.name)
 }
 
 @Composable
 private fun FlatDetails(flat: Flat) {
-    DetailItem("Number", flat.number)
-    DetailItem("Floor", flat.floor.toString())
-    DetailItem("Type", flat.type)
-    DetailItem("Area", flat.area.toString())
-    DetailItem("Status", flat.status)
+    DetailItem(null, flat.number)
+//    DetailItem("Number", flat.number)
+//    DetailItem("Floor", flat.floor.toString())
+//    DetailItem("Type", flat.type)
+//    DetailItem("Area", flat.area.toString())
+//    DetailItem("Status", flat.status)
 }
 
 @Composable
-private fun DetailItem(label: String, value: String) {
+private fun DetailItem(label: String?, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.width(120.dp)
-        )
+        if (label != null) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.width(120.dp)
+            )
+        }
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge
@@ -148,13 +157,13 @@ private fun DetailItem(label: String, value: String) {
 
 private fun getItemTitle(item: Any): String {
     return when (item) {
-        is Country -> "Country Details"
-        is State -> "State Details"
-        is City -> "City Details"
-        is Society -> "Society Details"
-        is Block -> "Block Details"
-        is Tower -> "Tower Details"
-        is Flat -> "Flat Details"
+        is Country -> "Country"
+        is State -> "State"
+        is City -> "City"
+        is Society -> "Society"
+        is Block -> "Block"
+        is Tower -> "Tower"
+        is Flat -> "Flat "
         else -> "Details"
     }
 } 

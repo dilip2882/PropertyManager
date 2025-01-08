@@ -122,18 +122,29 @@ class LocationManagerViewModel @Inject constructor(
                 it.copy(
                     selectedSociety = society,
                     selectedBlock = null,
-                    selectedTower = null
+                    selectedTower = null,
+                    blocks = emptyList(),
+                    towers = emptyList(),
+                    flats = emptyList()
                 ) 
             }
-            // Load blocks, towers and flats
-            locationUseCases.getBlocksForSociety(society.id).collect { blocks ->
-                _state.update { it.copy(blocks = blocks) }
+            
+            launch {
+                locationUseCases.getBlocksForSociety(society.id).collect { blocks ->
+                    _state.update { it.copy(blocks = blocks) }
+                }
             }
-            locationUseCases.getTowersForSociety(society.id).collect { towers ->
-                _state.update { it.copy(towers = towers) }
+            
+            launch {
+                locationUseCases.getTowersForSociety(society.id).collect { towers ->
+                    _state.update { it.copy(towers = towers) }
+                }
             }
-            locationUseCases.getFlatsForSociety(society.id).collect { flats ->
-                _state.update { it.copy(flats = flats) }
+            
+            launch {
+                locationUseCases.getFlatsForSociety(society.id).collect { flats ->
+                    _state.update { it.copy(flats = flats) }
+                }
             }
         }
     }
@@ -143,7 +154,8 @@ class LocationManagerViewModel @Inject constructor(
             _state.update { 
                 it.copy(
                     selectedBlock = block,
-                    selectedTower = null
+                    selectedTower = null,
+                    flats = emptyList()
                 ) 
             }
             locationUseCases.getFlatsForBlock(block.id).collect { flats ->
@@ -157,7 +169,8 @@ class LocationManagerViewModel @Inject constructor(
             _state.update { 
                 it.copy(
                     selectedTower = tower,
-                    selectedBlock = null
+                    selectedBlock = null,
+                    flats = emptyList()
                 ) 
             }
             locationUseCases.getFlatsForTower(tower.id).collect { flats ->
@@ -380,18 +393,80 @@ class LocationManagerViewModel @Inject constructor(
             // Flat operations
             is LocationManagerEvent.AddFlat -> {
                 viewModelScope.launch {
-                    val flat = Flat(
-                        id = event.flat.id,
-                        societyId = event.societyId,
-                        blockId = if (event.parentId == event.societyId) null else event.parentId,
-                        towerId = if (event.parentId != event.societyId) event.parentId else null,
-                        number = event.flat.number,
-                        floor = event.flat.floor,
-                        type = event.flat.type,
-                        area = event.flat.area,
-                        status = event.flat.status
-                    )
-                    locationUseCases.addFlat(flat)
+                    // Create flat with proper parent relationships
+                    val flat = when {
+                        state.value.selectedTower != null -> {
+                            // If tower is selected, flat belongs to tower
+                            Flat(
+                                id = event.flat.id,
+                                societyId = state.value.selectedSociety?.id ?: 0,
+                                blockId = state.value.selectedBlock?.id,
+                                towerId = state.value.selectedTower?.id,
+                                number = event.flat.number,
+                                floor = event.flat.floor,
+                                type = event.flat.type,
+                                area = event.flat.area,
+                                status = event.flat.status
+                            )
+                        }
+                        state.value.selectedBlock != null -> {
+                            // If block is selected, flat belongs to block
+                            Flat(
+                                id = event.flat.id,
+                                societyId = state.value.selectedSociety?.id ?: 0,
+                                blockId = state.value.selectedBlock?.id,
+                                towerId = null,
+                                number = event.flat.number,
+                                floor = event.flat.floor,
+                                type = event.flat.type,
+                                area = event.flat.area,
+                                status = event.flat.status
+                            )
+                        }
+                        state.value.selectedSociety != null -> {
+                            // If only society is selected, flat belongs directly to society
+                            Flat(
+                                id = event.flat.id,
+                                societyId = state.value.selectedSociety?.id ?: 0,
+                                blockId = null,
+                                towerId = null,
+                                number = event.flat.number,
+                                floor = event.flat.floor,
+                                type = event.flat.type,
+                                area = event.flat.area,
+                                status = event.flat.status
+                            )
+                        }
+                        else -> null
+                    }
+
+                    flat?.let { newFlat ->
+                        locationUseCases.addFlat(newFlat).onSuccess {
+                            // Refresh the appropriate flat list based on parent
+                            when {
+                                state.value.selectedTower != null -> {
+                                    locationUseCases.getFlatsForTower(state.value.selectedTower!!.id)
+                                        .collect { flats ->
+                                            _state.update { it.copy(flats = flats) }
+                                        }
+                                }
+                                state.value.selectedBlock != null -> {
+                                    locationUseCases.getFlatsForBlock(state.value.selectedBlock!!.id)
+                                        .collect { flats ->
+                                            _state.update { it.copy(flats = flats) }
+                                        }
+                                }
+                                state.value.selectedSociety != null -> {
+                                    locationUseCases.getFlatsForSociety(state.value.selectedSociety!!.id)
+                                        .collect { flats ->
+                                            _state.update { it.copy(flats = flats) }
+                                        }
+                                }
+                            }
+                        }.onFailure { error ->
+                            _state.update { it.copy(error = error.message) }
+                        }
+                    }
                 }
             }
 

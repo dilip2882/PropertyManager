@@ -97,7 +97,8 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.LocationManagerScreen> {
             LocationManagerScreen(
-                viewModel = hiltViewModel()
+                viewModel = hiltViewModel(),
+                onNavigateBack = { navController.navigateUp() },
             )
         }
 

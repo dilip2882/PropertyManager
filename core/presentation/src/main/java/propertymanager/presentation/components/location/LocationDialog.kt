@@ -255,18 +255,50 @@ private fun createEntity(
             }
         }
         DialogType.ADD_FLAT, DialogType.EDIT_FLAT -> {
-            state.selectedSociety?.let { society ->
-                Flat(
-                    id = 0,
-                    societyId = society.id,
-                    blockId = state.selectedBlock?.id,
-                    towerId = state.selectedTower?.id,
-                    number = number,
-                    floor = floor.toIntOrNull() ?: 0,
-                    type = type,
-                    area = area.toDoubleOrNull() ?: 0.0,
-                    status = status
-                )
+            when {
+                state.selectedTower != null -> {
+                    // Create flat in tower
+                    Flat(
+                        id = 0,
+                        societyId = state.selectedSociety?.id ?: 0,
+                        blockId = state.selectedBlock?.id,
+                        towerId = state.selectedTower.id,
+                        number = number,
+                        floor = floor.toIntOrNull() ?: 0,
+                        type = type,
+                        area = area.toDoubleOrNull() ?: 0.0,
+                        status = status
+                    )
+                }
+                state.selectedBlock != null -> {
+                    // Create flat in block
+                    Flat(
+                        id = 0,
+                        societyId = state.selectedSociety?.id ?: 0,
+                        blockId = state.selectedBlock.id,
+                        towerId = null,
+                        number = number,
+                        floor = floor.toIntOrNull() ?: 0,
+                        type = type,
+                        area = area.toDoubleOrNull() ?: 0.0,
+                        status = status
+                    )
+                }
+                state.selectedSociety != null -> {
+                    // Create flat directly in society
+                    Flat(
+                        id = 0,
+                        societyId = state.selectedSociety.id,
+                        blockId = null,
+                        towerId = null,
+                        number = number,
+                        floor = floor.toIntOrNull() ?: 0,
+                        type = type,
+                        area = area.toDoubleOrNull() ?: 0.0,
+                        status = status
+                    )
+                }
+                else -> null
             }
         }
         else -> null
