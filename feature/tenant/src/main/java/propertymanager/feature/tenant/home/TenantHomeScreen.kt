@@ -75,7 +75,7 @@ fun TenantHomeScreen(
                 Text(
                     text = when {
                         selectedProperty != null -> with(selectedProperty!!.address) {
-                            if (flatNo.isNotEmpty() && building.isNotEmpty()) {
+                            if (flatNo.isNotEmpty() && building.name.isNotEmpty()) {
                                 "$flatNo, $building, $society"
                             } else {
                                 society
@@ -207,7 +207,7 @@ private fun PropertyListItem(
         headlineContent = {
             Text(
                 text = with(property.address) {
-                    if (flatNo.isNotEmpty() && building.isNotEmpty()) {
+                    if (flatNo.isNotEmpty() && building.name.isNotEmpty()) {
                         "$flatNo, $building, $society"
                     } else {
                         society

@@ -1,6 +1,5 @@
 package propertymanager.presentation.components.location
 
-import LocationManagerEvent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.propertymanager.domain.model.location.Block
@@ -36,7 +35,7 @@ class LocationManagerViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 locationUseCases.getCountries().collect { countries ->
-                    _state.update { 
+                    _state.update {
                         it.copy(
                             countries = countries,
                             isLoading = false,
@@ -182,8 +181,8 @@ class LocationManagerViewModel @Inject constructor(
     fun onEvent(event: LocationManagerEvent) {
         when (event) {
             is LocationManagerEvent.LoadLocations -> {
-                viewModelScope.launch {
-                    _state.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
                     locationUseCases.getCountries().collect { countries ->
                         _state.update { 
                             it.copy(
@@ -217,7 +216,7 @@ class LocationManagerViewModel @Inject constructor(
             }
 
             is LocationManagerEvent.DeleteCountry -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     locationUseCases.deleteCountry(event.countryId).onSuccess {
                         _state.update {
                             it.copy(
@@ -259,9 +258,16 @@ class LocationManagerViewModel @Inject constructor(
             }
 
             is LocationManagerEvent.UpdateState -> {
-                viewModelScope.launch {
-                    val state = event.state.copy(countryId = event.countryId)
-                    locationUseCases.updateState(state)
+        viewModelScope.launch {
+                    locationUseCases.updateState(event.state).onSuccess {
+                        state.value.selectedCountry?.let { country ->
+                            locationUseCases.getStatesForCountry(country.id).collect { states ->
+                                _state.update { it.copy(states = states) }
+                            }
+                        }
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 
@@ -273,7 +279,7 @@ class LocationManagerViewModel @Inject constructor(
 
             // City operations
             is LocationManagerEvent.AddCity -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     val city = City(
                         id = event.city.id,
                         countryId = event.countryId,
@@ -297,7 +303,7 @@ class LocationManagerViewModel @Inject constructor(
             }
 
             is LocationManagerEvent.DeleteCity -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     locationUseCases.deleteCity(event.cityId)
                 }
             }
@@ -319,7 +325,7 @@ class LocationManagerViewModel @Inject constructor(
             }
 
             is LocationManagerEvent.UpdateSociety -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     val society = event.society.copy(
                         countryId = event.countryId,
                         stateId = event.stateId,
@@ -337,7 +343,7 @@ class LocationManagerViewModel @Inject constructor(
 
             // Block operations
             is LocationManagerEvent.AddBlock -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     val block = Block(
                         id = event.block.id,
                         societyId = event.societyId,
@@ -351,7 +357,15 @@ class LocationManagerViewModel @Inject constructor(
             is LocationManagerEvent.UpdateBlock -> {
                 viewModelScope.launch {
                     val block = event.block.copy(societyId = event.societyId)
-                    locationUseCases.updateBlock(block)
+                    locationUseCases.updateBlock(block).onSuccess {
+                        state.value.selectedSociety?.let { society ->
+                            locationUseCases.getBlocksForSociety(society.id).collect { blocks ->
+                                _state.update { it.copy(blocks = blocks) }
+                            }
+                        }
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 
@@ -363,7 +377,7 @@ class LocationManagerViewModel @Inject constructor(
 
             // Tower operations
             is LocationManagerEvent.AddTower -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     val tower = Tower(
                         id = event.tower.id,
                         societyId = event.societyId,
@@ -380,7 +394,15 @@ class LocationManagerViewModel @Inject constructor(
                         societyId = event.societyId,
                         blockId = event.blockId
                     )
-                    locationUseCases.updateTower(tower)
+                    locationUseCases.updateTower(tower).onSuccess {
+                        state.value.selectedSociety?.let { society ->
+                            locationUseCases.getTowersForSociety(society.id).collect { towers ->
+                                _state.update { it.copy(towers = towers) }
+                            }
+                        }
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 
@@ -392,7 +414,7 @@ class LocationManagerViewModel @Inject constructor(
 
             // Flat operations
             is LocationManagerEvent.AddFlat -> {
-                viewModelScope.launch {
+        viewModelScope.launch {
                     // Create flat with proper parent relationships
                     val flat = when {
                         state.value.selectedTower != null -> {
@@ -477,7 +499,30 @@ class LocationManagerViewModel @Inject constructor(
                         blockId = if (event.parentId == event.societyId) null else event.parentId,
                         towerId = if (event.parentId != event.societyId) event.parentId else null
                     )
-                    locationUseCases.updateFlat(flat)
+                    locationUseCases.updateFlat(flat).onSuccess {
+                        when {
+                            state.value.selectedTower != null -> {
+                                locationUseCases.getFlatsForTower(state.value.selectedTower!!.id)
+                                    .collect { flats ->
+                                        _state.update { it.copy(flats = flats) }
+                                    }
+                            }
+                            state.value.selectedBlock != null -> {
+                                locationUseCases.getFlatsForBlock(state.value.selectedBlock!!.id)
+                                    .collect { flats ->
+                                        _state.update { it.copy(flats = flats) }
+                                    }
+                            }
+                            state.value.selectedSociety != null -> {
+                                locationUseCases.getFlatsForSociety(state.value.selectedSociety!!.id)
+                                    .collect { flats ->
+                                        _state.update { it.copy(flats = flats) }
+                                    }
+                            }
+                        }
+                    }.onFailure { error ->
+                        _state.update { it.copy(error = error.message) }
+                    }
                 }
             }
 

@@ -1,3 +1,6 @@
+package propertymanager.presentation.components.location
+
+import DialogType
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,7 +19,6 @@ import com.propertymanager.domain.model.location.Flat
 import com.propertymanager.domain.model.location.Society
 import com.propertymanager.domain.model.location.State
 import com.propertymanager.domain.model.location.Tower
-import propertymanager.presentation.components.location.LocationManagerState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,15 +26,65 @@ fun LocationDialog(
     dialogType: DialogType,
     state: LocationManagerState,
     onDismiss: () -> Unit,
-    onConfirm: (Any) -> Unit
+    onConfirm: (Any) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var code by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("") }
-    var number by remember { mutableStateOf("") }
-    var floor by remember { mutableStateOf("") }
-    var area by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
+    var name by remember {
+        mutableStateOf(
+            when (dialogType) {
+                DialogType.EDIT_COUNTRY -> state.selectedCountry?.name
+                DialogType.EDIT_STATE -> state.selectedState?.name
+                DialogType.EDIT_CITY -> state.selectedCity?.name
+                DialogType.EDIT_SOCIETY -> state.selectedSociety?.name
+                DialogType.EDIT_BLOCK -> state.selectedBlock?.name
+                DialogType.EDIT_TOWER -> state.selectedTower?.name
+                else -> ""
+            } ?: "",
+        )
+    }
+    var code by remember {
+        mutableStateOf(
+            when (dialogType) {
+                DialogType.EDIT_COUNTRY -> state.selectedCountry?.iso2
+                DialogType.EDIT_STATE -> state.selectedState?.stateCode
+                else -> ""
+            } ?: "",
+        )
+    }
+    var type by remember {
+        mutableStateOf(
+            when (dialogType) {
+                DialogType.EDIT_STATE -> state.selectedState?.type
+                DialogType.EDIT_BLOCK -> state.selectedBlock?.type
+                DialogType.EDIT_FLAT -> state.selectedBlock?.type
+                else -> ""
+            } ?: "",
+        )
+    }
+    var number by remember {
+        mutableStateOf(state.selectedBlock?.let { it.name } ?: "")
+    }
+    var floor by remember {
+        mutableStateOf(state.selectedBlock?.let { it.name } ?: "")
+    }
+    var area by remember {
+        mutableStateOf("")
+    }
+    var status by remember {
+        mutableStateOf("")
+    }
+
+    if (dialogType == DialogType.EDIT_FLAT) {
+        val flat = state.flats.find {
+            it.blockId == state.selectedBlock?.id ||
+                it.towerId == state.selectedTower?.id ||
+                (it.blockId == null && it.towerId == null && it.societyId == state.selectedSociety?.id)
+        }
+        number = flat?.number ?: ""
+        floor = flat?.floor?.toString() ?: ""
+        type = flat?.type ?: ""
+        area = flat?.area?.toString() ?: ""
+        status = flat?.status ?: ""
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -54,7 +106,7 @@ fun LocationDialog(
                     DialogType.ADD_FLAT -> "Add Flat"
                     DialogType.EDIT_FLAT -> "Edit Flat"
                     else -> ""
-                }
+                },
             )
         },
         text = {
@@ -64,86 +116,93 @@ fun LocationDialog(
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text("Country Name") }
+                            label = { Text("Country Name") },
                         )
                         OutlinedTextField(
                             value = code,
                             onValueChange = { code = it },
-                            label = { Text("Country Code") }
+                            label = { Text("Country Code") },
                         )
                     }
+
                     DialogType.ADD_STATE, DialogType.EDIT_STATE -> {
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text("State Name") }
+                            label = { Text("State Name") },
                         )
                         OutlinedTextField(
                             value = code,
                             onValueChange = { code = it },
-                            label = { Text("State Code") }
+                            label = { Text("State Code") },
                         )
                     }
+
                     DialogType.ADD_CITY, DialogType.EDIT_CITY -> {
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text("City Name") }
+                            label = { Text("City Name") },
                         )
                     }
+
                     DialogType.ADD_SOCIETY, DialogType.EDIT_SOCIETY -> {
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text("Society Name") }
+                            label = { Text("Society Name") },
                         )
                     }
+
                     DialogType.ADD_BLOCK, DialogType.EDIT_BLOCK -> {
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text("Block Name") }
+                            label = { Text("Block Name") },
                         )
                         OutlinedTextField(
                             value = type,
                             onValueChange = { type = it },
-                            label = { Text("Block Type") }
+                            label = { Text("Block Type") },
                         )
                     }
+
                     DialogType.ADD_TOWER, DialogType.EDIT_TOWER -> {
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
-                            label = { Text("Tower Name") }
+                            label = { Text("Tower Name") },
                         )
                     }
+
                     DialogType.ADD_FLAT, DialogType.EDIT_FLAT -> {
                         OutlinedTextField(
                             value = number,
                             onValueChange = { number = it },
-                            label = { Text("Flat Number") }
+                            label = { Text("Flat Number") },
                         )
                         OutlinedTextField(
                             value = floor,
                             onValueChange = { floor = it },
-                            label = { Text("Floor") }
+                            label = { Text("Floor") },
                         )
                         OutlinedTextField(
                             value = type,
                             onValueChange = { type = it },
-                            label = { Text("Flat Type") }
+                            label = { Text("Flat Type") },
                         )
                         OutlinedTextField(
                             value = area,
                             onValueChange = { area = it },
-                            label = { Text("Area") }
+                            label = { Text("Area") },
                         )
                         OutlinedTextField(
                             value = status,
                             onValueChange = { status = it },
-                            label = { Text("Status") }
+                            label = { Text("Status") },
                         )
                     }
+
                     else -> {}
                 }
             }
@@ -160,10 +219,10 @@ fun LocationDialog(
                         floor = floor,
                         area = area,
                         status = status,
-                        state = state
+                        state = state,
                     )
                     entity?.let { onConfirm(it) }
-                }
+                },
             ) {
                 Text("Confirm")
             }
@@ -172,7 +231,7 @@ fun LocationDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
-        }
+        },
     )
 }
 
@@ -185,16 +244,17 @@ private fun createEntity(
     floor: String,
     area: String,
     status: String,
-    state: LocationManagerState
+    state: LocationManagerState,
 ): Any? {
     return when (dialogType) {
         DialogType.ADD_COUNTRY, DialogType.EDIT_COUNTRY -> {
             Country(
                 id = 0, // ID will be assigned by the repository
                 name = name,
-                iso2 = code
+                iso2 = code,
             )
         }
+
         DialogType.ADD_STATE, DialogType.EDIT_STATE -> {
             state.selectedCountry?.let { country ->
                 State(
@@ -202,20 +262,22 @@ private fun createEntity(
                     countryId = country.id,
                     name = name,
                     stateCode = code,
-                    type = type
+                    type = type,
                 )
             }
         }
+
         DialogType.ADD_CITY, DialogType.EDIT_CITY -> {
             state.selectedState?.let { selectedState ->
                 City(
                     id = 0,
                     countryId = selectedState.countryId,
                     stateId = selectedState.id,
-                    name = name
+                    name = name,
                 )
             }
         }
+
         DialogType.ADD_SOCIETY, DialogType.EDIT_SOCIETY -> {
             state.selectedCity?.let { city ->
                 Society(
@@ -223,20 +285,22 @@ private fun createEntity(
                     countryId = city.countryId,
                     stateId = city.stateId,
                     cityId = city.id,
-                    name = name
+                    name = name,
                 )
             }
         }
+
         DialogType.ADD_BLOCK, DialogType.EDIT_BLOCK -> {
             state.selectedSociety?.let { society ->
                 Block(
                     id = 0,
                     societyId = society.id,
                     name = name,
-                    type = type
+                    type = type,
                 )
             }
         }
+
         DialogType.ADD_TOWER, DialogType.EDIT_TOWER -> {
             state.selectedSociety?.let { society ->
                 state.selectedBlock?.let { block ->
@@ -244,16 +308,17 @@ private fun createEntity(
                         id = 0,
                         societyId = society.id,
                         blockId = block.id,
-                        name = name
+                        name = name,
                     )
                 } ?: Tower(
                     id = 0,
                     societyId = society.id,
                     blockId = 0,
-                    name = name
+                    name = name,
                 )
             }
         }
+
         DialogType.ADD_FLAT, DialogType.EDIT_FLAT -> {
             when {
                 state.selectedTower != null -> {
@@ -267,9 +332,10 @@ private fun createEntity(
                         floor = floor.toIntOrNull() ?: 0,
                         type = type,
                         area = area.toDoubleOrNull() ?: 0.0,
-                        status = status
+                        status = status,
                     )
                 }
+
                 state.selectedBlock != null -> {
                     // Create flat in block
                     Flat(
@@ -281,9 +347,10 @@ private fun createEntity(
                         floor = floor.toIntOrNull() ?: 0,
                         type = type,
                         area = area.toDoubleOrNull() ?: 0.0,
-                        status = status
+                        status = status,
                     )
                 }
+
                 state.selectedSociety != null -> {
                     // Create flat directly in society
                     Flat(
@@ -295,12 +362,14 @@ private fun createEntity(
                         floor = floor.toIntOrNull() ?: 0,
                         type = type,
                         area = area.toDoubleOrNull() ?: 0.0,
-                        status = status
+                        status = status,
                     )
                 }
+
                 else -> null
             }
         }
+
         else -> null
     }
 } 

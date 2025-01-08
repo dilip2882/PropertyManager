@@ -1,5 +1,6 @@
 package propertymanager.feature.staff.settings.property
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -82,6 +83,7 @@ fun PropertyManagerScreen(
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center),
                     )
+                    Log.d("TAG", "PropertyManagerScreen: ${propertiesResponse as Response.Error}")
                 }
             }
         }

@@ -20,6 +20,7 @@ import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
 import propertymanager.presentation.components.property.SelectCityScreen
 import propertymanager.presentation.components.property.SelectCountryScreen
+import propertymanager.presentation.components.property.SelectFlatScreen
 import propertymanager.presentation.components.property.SelectStateScreen
 
 fun NavGraphBuilder.tenantNavGraph(
@@ -42,7 +43,7 @@ fun NavGraphBuilder.tenantNavGraph(
 
         composable<Dest.SelectCountryScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
+                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
             )
             SelectCountryScreen(
                 viewModel = sharedViewModel,
@@ -55,7 +56,7 @@ fun NavGraphBuilder.tenantNavGraph(
 
         composable<Dest.SelectStateScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
+                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
             )
             SelectStateScreen(
                 viewModel = sharedViewModel,
@@ -68,7 +69,7 @@ fun NavGraphBuilder.tenantNavGraph(
 
         composable<Dest.SelectCityScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
+                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
             )
             SelectCityScreen(
                 viewModel = sharedViewModel,
@@ -79,67 +80,99 @@ fun NavGraphBuilder.tenantNavGraph(
             )
         }
 
-        composable<Dest.AddPropertyScreen> {
+        composable<Dest.SelectCityScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
+                remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
             )
-            AddPropertyScreen(
-                viewModel = hiltViewModel(),
+            SelectFlatScreen(
                 locationViewModel = sharedViewModel,
-                onPropertyAdded = {
-                    navController.navigate(TenantBottomNavItem.HOME.route) {
-                        popUpTo(TenantBottomNavItem.HOME.route) { inclusive = true }
-                    }
+                parentId = it.toRoute(),
+                onFlatSelected = {
+                    navController.navigate(Dest.AddPropertyScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },
             )
         }
+    }
 
-        composable<Dest.MaintenanceListScreen> {
-            MaintenanceListScreen(
-                onNavigateToMaintenanceRequest = {
-                    navController.navigate(Dest.MaintenanceCategoriesScreen)
-                },
-                onNavigateToDetails = { requestId ->
-                    navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
-                },
-            )
-        }
+    composable<Dest.SelectFlatScreen> {
+        val sharedViewModel: LocationViewModel = hiltViewModel(
+            remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) },
+        )
+        SelectFlatScreen(
+            locationViewModel = sharedViewModel,
+            onFlatSelected = {
+                navController.navigate(Dest.AddPropertyScreen)
+            },
+            onNavigateBack = { navController.navigateUp() },
+            parentId = it.toRoute(),
+        )
+    }
+
+    composable<Dest.AddPropertyScreen> {
+        val sharedViewModel: LocationViewModel = hiltViewModel(
+            remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
+        )
+        AddPropertyScreen(
+            viewModel = hiltViewModel(),
+            locationViewModel = sharedViewModel,
+            onPropertyAdded = {
+                navController.navigate(TenantBottomNavItem.HOME.route) {
+                    popUpTo(TenantBottomNavItem.HOME.route) { inclusive = true }
+                }
+            },
+            onNavigateToSelectSociety = {
+                navController.navigate(Dest.SelectSocietyScreen)
+            },
+            onNavigateToSelectFlat = {
+                navController.navigate(Dest.SelectFlatScreen)
+            },
+            onNavigateBack = { navController.navigateUp() },
+        )
+    }
+
+    composable<Dest.MaintenanceListScreen> {
+        MaintenanceListScreen(
+            onNavigateToMaintenanceRequest = {
+                navController.navigate(Dest.MaintenanceCategoriesScreen)
+            },
+            onNavigateToDetails = { requestId ->
+                navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
+            },
+        )
+    }
 
 
-        composable<Dest.MaintenanceDetailsScreen> {
-            val args = it.toRoute<Dest.MaintenanceDetailsScreen>()
-            MaintenanceDetailsScreen(
-                requestId = args.requestId,
-                onNavigateUp = { navController.navigateUp() },
-            )
-        }
+    composable<Dest.MaintenanceDetailsScreen> {
+        val args = it.toRoute<Dest.MaintenanceDetailsScreen>()
+        MaintenanceDetailsScreen(
+            requestId = args.requestId,
+            onNavigateUp = { navController.navigateUp() },
+        )
+    }
 
-        composable<Dest.MaintenanceCategoriesScreen> {
-            MaintenanceCategoriesScreen(
-                onNavigateUp = { navController.navigateUp() },
-                onCategorySelected = { category, subCategory ->
-                    navController.navigate(Dest.MaintenanceRequestScreen(category, subCategory))
-                },
-            )
-        }
+    composable<Dest.MaintenanceCategoriesScreen> {
+        MaintenanceCategoriesScreen(
+            onNavigateUp = { navController.navigateUp() },
+            onCategorySelected = { category, subCategory ->
+                navController.navigate(Dest.MaintenanceRequestScreen(category, subCategory))
+            },
+        )
+    }
 
-        composable<Dest.MaintenanceRequestScreen> {
-            val args = it.toRoute<Dest.MaintenanceRequestScreen>()
+    composable<Dest.MaintenanceRequestScreen> {
+        val args = it.toRoute<Dest.MaintenanceRequestScreen>()
 
-            MaintenanceRequestScreen(
-                selectedCategory = args.category,
-                selectedSubcategory = args.subcategory,
-                onNavigateUp = { navController.navigateUp() },
-                onSubmitSuccess = {
-                    navController.navigate(TenantBottomNavItem.SUPPORT.route) {
-                        popUpTo(Dest.MaintenanceCategoriesScreen) { inclusive = true } // Clear the previous screens
-                        launchSingleTop = true
-                    }
-                },
-            )
-        }
-
-
+        MaintenanceRequestScreen(
+            selectedCategory = args.category,
+            selectedSubcategory = args.subcategory,
+            onNavigateUp = { navController.navigateUp() },
+            onSubmitSuccess = {
+                navController.navigate(TenantBottomNavItem.SUPPORT.route) {
+                    popUpTo(Dest.MaintenanceCategoriesScreen) { inclusive = true } // Clear the previous screens
+                    launchSingleTop = true
+                }
+            },
+        )
     }
 }

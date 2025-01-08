@@ -1,3 +1,5 @@
+package propertymanager.presentation.components.location
+
 import com.propertymanager.domain.model.location.Block
 import com.propertymanager.domain.model.location.City
 import com.propertymanager.domain.model.location.Country

@@ -1,3 +1,5 @@
+import propertymanager.presentation.components.location.LocationManagerState
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import propertymanager.presentation.components.location.LocationManagerState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

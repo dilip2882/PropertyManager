@@ -6,6 +6,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import androidx.navigation.toRoute
 import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
@@ -19,6 +20,8 @@ import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
 import propertymanager.presentation.components.property.SelectCityScreen
 import propertymanager.presentation.components.property.SelectCountryScreen
+import propertymanager.presentation.components.property.SelectFlatScreen
+import propertymanager.presentation.components.property.SelectSocietyScreen
 import propertymanager.presentation.components.property.SelectStateScreen
 import propertymanager.presentation.components.user.EditProfileScreen
 import propertymanager.presentation.components.user.ProfileScreen
@@ -150,6 +153,21 @@ fun NavGraphBuilder.staffNavGraph(
             )
         }
 
+        composable<Dest.SelectFlatScreen> { backStackEntry ->
+            val sharedViewModel: LocationViewModel = hiltViewModel(
+                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+            )
+            val args = backStackEntry.toRoute<Dest.SelectFlatScreen>()
+            SelectFlatScreen(
+                locationViewModel = sharedViewModel,
+                onFlatSelected = {
+                    navController.navigate(Dest.AddPropertyScreen)
+                },
+                onNavigateBack = { navController.navigateUp() },
+                parentId = args.parentId
+            )
+        }
+
         composable<Dest.AddPropertyScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
                 remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
@@ -162,12 +180,31 @@ fun NavGraphBuilder.staffNavGraph(
                         popUpTo(Dest.PropertyManagerScreen) { inclusive = true }
                     }
                 },
+                onNavigateToSelectFlat = { parentId ->
+                    navController.navigate(Dest.SelectFlatScreen(parentId))
+                },
+                onNavigateToSelectSociety = {
+                    navController.navigate(Dest.SelectSocietyScreen)
+                },
                 onNavigateBack = { navController.navigateUp() },
             )
         }
 
         composable<Dest.EditPropertyScreen> { backStackEntry ->
             val propertyId = backStackEntry.arguments?.getString("propertyId")
+        }
+
+        composable<Dest.SelectSocietyScreen> {
+            val sharedViewModel: LocationViewModel = hiltViewModel(
+                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+            )
+            SelectSocietyScreen(
+                locationViewModel = sharedViewModel,
+                onSocietySelected = {
+                    navController.navigate(Dest.AddPropertyScreen)
+                },
+                onNavigateBack = { navController.navigateUp() }
+            )
         }
     }
 }

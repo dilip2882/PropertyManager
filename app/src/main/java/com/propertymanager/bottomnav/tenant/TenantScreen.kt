@@ -123,6 +123,12 @@ fun TenantScreen(
                             popUpTo(Dest.TenantHomeScreen) { inclusive = true }
                         }
                     },
+                    onNavigateToSelectFlat = {
+                        navController.navigate(Dest.SelectFlatScreen)
+                    },
+                    onNavigateToSelectSociety = {
+                        navController.navigate((Dest.SelectSocietyScreen))
+                    },
                     onNavigateBack = { navController.navigateUp() },
                 )
             }

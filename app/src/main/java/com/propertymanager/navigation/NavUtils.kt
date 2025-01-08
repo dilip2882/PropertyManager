@@ -97,5 +97,11 @@ sealed interface Dest {
     data object SelectStateScreen: Dest
     @Serializable
     data object SelectCityScreen: Dest
+    @Serializable
+    data object SelectSocietyScreen: Dest
+    @Serializable
+    data class SelectFlatScreen(
+        val parentId: Int
+    ) : Dest
 }
 

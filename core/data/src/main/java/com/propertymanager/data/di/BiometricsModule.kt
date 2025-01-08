@@ -19,17 +19,17 @@ abstract class BiometricsModule {
     @Binds
     @Singleton
     abstract fun bindsBiometricAuthRepository(
-        biometricAuthRepoImpl: BiometricAuthRepositoryImpl
+        biometricAuthRepoImpl: BiometricAuthRepositoryImpl,
     ): BiometricAuthRepository
 
 
-    companion object{
+    companion object {
         @Provides
         fun providesBiometricAvailabilityUseCase(
             @ApplicationContext context: Context,
-            repository: BiometricAuthRepository
+            repository: BiometricAuthRepository,
         ): BiometricAvailabilityUseCase {
-            return BiometricAvailabilityUseCase(context,repository)
+            return BiometricAvailabilityUseCase(context, repository)
         }
 
     }
