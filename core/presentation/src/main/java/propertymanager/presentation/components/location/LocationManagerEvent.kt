@@ -40,55 +40,19 @@ sealed class LocationManagerEvent {
     ) : LocationManagerEvent()
     data class DeleteCity(val cityId: Int) : LocationManagerEvent()
 
-    // Society
-    data class AddSociety(
-        val countryId: Int,
-        val stateId: Int,
-        val cityId: Int,
-        val society: Society
-    ) : LocationManagerEvent()
-    data class UpdateSociety(
-        val countryId: Int,
-        val stateId: Int,
-        val cityId: Int,
-        val society: Society
-    ) : LocationManagerEvent()
+    data class AddSociety(val cityId: Int, val society: Society) : LocationManagerEvent()
+    data class UpdateSociety(val society: Society) : LocationManagerEvent()
     data class DeleteSociety(val societyId: Int) : LocationManagerEvent()
-
-    // Block
-    data class AddBlock(
-        val societyId: Int,
-        val block: Block
-    ) : LocationManagerEvent()
-    data class UpdateBlock(
-        val societyId: Int,
-        val block: Block
-    ) : LocationManagerEvent()
+    
+    data class AddBlock(val block: Block) : LocationManagerEvent()
+    data class UpdateBlock(val block: Block) : LocationManagerEvent()
     data class DeleteBlock(val blockId: Int) : LocationManagerEvent()
 
-    // Tower
-    data class AddTower(
-        val societyId: Int,
-        val blockId: Int,
-        val tower: Tower
-    ) : LocationManagerEvent()
-    data class UpdateTower(
-        val societyId: Int,
-        val blockId: Int,
-        val tower: Tower
-    ) : LocationManagerEvent()
+    data class AddTower(val tower: Tower) : LocationManagerEvent()
+    data class UpdateTower(val tower: Tower) : LocationManagerEvent()
     data class DeleteTower(val towerId: Int) : LocationManagerEvent()
-
-    // Flat
-    data class AddFlat(
-        val societyId: Int,
-        val parentId: Int,  // Can be societyId, blockId, or towerId
-        val flat: Flat
-    ) : LocationManagerEvent()
-    data class UpdateFlat(
-        val societyId: Int,
-        val parentId: Int,  // Can be societyId, blockId, or towerId
-        val flat: Flat
-    ) : LocationManagerEvent()
+    
+    data class AddFlat(val flat: Flat) : LocationManagerEvent()
+    data class UpdateFlat(val flat: Flat) : LocationManagerEvent()
     data class DeleteFlat(val flatId: Int) : LocationManagerEvent()
-} 
+}

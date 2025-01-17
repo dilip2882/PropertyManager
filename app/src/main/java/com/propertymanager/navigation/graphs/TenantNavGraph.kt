@@ -16,6 +16,7 @@ import propertymanager.feature.tenant.support.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.support.MaintenanceDetailsScreen
 import propertymanager.feature.tenant.support.MaintenanceListScreen
 import propertymanager.feature.tenant.support.MaintenanceRequestScreen
+import propertymanager.presentation.components.location.LocationState
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
 import propertymanager.presentation.components.property.SelectCityScreen
@@ -91,6 +92,7 @@ fun NavGraphBuilder.tenantNavGraph(
                     navController.navigate(Dest.AddPropertyScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },
+                locationState = LocationState()
             )
         }
     }
@@ -106,6 +108,7 @@ fun NavGraphBuilder.tenantNavGraph(
             },
             onNavigateBack = { navController.navigateUp() },
             parentId = it.toRoute(),
+            locationState = LocationState()
         )
     }
 

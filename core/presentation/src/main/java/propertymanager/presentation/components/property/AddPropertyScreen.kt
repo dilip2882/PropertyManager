@@ -68,10 +68,8 @@ fun AddPropertyScreen(
     uiState?.let { event ->
         when (event) {
             is UiEvent.Error -> {
-                // error message
                 Toast.makeText(LocalContext.current, event.message, Toast.LENGTH_LONG).show()
             }
-
             else -> {}
         }
     }
@@ -115,10 +113,9 @@ fun AddPropertyScreen(
             AnimatedVisibility(visible = locationState.selectedCountry != null) {
                 Column {
                     if (locationState.isLoading) {
-                        // Show loading indicator
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     } else if (locationState.states.isEmpty()) {
-                        // Show empty state
+                        // empty state
                         Text(
                             text = "No states found for selected country",
                             style = MaterialTheme.typography.bodyMedium,

@@ -10,7 +10,6 @@ data class City(
     val name: String = "",
     val latitude: String = "",
     val longitude: String = "",
-    val societies: List<Society> = emptyList()
 ) {
     constructor() : this(
         id = 0,
@@ -19,6 +18,5 @@ data class City(
         name = "",
         latitude = "",
         longitude = "",
-        societies = emptyList()
     )
 }

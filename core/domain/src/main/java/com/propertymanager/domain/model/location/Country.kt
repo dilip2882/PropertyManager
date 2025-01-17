@@ -2,6 +2,17 @@ package com.propertymanager.domain.model.location
 
 import kotlinx.serialization.Serializable
 
+/*
+Countries
+└── States
+    └── Cities
+        └── Societies
+            ├── Blocks
+            │   └── Flats (if block selected)
+            ├── Towers
+            │   └── Flats (if tower selected)
+            └── Flats (direct society flats)
+ */
 @Serializable
 data class Country(
     val id: Int,
@@ -24,8 +35,7 @@ data class Country(
     val latitude: String = "",
     val longitude: String = "",
     val emoji: String = "",
-    val emojiU: String = "",
-    val states: List<State> = emptyList()
+    val emojiU: String = ""
 ) {
     constructor() : this(
         id = 0,
@@ -51,23 +61,3 @@ data class Country(
         emojiU = ""
     )
 }
-
-/*
-locations/
-├── countries/
-│   ├── {countryId}/
-│   │   └── states/
-│   │       ├── {stateId}/
-│   │       │   └── cities/
-│   │       │       ├── {cityId}/
-│   │       │       │   └── societies/
-│   │       │       │       ├── flats/
-│   │       │       │       ├── {societyId}/
-│   │       │       │       │   ├── blocks/
-│   │       │       │       │   │   ├── {blockId}/
-│   │       │       │       │   │   │   └── flats/
-│   │       │       │       │   └── towers/
-│   │       │       │       │       ├── {towerId}/
-│   │       │       │       │       │   └── flats/
-
- */

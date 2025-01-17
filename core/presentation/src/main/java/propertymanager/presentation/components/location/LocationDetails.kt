@@ -168,4 +168,4 @@ private fun getItemTitle(item: Any): String {
         is Flat -> "Flat "
         else -> "Details"
     }
-} 
+}

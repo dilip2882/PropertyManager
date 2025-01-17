@@ -1,4 +1,4 @@
-import propertymanager.presentation.components.location.LocationManagerState
+package propertymanager.presentation.components.location
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,23 +33,23 @@ import androidx.compose.ui.unit.dp
 fun AddOptionsBottomSheet(
     state: LocationManagerState,
     onDismiss: () -> Unit,
-    onOptionSelected: (DialogType) -> Unit
+    onOptionSelected: (DialogType) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Text(
                 text = "Add New",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             when {
@@ -58,61 +58,67 @@ fun AddOptionsBottomSheet(
                     AddOption(
                         text = "Add Flat",
                         icon = Icons.Default.Home,
-                        onClick = { onOptionSelected(DialogType.ADD_FLAT) }
+                        onClick = { onOptionSelected(DialogType.ADD_FLAT) },
                     )
                 }
+
                 state.selectedBlock != null -> {
                     // Can only add flats to a block
                     AddOption(
                         text = "Add Flat",
                         icon = Icons.Default.Home,
-                        onClick = { onOptionSelected(DialogType.ADD_FLAT) }
+                        onClick = { onOptionSelected(DialogType.ADD_FLAT) },
                     )
                 }
+
                 state.selectedSociety != null -> {
                     // Can add blocks, towers, or flats to a society
                     AddOption(
                         text = "Add Block",
                         icon = Icons.Default.Business,
-                        onClick = { onOptionSelected(DialogType.ADD_BLOCK) }
+                        onClick = { onOptionSelected(DialogType.ADD_BLOCK) },
                     )
                     AddOption(
                         text = "Add Tower",
                         icon = Icons.Default.LocationCity,
-                        onClick = { onOptionSelected(DialogType.ADD_TOWER) }
+                        onClick = { onOptionSelected(DialogType.ADD_TOWER) },
                     )
                     AddOption(
                         text = "Add Flat",
                         icon = Icons.Default.Home,
-                        onClick = { onOptionSelected(DialogType.ADD_FLAT) }
+                        onClick = { onOptionSelected(DialogType.ADD_FLAT) },
                     )
                 }
+
                 state.selectedCity != null -> {
                     AddOption(
                         text = "Add Society",
                         icon = Icons.Default.LocationOn,
-                        onClick = { onOptionSelected(DialogType.ADD_SOCIETY) }
+                        onClick = { onOptionSelected(DialogType.ADD_SOCIETY) },
                     )
                 }
+
                 state.selectedState != null -> {
                     AddOption(
                         text = "Add City",
                         icon = Icons.Default.LocationCity,
-                        onClick = { onOptionSelected(DialogType.ADD_CITY) }
+                        onClick = { onOptionSelected(DialogType.ADD_CITY) },
                     )
                 }
+
                 state.selectedCountry != null -> {
                     AddOption(
                         text = "Add State",
                         icon = Icons.Default.Map,
-                        onClick = { onOptionSelected(DialogType.ADD_STATE) }
+                        onClick = { onOptionSelected(DialogType.ADD_STATE) },
                     )
                 }
+
                 else -> {
                     AddOption(
                         text = "Add Country",
                         icon = Icons.Default.Public,
-                        onClick = { onOptionSelected(DialogType.ADD_COUNTRY) }
+                        onClick = { onOptionSelected(DialogType.ADD_COUNTRY) },
                     )
                 }
             }
@@ -124,25 +130,25 @@ fun AddOptionsBottomSheet(
 private fun AddOption(
     text: String,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        color = Color.Transparent
+        color = Color.Transparent,
     ) {
         Row(
             modifier = Modifier
                 .padding(vertical = 12.dp, horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(text = text)
         }
     }
-} 
+}

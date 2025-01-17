@@ -1,5 +1,6 @@
 package propertymanager.presentation.components.location
 
+
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -55,4 +56,4 @@ fun <T> LocationDropdown(
             }
         }
     }
-} 
+}

@@ -80,9 +80,18 @@ sealed interface Dest {
 
     // Location
     @Serializable
-    data object LocationScreen: Dest
+    data object CountryManagerScreen : Dest
+
     @Serializable
-    data object LocationManagerScreen: Dest
+    data class StateManagerScreen(val countryId: Int) : Dest
+
+    @Serializable
+    data class CityManagerScreen(val stateId: Int) : Dest
+
+    @Serializable
+    data class LocationScreen(val cityId: Int) : Dest
+    @Serializable
+    data class LocationManagerScreen(val cityId: Int): Dest
 
     // Property
     @Serializable
@@ -103,5 +112,6 @@ sealed interface Dest {
     data class SelectFlatScreen(
         val parentId: Int
     ) : Dest
+
 }
 

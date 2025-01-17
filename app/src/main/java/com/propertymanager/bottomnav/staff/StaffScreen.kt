@@ -92,7 +92,7 @@ fun StaffScreen(
                         navController.navigate(Dest.PropertyManagerScreen)
                     },
                     onNavigateToLocationManager = {
-                        navController.navigate(Dest.LocationManagerScreen)
+                        navController.navigate(Dest.CountryManagerScreen)
                     }
                 )
             }

@@ -1,7 +1,9 @@
 package com.propertymanager.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.toObject
 import com.propertymanager.domain.model.location.Block
 import com.propertymanager.domain.model.location.City
@@ -15,7 +17,9 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.math.abs
 
 class LocationRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -34,7 +38,7 @@ class LocationRepositoryImpl @Inject constructor(
         const val FLATS_COLLECTION = "flats"
     }
 
-    // Sub-collections
+    // Collection references
     private fun countriesRef() = locationsRef.document(DATA_DOC).collection(COUNTRIES_COLLECTION)
     private fun statesRef() = locationsRef.document(DATA_DOC).collection(STATES_COLLECTION)
     private fun citiesRef() = locationsRef.document(DATA_DOC).collection(CITIES_COLLECTION)
@@ -42,6 +46,10 @@ class LocationRepositoryImpl @Inject constructor(
     private fun blocksRef() = locationsRef.document(DATA_DOC).collection(BLOCKS_COLLECTION)
     private fun towersRef() = locationsRef.document(DATA_DOC).collection(TOWERS_COLLECTION)
     private fun flatsRef() = locationsRef.document(DATA_DOC).collection(FLATS_COLLECTION)
+
+    private fun generatePositiveId(): Int {
+        return abs(UUID.randomUUID().hashCode())
+    }
 
     // Country operations
     override suspend fun getCountries(): Flow<List<Country>> = callbackFlow {
@@ -65,90 +73,124 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addCountry(country: Country): Result<Unit> = safeFirestoreCall {
-        val newCountryRef = countriesRef().document()
-        val countryWithId = country.copy(id = newCountryRef.id.hashCode())
-        newCountryRef.set(countryWithId).await()
+        val id = generatePositiveId()
+        val countryWithId = country.copy(id = id)
+        countriesRef().document(id.toString()).set(countryWithId).await()
     }
 
     override suspend fun updateCountry(country: Country): Result<Unit> = safeFirestoreCall {
-        countriesRef().document(country.id.toString())
-            .set(country, SetOptions.merge()).await()
+        val docRef = countriesRef().document(country.id.toString())
+
+        // First verify the document exists
+        val exists = docRef.get().await().exists()
+        if (!exists) {
+            return@safeFirestoreCall
+        }
+
+        docRef.set(country).await()
     }
 
     override suspend fun deleteCountry(countryId: Int): Result<Unit> = safeFirestoreCall {
-        // First get all related data
-        val states = statesRef().whereEqualTo("countryId", countryId)
-            .get().await().documents
+        val operations = mutableListOf<suspend (WriteBatch) -> Unit>()
 
-        val batch = firestore.batch()
+        // Add country deletion
+        operations.add { batch ->
+            batch.delete(countriesRef().document(countryId.toString()))
+        }
 
-        // Delete country
-        batch.delete(countriesRef().document(countryId.toString()))
+        // Get all states
+        val states = statesRef()
+            .whereEqualTo("countryId", countryId)
+            .get()
+            .await()
+            .documents
 
-        // Delete states
+        // Add state deletions
         states.forEach { stateDoc ->
             val stateId = stateDoc.id.toInt()
-            batch.delete(stateDoc.reference)
+            operations.add { batch ->
+                batch.delete(stateDoc.reference)
+            }
 
-            // Get and delete cities
-            val cities = citiesRef().whereEqualTo("stateId", stateId)
-                .get().await().documents
+            // Get cities for this state
+            val cities = citiesRef()
+                .whereEqualTo("stateId", stateId)
+                .get()
+                .await()
+                .documents
+
             cities.forEach { cityDoc ->
                 val cityId = cityDoc.id.toInt()
-                batch.delete(cityDoc.reference)
+                operations.add { batch ->
+                    batch.delete(cityDoc.reference)
+                }
 
-                // Get and delete societies
-                val societies = societiesRef().whereEqualTo("cityId", cityId)
-                    .get().await().documents
+                // Get societies for this city
+                val societies = societiesRef()
+                    .whereEqualTo("cityId", cityId)
+                    .get()
+                    .await()
+                    .documents
+
                 societies.forEach { societyDoc ->
                     val societyId = societyDoc.id.toInt()
-                    batch.delete(societyDoc.reference)
-
-                    // Delete blocks and their flats
-                    val blocks = blocksRef().whereEqualTo("societyId", societyId)
-                        .get().await().documents
-                    blocks.forEach { blockDoc ->
-                        batch.delete(blockDoc.reference)
-
-                        // Delete flats in block
-                        val blockFlats = flatsRef()
-                            .whereEqualTo("blockId", blockDoc.id.toInt())
-                            .get().await().documents
-                        blockFlats.forEach { flatDoc ->
-                            batch.delete(flatDoc.reference)
-                        }
+                    operations.add { batch ->
+                        batch.delete(societyDoc.reference)
                     }
 
-                    // Delete towers and their flats
-                    val towers = towersRef().whereEqualTo("societyId", societyId)
-                        .get().await().documents
-                    towers.forEach { towerDoc ->
-                        batch.delete(towerDoc.reference)
-
-                        // Delete flats in tower
-                        val towerFlats = flatsRef()
-                            .whereEqualTo("towerId", towerDoc.id.toInt())
-                            .get().await().documents
-                        towerFlats.forEach { flatDoc ->
-                            batch.delete(flatDoc.reference)
-                        }
-                    }
-
-                    // Delete society's direct flats
-                    val societyFlats = flatsRef()
+                    // Add block deletions
+                    val blocks = blocksRef()
                         .whereEqualTo("societyId", societyId)
-                        .whereEqualTo("blockId", null)
-                        .whereEqualTo("towerId", null)
-                        .get().await().documents
-                    societyFlats.forEach { flatDoc ->
-                        batch.delete(flatDoc.reference)
+                        .get()
+                .await()
+                        .documents
+
+                    blocks.forEach { blockDoc ->
+                        operations.add { batch ->
+                            batch.delete(blockDoc.reference)
+                        }
+                    }
+
+                    // Add tower deletions
+                    val towers = towersRef()
+                        .whereEqualTo("societyId", societyId)
+                        .get()
+                .await()
+                        .documents
+
+                    towers.forEach { towerDoc ->
+                        operations.add { batch ->
+                            batch.delete(towerDoc.reference)
+                        }
+                    }
+
+                    // Add flat deletions
+                    val flats = flatsRef()
+                        .whereEqualTo("societyId", societyId)
+            .get()
+                        .await()
+                        .documents
+
+                    flats.forEach { flatDoc ->
+                        operations.add { batch ->
+                            batch.delete(flatDoc.reference)
+                        }
                     }
                 }
             }
         }
 
-        batch.commit().await()
+        // Execute operations in chunks of 500
+        val chunks = operations.chunked(500)
+        chunks.forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { operation ->
+                operation(batch)
+            }
+            batch.commit().await()
+        }
     }
+
 
     // State operations
     override suspend fun getStatesForCountry(countryId: Int): Flow<List<State>> = callbackFlow {
@@ -159,12 +201,12 @@ class LocationRepositoryImpl @Inject constructor(
                 .whereEqualTo("countryId", countryId)
                 // Temporarily remove orderBy until index is ready
                 // .orderBy("name")
-                .addSnapshotListener { snapshot, error ->
-                    if (error != null) {
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
                         println("DEBUG Repository: Error in snapshot listener - ${error.message}")
-                        close(error)
-                        return@addSnapshotListener
-                    }
+                    close(error)
+                    return@addSnapshotListener
+                }
 
                     println("DEBUG Repository: Snapshot received - documents count: ${snapshot?.documents?.size}")
 
@@ -174,7 +216,7 @@ class LocationRepositoryImpl @Inject constructor(
                             val state = doc.toObject<State>()
                             println("DEBUG Repository: Converted to State object - ${state?.name}")
                             state
-                        } catch (e: Exception) {
+        } catch (e: Exception) {
                             println("DEBUG Repository: Error converting document - ${e.message}")
                             null
                         }
@@ -185,7 +227,7 @@ class LocationRepositoryImpl @Inject constructor(
                         println("DEBUG Repository: State - ${state.name} (ID: ${state.id}, CountryID: ${state.countryId})")
                     }
 
-                    trySend(states)
+                trySend(states)
                 }
 
             awaitClose {
@@ -204,38 +246,107 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addState(state: State): Result<Unit> = safeFirestoreCall {
-        val newStateRef = statesRef().document()
-        val stateWithId = state.copy(id = newStateRef.id.hashCode())
-        newStateRef.set(stateWithId).await()
+        val id = generatePositiveId()
+        val stateWithId = state.copy(id = id)
+        statesRef().document(id.toString()).set(stateWithId).await()
     }
 
     override suspend fun updateState(state: State): Result<Unit> = safeFirestoreCall {
-        statesRef().document(state.id.toString())
-            .set(state, SetOptions.merge()).await()
+        val stateRef = statesRef().document(state.id.toString())
+
+        // First verify the document exists
+        val exists = stateRef.get().await().exists()
+        if (!exists) {
+            return@safeFirestoreCall
+        }
+
+        stateRef.set(state).await()
     }
 
     override suspend fun deleteState(stateId: Int): Result<Unit> = safeFirestoreCall {
-        val batch = firestore.batch()
+        val operations = mutableListOf<suspend (WriteBatch) -> Unit>()
 
-        // Delete state
-        batch.delete(statesRef().document(stateId.toString()))
+        // Add state deletion
+        operations.add { batch ->
+            batch.delete(statesRef().document(stateId.toString()))
+        }
 
-        // Get and delete cities
-        val cities = citiesRef().whereEqualTo("stateId", stateId)
-            .get().await().documents
+        // Get cities for this state
+        val cities = citiesRef()
+            .whereEqualTo("stateId", stateId)
+            .get()
+                .await()
+            .documents
+
         cities.forEach { cityDoc ->
             val cityId = cityDoc.id.toInt()
-            batch.delete(cityDoc.reference)
+            operations.add { batch ->
+                batch.delete(cityDoc.reference)
+            }
 
-            // Delete societies and their children
-            val societies = societiesRef().whereEqualTo("cityId", cityId)
-                .get().await().documents
+            // Get societies for this city
+            val societies = societiesRef()
+                .whereEqualTo("cityId", cityId)
+                .get()
+                .await()
+                .documents
+
             societies.forEach { societyDoc ->
-                // ... similar pattern for society children
+                val societyId = societyDoc.id.toInt()
+                operations.add { batch ->
+                    batch.delete(societyDoc.reference)
+                }
+
+                // Add block deletions
+                val blocks = blocksRef()
+                    .whereEqualTo("societyId", societyId)
+                    .get()
+                .await()
+                    .documents
+
+                blocks.forEach { blockDoc ->
+                    operations.add { batch ->
+                        batch.delete(blockDoc.reference)
+                    }
+                }
+
+                // Add tower deletions
+                val towers = towersRef()
+                    .whereEqualTo("societyId", societyId)
+                    .get()
+                    .await()
+                    .documents
+
+                towers.forEach { towerDoc ->
+                    operations.add { batch ->
+                        batch.delete(towerDoc.reference)
+                    }
+                }
+
+                // Add flat deletions
+                val flats = flatsRef()
+                    .whereEqualTo("societyId", societyId)
+            .get()
+                    .await()
+                    .documents
+
+                flats.forEach { flatDoc ->
+                    operations.add { batch ->
+                        batch.delete(flatDoc.reference)
+                    }
+                }
             }
         }
 
-        batch.commit().await()
+        // Execute operations in chunks of 500
+        val chunks = operations.chunked(500)
+        chunks.forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { operation ->
+                operation(batch)
+            }
+            batch.commit().await()
+        }
     }
 
     // City operations
@@ -260,14 +371,21 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addCity(city: City): Result<Unit> = safeFirestoreCall {
-        val newCityRef = citiesRef().document()
-        val cityWithId = city.copy(id = newCityRef.id.hashCode())
-        newCityRef.set(cityWithId).await()
+        val id = generatePositiveId()
+        val cityWithId = city.copy(id = id)
+        citiesRef().document(id.toString()).set(cityWithId).await()
     }
 
     override suspend fun updateCity(city: City): Result<Unit> = safeFirestoreCall {
-        citiesRef().document(city.id.toString())
-            .set(city, SetOptions.merge()).await()
+        val cityRef = citiesRef().document(city.id.toString())
+
+        // First verify the document exists
+        val exists = cityRef.get().await().exists()
+        if (!exists) {
+            return@safeFirestoreCall
+        }
+
+        cityRef.set(cityRef).await()
     }
 
     override suspend fun deleteCity(cityId: Int): Result<Unit> = safeFirestoreCall {
@@ -331,9 +449,19 @@ class LocationRepositoryImpl @Inject constructor(
     private suspend fun <T> safeFirestoreCall(call: suspend () -> T): Result<T> =
         try {
             Result.success(call())
+        } catch (e: FirebaseFirestoreException) {
+            when (e.code) {
+                FirebaseFirestoreException.Code.NOT_FOUND ->
+                    Result.failure(NoSuchElementException(e.message))
+                FirebaseFirestoreException.Code.ALREADY_EXISTS ->
+                    Result.failure(IllegalStateException("Document already exists"))
+                FirebaseFirestoreException.Code.FAILED_PRECONDITION ->
+                    Result.failure(IllegalStateException("Operation failed: ${e.message}"))
+                else -> Result.failure(e)
+            }
         } catch (e: Exception) {
             Result.failure(e)
-        }
+    }
 
     // Society operations
     override suspend fun getSocietiesForCity(cityId: Int): Flow<List<Society>> = callbackFlow {
@@ -341,7 +469,7 @@ class LocationRepositoryImpl @Inject constructor(
             .whereEqualTo("cityId", cityId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                close(error)
                     return@addSnapshotListener
                 }
                 val societies = snapshot?.documents?.mapNotNull {
@@ -357,63 +485,106 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addSociety(society: Society): Result<Unit> = safeFirestoreCall {
-        val newSocietyRef = societiesRef().document()
-        val societyWithId = society.copy(id = newSocietyRef.id.hashCode())
-        newSocietyRef.set(societyWithId).await()
+        val id = generatePositiveId()
+        val societyWithId = society.copy(id = id)
+        societiesRef().document(id.toString()).set(societyWithId).await()
     }
 
     override suspend fun updateSociety(society: Society): Result<Unit> = safeFirestoreCall {
-        societiesRef().document(society.id.toString())
-            .set(society, SetOptions.merge()).await()
+        val societyRef = societiesRef().document(society.id.toString())
+        val exists = societyRef.get().await().exists()
+        if (!exists) {
+            return@safeFirestoreCall
+        }
+        societyRef.set(society).await()
     }
 
     override suspend fun deleteSociety(societyId: Int): Result<Unit> = safeFirestoreCall {
-        val batch = firestore.batch()
+        val operations = mutableListOf<suspend (WriteBatch) -> Unit>()
 
-        // Delete society
-        batch.delete(societiesRef().document(societyId.toString()))
+        // Add society deletion
+        operations.add { batch ->
+            batch.delete(societiesRef().document(societyId.toString()))
+        }
 
-        // Delete blocks and their flats
-        val blocks = blocksRef().whereEqualTo("societyId", societyId)
-            .get().await().documents
+        // Get blocks for this society
+        val blocks = blocksRef()
+            .whereEqualTo("societyId", societyId)
+            .get()
+            .await()
+            .documents
+
         blocks.forEach { blockDoc ->
-            batch.delete(blockDoc.reference)
+            val blockId = blockDoc.id.toInt()
+            operations.add { batch ->
+                batch.delete(blockDoc.reference)
+            }
 
-            // Delete flats in block
+            // Get flats for this block
             val blockFlats = flatsRef()
-                .whereEqualTo("blockId", blockDoc.id.toInt())
-                .get().await().documents
+                .whereEqualTo("blockId", blockId)
+                .get()
+                .await()
+                .documents
+
             blockFlats.forEach { flatDoc ->
-                batch.delete(flatDoc.reference)
+                operations.add { batch ->
+                    batch.delete(flatDoc.reference)
+                }
             }
         }
 
-        // Delete towers and their flats
-        val towers = towersRef().whereEqualTo("societyId", societyId)
-            .get().await().documents
+        // Get towers for this society
+        val towers = towersRef()
+            .whereEqualTo("societyId", societyId)
+            .get()
+            .await()
+            .documents
+
         towers.forEach { towerDoc ->
-            batch.delete(towerDoc.reference)
+            val towerId = towerDoc.id.toInt()
+            operations.add { batch ->
+                batch.delete(towerDoc.reference)
+            }
 
-            // Delete flats in tower
+            // Get flats for this tower
             val towerFlats = flatsRef()
-                .whereEqualTo("towerId", towerDoc.id.toInt())
-                .get().await().documents
+                .whereEqualTo("towerId", towerId)
+                .get()
+                .await()
+                .documents
+
             towerFlats.forEach { flatDoc ->
-                batch.delete(flatDoc.reference)
+                operations.add { batch ->
+                    batch.delete(flatDoc.reference)
+                }
             }
         }
 
-        // Delete society's direct flats
+        // Get direct flats for this society
         val societyFlats = flatsRef()
             .whereEqualTo("societyId", societyId)
             .whereEqualTo("blockId", null)
             .whereEqualTo("towerId", null)
-            .get().await().documents
+            .get()
+                .await()
+            .documents
+
         societyFlats.forEach { flatDoc ->
-            batch.delete(flatDoc.reference)
+            operations.add { batch ->
+                batch.delete(flatDoc.reference)
+            }
         }
 
-        batch.commit().await()
+        // Execute operations in chunks of 500
+        val chunks = operations.chunked(500)
+        chunks.forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { operation ->
+                operation(batch)
+            }
+            batch.commit().await()
+        }
     }
 
     // Block operations
@@ -438,31 +609,50 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addBlock(block: Block): Result<Unit> = safeFirestoreCall {
-        val newBlockRef = blocksRef().document()
-        val blockWithId = block.copy(id = newBlockRef.id.hashCode())
-        newBlockRef.set(blockWithId).await()
+        val id = generatePositiveId()
+        val blockWithId = block.copy(id = id)
+        blocksRef().document(id.toString()).set(blockWithId).await()
     }
 
     override suspend fun updateBlock(block: Block): Result<Unit> = safeFirestoreCall {
-        blocksRef().document(block.id.toString())
-            .set(block, SetOptions.merge()).await()
+        val blockRef = blocksRef().document(block.id.toString())
+        val exists = blockRef.get().await().exists()
+        if (!exists) {
+            return@safeFirestoreCall
+        }
+        blockRef.set(block).await()
     }
 
     override suspend fun deleteBlock(blockId: Int): Result<Unit> = safeFirestoreCall {
-        val batch = firestore.batch()
+        val operations = mutableListOf<suspend (WriteBatch) -> Unit>()
 
-        // Delete block
-        batch.delete(blocksRef().document(blockId.toString()))
-
-        // Delete flats in block
-        val blockFlats = flatsRef()
-            .whereEqualTo("blockId", blockId)
-            .get().await().documents
-        blockFlats.forEach { flatDoc ->
-            batch.delete(flatDoc.reference)
+        // Add block deletion
+        operations.add { batch ->
+            batch.delete(blocksRef().document(blockId.toString()))
         }
 
-        batch.commit().await()
+        // Get flats for this block
+        val blockFlats = flatsRef()
+            .whereEqualTo("blockId", blockId)
+            .get()
+            .await()
+            .documents
+
+        blockFlats.forEach { flatDoc ->
+            operations.add { batch ->
+                batch.delete(flatDoc.reference)
+            }
+        }
+
+        // Execute operations in chunks of 500
+        val chunks = operations.chunked(500)
+        chunks.forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { operation ->
+                operation(batch)
+            }
+            batch.commit().await()
+        }
     }
 
     // Tower operations
@@ -487,7 +677,7 @@ class LocationRepositoryImpl @Inject constructor(
             .whereEqualTo("blockId", blockId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                close(error)
                     return@addSnapshotListener
                 }
                 val towers = snapshot?.documents?.mapNotNull {
@@ -503,14 +693,17 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addTower(tower: Tower): Result<Unit> = safeFirestoreCall {
-        val newTowerRef = towersRef().document()
-        val towerWithId = tower.copy(id = newTowerRef.id.hashCode())
-        newTowerRef.set(towerWithId).await()
+        val id = generatePositiveId()
+        val towerWithId = tower.copy(id = id)
+        towersRef().document(id.toString()).set(towerWithId).await()
+
     }
 
     override suspend fun updateTower(tower: Tower): Result<Unit> = safeFirestoreCall {
-        towersRef().document(tower.id.toString())
-            .set(tower, SetOptions.merge()).await()
+        towersRef()
+            .document(tower.id.toString())
+            .set(tower)
+                .await()
     }
 
     override suspend fun deleteTower(towerId: Int): Result<Unit> = safeFirestoreCall {
@@ -584,18 +777,37 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addFlat(flat: Flat): Result<Unit> = safeFirestoreCall {
-        val newFlatRef = flatsRef().document()
-        val flatWithId = flat.copy(id = newFlatRef.id.hashCode())
-        newFlatRef.set(flatWithId).await()
+        val id = generatePositiveId()
+        val flatWithId = flat.copy(id = id)
+        flatsRef().document(id.toString()).set(flatWithId).await()
+
     }
 
     override suspend fun updateFlat(flat: Flat): Result<Unit> = safeFirestoreCall {
-        flatsRef().document(flat.id.toString())
-            .set(flat, SetOptions.merge()).await()
+        flatsRef()
+            .document(flat.id.toString())
+            .set(flat)
+                .await()
     }
 
     override suspend fun deleteFlat(flatId: Int): Result<Unit> = safeFirestoreCall {
         flatsRef().document(flatId.toString()).delete().await()
     }
-}
 
+    private suspend fun executeDeleteBatch(batch: WriteBatch) {
+        try {
+            batch.commit().await()
+        } catch (e: FirebaseFirestoreException) {
+            if (e.code == FirebaseFirestoreException.Code.FAILED_PRECONDITION) {
+                // Handle batch size limit exceeded
+                throw FirebaseFirestoreException(
+                    "Batch operation too large. Please try deleting in smaller chunks.",
+                    FirebaseFirestoreException.Code.FAILED_PRECONDITION
+                )
+            }
+            throw e
+        }
+
+    }
+
+}

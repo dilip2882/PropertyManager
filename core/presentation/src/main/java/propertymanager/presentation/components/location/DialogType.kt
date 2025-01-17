@@ -1,3 +1,5 @@
+package propertymanager.presentation.components.location
+
 sealed class DialogType {
     object ADD_COUNTRY : DialogType()
     object EDIT_COUNTRY : DialogType()
@@ -16,4 +18,4 @@ sealed class DialogType {
     object ADD_FLAT : DialogType()
     object EDIT_FLAT : DialogType()
     object DELETE_FLAT : DialogType()
-} 
+}

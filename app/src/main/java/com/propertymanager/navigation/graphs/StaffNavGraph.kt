@@ -20,12 +20,17 @@ import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
 import propertymanager.presentation.components.property.SelectCityScreen
 import propertymanager.presentation.components.property.SelectCountryScreen
-import propertymanager.presentation.components.property.SelectFlatScreen
 import propertymanager.presentation.components.property.SelectSocietyScreen
 import propertymanager.presentation.components.property.SelectStateScreen
 import propertymanager.presentation.components.user.EditProfileScreen
 import propertymanager.presentation.components.user.ProfileScreen
 import propertymanager.presentation.components.user.UserViewModel
+import propertymanager.presentation.components.location.components.CityManagerScreen
+import propertymanager.presentation.components.location.components.CountryManagerScreen
+import propertymanager.presentation.components.location.LocationManagerViewModel
+import propertymanager.presentation.components.location.components.StateManagerScreen
+import propertymanager.presentation.components.location.LocationState
+import propertymanager.presentation.components.property.SelectFlatScreen
 
 fun NavGraphBuilder.staffNavGraph(
     navController: NavHostController,
@@ -66,7 +71,7 @@ fun NavGraphBuilder.staffNavGraph(
                     navController.navigate(Dest.EditProfileScreen)
                 },
                 onNavigateToRoles = {
-                    navController.navigate(Dest.LocationScreen)
+                    navController.navigate(Dest.LocationManagerScreen)
                 },
                 onNavigateToCategoryManager = {
                     navController.navigate(Dest.CategoryManagerScreen)
@@ -75,7 +80,7 @@ fun NavGraphBuilder.staffNavGraph(
                     navController.navigate(Dest.PropertyManagerScreen)
                 },
                 onNavigateToLocationManager = {
-                    navController.navigate(Dest.LocationManagerScreen)
+                    navController.navigate(Dest.CountryManagerScreen)
                 }
             )
         }
@@ -98,19 +103,12 @@ fun NavGraphBuilder.staffNavGraph(
             )
         }
 
-        composable<Dest.LocationManagerScreen> {
-            LocationManagerScreen(
-                viewModel = hiltViewModel(),
-                onNavigateBack = { navController.navigateUp() },
-            )
-        }
-
-        composable<Dest.LocationScreen> {
+        composable<Dest.LocationScreen> { backStackEntry ->
+            val args = backStackEntry.toRoute<Dest.LocationManagerScreen>()
             LocationScreen(
-                viewModel = hiltViewModel(),
-                onNavigateBack = {
-                    navController.navigateUp()
-                }
+                cityId = args.cityId,
+                onNavigateBack = { navController.navigateUp() },
+                viewModel = hiltViewModel()
             )
         }
 
@@ -153,18 +151,18 @@ fun NavGraphBuilder.staffNavGraph(
             )
         }
 
-        composable<Dest.SelectFlatScreen> { backStackEntry ->
+        composable<Dest.SelectFlatScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) },
             )
-            val args = backStackEntry.toRoute<Dest.SelectFlatScreen>()
             SelectFlatScreen(
                 locationViewModel = sharedViewModel,
                 onFlatSelected = {
                     navController.navigate(Dest.AddPropertyScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },
-                parentId = args.parentId
+                parentId = it.toRoute(),
+                locationState = LocationState()
             )
         }
 
@@ -206,6 +204,56 @@ fun NavGraphBuilder.staffNavGraph(
                 onNavigateBack = { navController.navigateUp() }
             )
         }
+
+        composable<Dest.CountryManagerScreen> {
+            val viewModel: LocationManagerViewModel = hiltViewModel()
+            CountryManagerScreen(
+                viewModel = viewModel,
+                onNavigateToState = { countryId ->
+                    navController.navigate(Dest.StateManagerScreen(countryId))
+                },
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable<Dest.StateManagerScreen> { backStackEntry ->
+            val viewModel: LocationManagerViewModel = hiltViewModel()
+            val args = backStackEntry.toRoute<Dest.StateManagerScreen>()
+            StateManagerScreen(
+                countryId = args.countryId,
+                locationManagerViewModel = viewModel,
+                locationViewModel = hiltViewModel<LocationViewModel>(),
+                onNavigateToCity = { stateId ->
+                    navController.navigate(Dest.CityManagerScreen(stateId))
+                },
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable<Dest.CityManagerScreen> { backStackEntry ->
+            val viewModel: LocationManagerViewModel = hiltViewModel()
+            val args = backStackEntry.toRoute<Dest.CityManagerScreen>()
+            CityManagerScreen(
+                stateId = args.stateId,
+                locationManagerViewModel = viewModel,
+                locationViewModel = hiltViewModel<LocationViewModel>(),
+                onNavigateToLocation = { cityId ->
+                    navController.navigate(Dest.LocationScreen(cityId))
+                },
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable<Dest.LocationManagerScreen> { backStackEntry ->
+            val args = backStackEntry.toRoute<Dest.LocationManagerScreen>()
+            LocationManagerScreen(
+                cityId = args.cityId,
+                locationViewModel = hiltViewModel<LocationViewModel>(),
+                locationManagerViewModel = hiltViewModel<LocationManagerViewModel>(),
+                onNavigateBack = { navController.navigateUp() },
+            )
+        }
+
     }
 }
 

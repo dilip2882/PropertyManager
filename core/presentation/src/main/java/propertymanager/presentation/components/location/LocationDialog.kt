@@ -1,9 +1,11 @@
 package propertymanager.presentation.components.location
 
-import DialogType
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -12,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.propertymanager.domain.model.location.Block
 import com.propertymanager.domain.model.location.City
 import com.propertymanager.domain.model.location.Country
@@ -28,189 +32,59 @@ fun LocationDialog(
     onDismiss: () -> Unit,
     onConfirm: (Any) -> Unit,
 ) {
-    var name by remember {
-        mutableStateOf(
-            when (dialogType) {
-                DialogType.EDIT_COUNTRY -> state.selectedCountry?.name
-                DialogType.EDIT_STATE -> state.selectedState?.name
-                DialogType.EDIT_CITY -> state.selectedCity?.name
-                DialogType.EDIT_SOCIETY -> state.selectedSociety?.name
-                DialogType.EDIT_BLOCK -> state.selectedBlock?.name
-                DialogType.EDIT_TOWER -> state.selectedTower?.name
-                else -> ""
-            } ?: "",
-        )
-    }
-    var code by remember {
-        mutableStateOf(
-            when (dialogType) {
-                DialogType.EDIT_COUNTRY -> state.selectedCountry?.iso2
-                DialogType.EDIT_STATE -> state.selectedState?.stateCode
-                else -> ""
-            } ?: "",
-        )
-    }
-    var type by remember {
-        mutableStateOf(
-            when (dialogType) {
-                DialogType.EDIT_STATE -> state.selectedState?.type
-                DialogType.EDIT_BLOCK -> state.selectedBlock?.type
-                DialogType.EDIT_FLAT -> state.selectedBlock?.type
-                else -> ""
-            } ?: "",
-        )
-    }
-    var number by remember {
-        mutableStateOf(state.selectedBlock?.let { it.name } ?: "")
-    }
-    var floor by remember {
-        mutableStateOf(state.selectedBlock?.let { it.name } ?: "")
-    }
-    var area by remember {
-        mutableStateOf("")
-    }
-    var status by remember {
-        mutableStateOf("")
-    }
+    var name by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf("") }
+    var number by remember { mutableStateOf("") }
+    var floor by remember { mutableStateOf("") }
+    var area by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("") }
 
-    if (dialogType == DialogType.EDIT_FLAT) {
-        val flat = state.flats.find {
-            it.blockId == state.selectedBlock?.id ||
-                it.towerId == state.selectedTower?.id ||
-                (it.blockId == null && it.towerId == null && it.societyId == state.selectedSociety?.id)
-        }
-        number = flat?.number ?: ""
-        floor = flat?.floor?.toString() ?: ""
-        type = flat?.type ?: ""
-        area = flat?.area?.toString() ?: ""
-        status = flat?.status ?: ""
+    // Validate input based on dialog type
+    val isValid = when (dialogType) {
+        DialogType.ADD_SOCIETY, DialogType.EDIT_SOCIETY -> name.isNotBlank()
+        DialogType.ADD_BLOCK, DialogType.EDIT_BLOCK -> name.isNotBlank()
+        DialogType.ADD_TOWER, DialogType.EDIT_TOWER -> name.isNotBlank()
+        DialogType.ADD_FLAT, DialogType.EDIT_FLAT ->
+            name.isNotBlank() && number.isNotBlank()
+
+        else -> false
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = when (dialogType) {
-                    DialogType.ADD_COUNTRY -> "Add Country"
-                    DialogType.EDIT_COUNTRY -> "Edit Country"
-                    DialogType.ADD_STATE -> "Add State"
-                    DialogType.EDIT_STATE -> "Edit State"
-                    DialogType.ADD_CITY -> "Add City"
-                    DialogType.EDIT_CITY -> "Edit City"
-                    DialogType.ADD_SOCIETY -> "Add Society"
-                    DialogType.EDIT_SOCIETY -> "Edit Society"
-                    DialogType.ADD_BLOCK -> "Add Block"
-                    DialogType.EDIT_BLOCK -> "Edit Block"
-                    DialogType.ADD_TOWER -> "Add Tower"
-                    DialogType.EDIT_TOWER -> "Edit Tower"
-                    DialogType.ADD_FLAT -> "Add Flat"
-                    DialogType.EDIT_FLAT -> "Edit Flat"
-                    else -> ""
-                },
-            )
-        },
+        title = { Text(text = getDialogTitle(dialogType)) },
         text = {
-            Column {
-                when (dialogType) {
-                    DialogType.ADD_COUNTRY, DialogType.EDIT_COUNTRY -> {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Country Name") },
-                        )
-                        OutlinedTextField(
-                            value = code,
-                            onValueChange = { code = it },
-                            label = { Text("Country Code") },
-                        )
-                    }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = name.isBlank(),
+                )
 
-                    DialogType.ADD_STATE, DialogType.EDIT_STATE -> {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("State Name") },
-                        )
-                        OutlinedTextField(
-                            value = code,
-                            onValueChange = { code = it },
-                            label = { Text("State Code") },
-                        )
-                    }
-
-                    DialogType.ADD_CITY, DialogType.EDIT_CITY -> {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("City Name") },
-                        )
-                    }
-
-                    DialogType.ADD_SOCIETY, DialogType.EDIT_SOCIETY -> {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Society Name") },
-                        )
-                    }
-
-                    DialogType.ADD_BLOCK, DialogType.EDIT_BLOCK -> {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Block Name") },
-                        )
-                        OutlinedTextField(
-                            value = type,
-                            onValueChange = { type = it },
-                            label = { Text("Block Type") },
-                        )
-                    }
-
-                    DialogType.ADD_TOWER, DialogType.EDIT_TOWER -> {
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Tower Name") },
-                        )
-                    }
-
-                    DialogType.ADD_FLAT, DialogType.EDIT_FLAT -> {
-                        OutlinedTextField(
-                            value = number,
-                            onValueChange = { number = it },
-                            label = { Text("Flat Number") },
-                        )
-                        OutlinedTextField(
-                            value = floor,
-                            onValueChange = { floor = it },
-                            label = { Text("Floor") },
-                        )
-                        OutlinedTextField(
-                            value = type,
-                            onValueChange = { type = it },
-                            label = { Text("Flat Type") },
-                        )
-                        OutlinedTextField(
-                            value = area,
-                            onValueChange = { area = it },
-                            label = { Text("Area") },
-                        )
-                        OutlinedTextField(
-                            value = status,
-                            onValueChange = { status = it },
-                            label = { Text("Status") },
-                        )
-                    }
-
-                    else -> {}
+                // Show error message if name is blank
+                if (name.isBlank()) {
+                    Text(
+                        text = "Name is required",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                    )
                 }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    val entity = createEntity(
+                    println("Debug: Creating entity with name: $name")
+                    createEntity(
                         dialogType = dialogType,
                         name = name,
                         code = code,
@@ -220,9 +94,12 @@ fun LocationDialog(
                         area = area,
                         status = status,
                         state = state,
-                    )
-                    entity?.let { onConfirm(it) }
+                    )?.let { entity ->
+                        println("Debug: Entity created: $entity")
+                        onConfirm(entity)
+                    } ?: println("Debug: Entity creation failed")
                 },
+                enabled = isValid,
             ) {
                 Text("Confirm")
             }
@@ -233,6 +110,20 @@ fun LocationDialog(
             }
         },
     )
+}
+
+private fun getDialogTitle(dialogType: DialogType): String {
+    return when (dialogType) {
+        DialogType.ADD_SOCIETY -> "Add Society"
+        DialogType.EDIT_SOCIETY -> "Edit Society"
+        DialogType.ADD_BLOCK -> "Add Block"
+        DialogType.EDIT_BLOCK -> "Edit Block"
+        DialogType.ADD_TOWER -> "Add Tower"
+        DialogType.EDIT_TOWER -> "Edit Tower"
+        DialogType.ADD_FLAT -> "Add Flat"
+        DialogType.EDIT_FLAT -> "Edit Flat"
+        else -> ""
+    }
 }
 
 private fun createEntity(
@@ -372,4 +263,4 @@ private fun createEntity(
 
         else -> null
     }
-} 
+}
