@@ -1,4 +1,4 @@
-package com.propertymanager.common.preferences
+package com.propertymanager.common.preferences.temp
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
 

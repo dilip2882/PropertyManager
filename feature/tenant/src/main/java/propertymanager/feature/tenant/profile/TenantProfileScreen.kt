@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,15 +17,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,10 +52,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
+import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.model.User
+import propertymanager.i18n.MR
+import propertymanager.presentation.components.TextPreferenceWidget
+import propertymanager.presentation.components.property.PropertyEvent
+import propertymanager.presentation.components.property.PropertyViewModel
 import propertymanager.presentation.screens.LoadingScreen
 import propertymanager.presentation.components.user.ProfileScreen
 import propertymanager.presentation.components.user.UserViewModel
+import propertymanager.presentation.i18n.stringResource
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -52,7 +70,12 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TenantProfileScreen(
     onNavigateToEditProfile: () -> Unit,
+    onNavigateToPropertyManager: () -> Unit,
+    propertyViewModel: PropertyViewModel = hiltViewModel(),
 ) {
+    val state by propertyViewModel.state.collectAsState()
+    var selectedProperty by remember { mutableStateOf<Property?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,8 +108,21 @@ fun TenantProfileScreen(
             }
 
             item {
-                ProfileBody(user = User())
+                TextPreferenceWidget(
+                    title = stringResource(MR.strings.staff_property),
+                    icon = Icons.Default.LocationCity,
+                    onPreferenceClick = {
+                        onNavigateToPropertyManager()
+                    },
+                )
+            }
 
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                ProfileBody(user = User())
             }
 
         }
@@ -143,7 +179,7 @@ fun ProfileBody(user: User) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .background(
-                        MaterialTheme.colorScheme.onSurface,
+                        MaterialTheme.colorScheme.secondaryContainer,
                         RoundedCornerShape(8.dp),
                     )
                     .padding(16.dp),

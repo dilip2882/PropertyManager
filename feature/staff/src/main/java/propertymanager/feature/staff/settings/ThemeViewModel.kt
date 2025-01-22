@@ -19,7 +19,7 @@ class ThemeViewModel @Inject constructor(
     private val setDynamicColorUseCase: SetDynamicColorUseCase,
     private val getDynamicColorUseCase: GetDynamicColorUseCase,
     private val setDarkModeUseCase: SetDarkModeUseCase,
-    private val getDarkModeUseCase: GetDarkModeUseCase
+    private val getDarkModeUseCase: GetDarkModeUseCase,
 ) : ViewModel() {
     private val _dynamicColor = MutableStateFlow(false)
     val dynamicColor: StateFlow<Boolean> = _dynamicColor
@@ -48,5 +48,4 @@ class ThemeViewModel @Inject constructor(
             setDarkModeUseCase.execute(enabled)
         }
     }
-
 }

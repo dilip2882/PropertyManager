@@ -11,7 +11,7 @@ fun SubcategoryDialog(
     subcategoryName: String,
     onNameChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -20,7 +20,7 @@ fun SubcategoryDialog(
             OutlinedTextField(
                 value = subcategoryName,
                 onValueChange = onNameChange,
-                label = { Text("Subcategory Name") }
+                label = { Text("Subcategory Name") },
             )
         },
         confirmButton = {
@@ -28,6 +28,6 @@ fun SubcategoryDialog(
         },
         dismissButton = {
             Button(onClick = onDismiss) { Text("Cancel") }
-        }
+        },
     )
 }

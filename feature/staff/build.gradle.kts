@@ -55,7 +55,7 @@ dependencies {
 
     // biometric auth
     implementation(androidx.biometricktx)
-    
+
     implementation(kotlinx.immutables)
 }
 

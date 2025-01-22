@@ -4,7 +4,7 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.propertymanager.common.preferences.AppPreferences
+import com.propertymanager.common.preferences.temp.AppPreferences
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.usecase.AuthenticationUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel

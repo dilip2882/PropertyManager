@@ -1,5 +1,6 @@
 package com.propertymanager.navigation
 
+import com.propertymanager.domain.model.Property
 import kotlinx.serialization.Serializable
 
 sealed class SubGraph {
@@ -110,7 +111,8 @@ sealed interface Dest {
     data object SelectSocietyScreen: Dest
     @Serializable
     data class SelectFlatScreen(
-        val parentId: Int
+        val parentId: Int,
+        val buildingType: Property.Building
     ) : Dest
 
 }

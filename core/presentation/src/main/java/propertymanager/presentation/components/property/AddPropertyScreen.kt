@@ -20,18 +20,19 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.LocationCity
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,35 +45,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.model.location.Block
 import com.propertymanager.domain.model.location.Tower
 import propertymanager.presentation.components.location.LocationDropdown
 import propertymanager.presentation.components.location.LocationEvent
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.location.UiEvent
+import propertymanager.presentation.components.user.UserViewModel
+import propertymanager.presentation.components.user.UserEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPropertyScreen(
-    viewModel: PropertyViewModel,
+    propertyViewModel: PropertyViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel,
-    onNavigateBack: () -> Unit,
-    onNavigateToSelectFlat: (Int) -> Unit,
-    onNavigateToSelectSociety: () -> Unit,
     onPropertyAdded: () -> Unit,
+    onNavigateToSelectCountry: () -> Unit,
+    onNavigateToSelectState: () -> Unit,
+    onNavigateToSelectCity: () -> Unit,
+    onNavigateToSelectSociety: () -> Unit,
+    onNavigateToSelectFlat: (Int, Property.Building) -> Unit,
+    onNavigateBack: () -> Unit,
 ) {
     val locationState by locationViewModel.state.collectAsState()
-    val uiState by locationViewModel.uiEvent.collectAsState(initial = null)
+    val propertyState by propertyViewModel.state.collectAsState()
+    val userState by userViewModel.state.collectAsState()
+    var showBuildingDialog by remember { mutableStateOf(false) }
     var selectedUserType by remember { mutableStateOf<UserType?>(null) }
-
-    uiState?.let { event ->
-        when (event) {
-            is UiEvent.Error -> {
-                Toast.makeText(LocalContext.current, event.message, Toast.LENGTH_LONG).show()
-            }
-            else -> {}
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -94,92 +101,125 @@ fun AddPropertyScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                text = "Country",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(start = 8.dp),
-            )
-
-            LocationDropdown(
-                label = "Select Country",
-                items = locationState.countries,
-                selectedItem = locationState.selectedCountry,
-                onItemSelected = { country ->
-                    locationViewModel.onEvent(LocationEvent.SelectCountry(country))
-                },
-            )
-
-            // State Dropdown
-            AnimatedVisibility(visible = locationState.selectedCountry != null) {
-                Column {
-                    if (locationState.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                    } else if (locationState.states.isEmpty()) {
-                        // empty state
+            // Country Selection
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToSelectCountry() }
+                    .padding(vertical = 4.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
                         Text(
-                            text = "No states found for selected country",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(8.dp),
+                            text = "Country",
+                            style = MaterialTheme.typography.labelMedium
                         )
-                    } else {
-                        LocationDropdown(
-                            label = "Select State",
-                            items = locationState.states,
-                            selectedItem = locationState.selectedState,
-                            onItemSelected = { state ->
-                                locationViewModel.onEvent(LocationEvent.SelectState(state))
-                            },
+                        Text(
+                            text = locationState.selectedCountry?.name ?: "Select Country",
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
+                    Icon(Icons.Default.ChevronRight, contentDescription = "Select Country")
                 }
             }
 
+            // State Selection
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = locationState.selectedCountry != null) {
+                        onNavigateToSelectState()
+                    }
+                    .padding(vertical = 4.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "State",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Text(
+                            text = locationState.selectedState?.name ?: "Select State",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = "Select State")
+                }
+            }
 
-            AnimatedVisibility(visible = locationState.selectedCountry != null) {
-                Column {
-                    Text(
-                        text = "City",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                    LocationDropdown(
-                        label = "Select City",
-                        items = locationState.cities,
-                        selectedItem = locationState.selectedCity,
-                        onItemSelected = { city ->
-                            locationViewModel.onEvent(LocationEvent.SelectCity(city))
-                        },
-                    )
+            // City Selection
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = locationState.selectedState != null) {
+                        onNavigateToSelectCity()
+                    }
+                    .padding(vertical = 4.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "City",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Text(
+                            text = locationState.selectedCity?.name ?: "Select City",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = "Select City")
                 }
             }
 
             // Society Selection
-            AnimatedVisibility(visible = locationState.selectedCity != null) {
-                Column {
-                    Text(
-                        text = "Society",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                    Surface(
-                        onClick = { onNavigateToSelectSociety() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        OutlinedTextField(
-                            value = locationState.selectedSociety?.name ?: "",
-                            onValueChange = { },
-                            readOnly = true,
-                            enabled = false,
-                            label = { Text("Select Society") },
-                            modifier = Modifier.fillMaxWidth(),
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Select Society",
-                                )
-                            },
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = locationState.selectedCity != null) {
+                        onNavigateToSelectSociety()
+                    }
+                    .padding(vertical = 4.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Society",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Text(
+                            text = locationState.selectedSociety?.name ?: "Select Society",
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
+                    Icon(Icons.Default.ChevronRight, contentDescription = "Select Society")
                 }
             }
 
@@ -201,8 +241,8 @@ fun AddPropertyScreen(
                             selectedItem = locationState.selectedBlock ?: locationState.selectedTower,
                             onItemSelected = { item ->
                                 when (item) {
-                                    is Block -> onNavigateToSelectFlat(item.id)
-                                    is Tower -> onNavigateToSelectFlat(item.id)
+                                    is Block -> onNavigateToSelectFlat(item.id, Property.Building.BLOCK)
+                                    is Tower -> onNavigateToSelectFlat(item.id, Property.Building.TOWER)
                                 }
                             },
                         )
@@ -212,68 +252,184 @@ fun AddPropertyScreen(
                             BuildingItem(
                                 name = block.name,
                                 icon = Icons.Default.Business,
-                                onClick = { onNavigateToSelectFlat(block.id) },
+                                onClick = { onNavigateToSelectFlat(block.id, Property.Building.BLOCK) },
                             )
                         }
                         locationState.towers.forEach { tower ->
                             BuildingItem(
                                 name = tower.name,
                                 icon = Icons.Default.LocationCity,
-                                onClick = { onNavigateToSelectFlat(tower.id) },
+                                onClick = { onNavigateToSelectFlat(tower.id, Property.Building.TOWER) },
                             )
                         }
                     }
                 }
             }
 
+            // Building Type Dialog
+            if (showBuildingDialog) {
+                AlertDialog(
+                    onDismissRequest = { showBuildingDialog = false },
+                    title = { Text("Select Building Type") },
+                    text = {
+                        Column {
+                            Property.Building.values().forEach { building ->
+                                TextButton(
+                                    onClick = {
+                                        showBuildingDialog = false
+                                        locationState.selectedSociety?.id?.let { societyId ->
+                                            onNavigateToSelectFlat(societyId, building)
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(building.name)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {},
+                    dismissButton = {
+                        TextButton(onClick = { showBuildingDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+
             // Flat Selection
-            AnimatedVisibility(visible = locationState.selectedFlat != null) {
-                Column {
-                    Text(
-                        text = "Flat No.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                    LocationDropdown(
-                        label = locationState.selectedFlat?.number ?: "Select Flat",
-                        items = locationState.flats,
-                        selectedItem = locationState.selectedFlat,
-                        onItemSelected = { flat ->
-                            locationViewModel.onEvent(LocationEvent.SelectFlat(flat))
-                        },
-                    )
+            locationState.selectedFlat?.let { flat ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Selected Flat",
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Text(
+                                text = "Flat ${flat.number}",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
                 }
             }
 
             // User Type Selection
-            AnimatedVisibility(visible = locationState.selectedFlat != null) {
-                Column {
-                    Text(
-                        text = "You are",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                    UserTypeRadioGroup(
-                        selectedType = selectedUserType,
-                        onTypeSelected = { selectedUserType = it },
-                    )
+            if (locationState.selectedFlat != null) {
+                Text(
+                    text = "Select User Type",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                UserType.entries.forEach { userType ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable { selectedUserType = userType },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selectedUserType == userType,
+                            onClick = { selectedUserType = userType }
+                        )
+                        Text(
+                            text = userType.name,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            // Add Property Button
+            if (locationState.selectedFlat != null) {
+                Button(
+                    onClick = {
+                        val property = Property(
+                            id = "", // Will be set by Firestore
+                            address = Property.Address(
+                                country = locationState.selectedCountry?.name ?: "",
+                                state = locationState.selectedState?.name ?: "",
+                                city = locationState.selectedCity?.name ?: "",
+                                society = locationState.selectedSociety?.name ?: "",
+                                flatNo = locationState.selectedFlat?.number ?: "",
+                                building = when {
+                                    locationState.selectedBlock != null -> Property.Building.BLOCK
+                                    locationState.selectedTower != null -> Property.Building.TOWER
+                                    else -> Property.Building.FLAT
+                                }
+                            ),
+                            ownerId = Firebase.auth.currentUser?.uid ?: "",
+                            createdAt = Timestamp.now()
+                        )
 
-            Button(
-                onClick = onPropertyAdded,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = locationState.selectedFlat != null && selectedUserType != null,
-            ) {
-                Text("Add Flat/Villa")
+                        propertyViewModel.onEvent(PropertyEvent.AddProperty(property))
+                        onPropertyAdded()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = locationState.selectedFlat != null && !propertyState.isLoading
+                ) {
+                    if (propertyState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text("Add Property")
+                    }
+                }
             }
         }
     }
 }
+
+@Composable
+private fun BuildingItem(
+    name: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(text = name)
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Select",
+            )
+        }
+    }
+}
+
 
 enum class UserType {
     FLAT_OWNER,
@@ -324,37 +480,5 @@ private fun RadioOption(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = text)
-    }
-}
-
-@Composable
-private fun BuildingItem(
-    name: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = name)
-            }
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Select",
-            )
-        }
     }
 }

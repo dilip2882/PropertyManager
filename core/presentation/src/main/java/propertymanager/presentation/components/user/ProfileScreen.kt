@@ -163,7 +163,7 @@ fun ProfileScreen(
                                 }
 
                                 Text(
-                                    text = user.role.toTitleCase(),
+                                    text = user.role.toString().toTitleCase(),
                                     color = MaterialTheme.colorScheme.primary,
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold,

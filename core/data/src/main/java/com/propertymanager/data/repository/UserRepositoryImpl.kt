@@ -17,13 +17,15 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    private val firebaseFirestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) : UserRepository {
+    private val usersCollection = firestore.collection("users")
 
     override fun getUserDetails(userid: String): Flow<Response<User>> = callbackFlow {
         trySend(Response.Loading)
 
-        val listener = firebaseFirestore.collection(COLLECTION_NAME_USERS)
+        val listener = firestore.collection(COLLECTION_NAME_USERS)
             .document(userid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -58,7 +60,7 @@ class UserRepositoryImpl @Inject constructor(
             val userMap = user.toMap()
             Log.d("UserRepositoryImpl", "Uploading user: $userMap") // Logging user details
 
-            firebaseFirestore.collection(COLLECTION_NAME_USERS)
+            firestore.collection(COLLECTION_NAME_USERS)
                 .document(user.userId!!)
                 .set(userMap)
                 .await()
@@ -71,6 +73,42 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun associateProperty(userId: String, propertyId: String) {
+        usersCollection.document(userId)
+            .update("associatedProperties", FieldValue.arrayUnion(propertyId))
+            .await()
+    }
+
+    override suspend fun updateUser(user: User) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserById(userId: String): User? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateSelectedProperty(userId: String, propertyId: String?) {
+        usersCollection.document(userId)
+            .update("selectedPropertyId", propertyId)
+            .await()
+    }
+
+    override fun getCurrentUser(): Flow<User?> = callbackFlow {
+        val currentUserId = auth.currentUser?.uid ?: return@callbackFlow
+        
+        val listener = usersCollection.document(currentUserId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                
+                val user = snapshot?.toObject(User::class.java)?.copy(userId = snapshot.id)
+                trySend(user)
+            }
+            
+        awaitClose { listener.remove() }
+    }
 
     private fun User.toMap(): Map<String, Any?> {
         val map = mapOf(

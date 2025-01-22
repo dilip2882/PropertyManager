@@ -65,7 +65,6 @@ import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.WorkerDetails
 import com.propertymanager.domain.model.formatDate
-import kotlinx.coroutines.launch
 import propertymanager.feature.staff.settings.StaffViewModel
 import propertymanager.presentation.components.user.UserViewModel
 
@@ -180,7 +179,7 @@ fun StaffMaintenanceCard(
     onStatusChange: (String) -> Unit,
     onPriorityChange: (String) -> Unit,
     onAssignWorker: () -> Unit,
-    userViewModel: UserViewModel = hiltViewModel()
+    userViewModel: UserViewModel = hiltViewModel(),
 ) {
     val scope = rememberCoroutineScope()
     var statusExpanded by remember { mutableStateOf(false) }
@@ -211,7 +210,7 @@ fun StaffMaintenanceCard(
             // User Profile and Creation Time
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 val imageUrl = tenantData?.imageUrl
                 if (imageUrl.isNullOrEmpty()) {
@@ -219,7 +218,7 @@ fun StaffMaintenanceCard(
                         modifier = Modifier
                             .size(50.dp)
                             .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -235,10 +234,9 @@ fun StaffMaintenanceCard(
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(MaterialTheme.colorScheme.primary),
                     )
                 }
-
 
                 Spacer(modifier = Modifier.width(8.dp))
 

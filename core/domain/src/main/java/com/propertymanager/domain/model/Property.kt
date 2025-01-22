@@ -2,6 +2,7 @@ package com.propertymanager.domain.model
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
+import kotlinx.serialization.Serializable
 
 data class Property(
     @DocumentId val id: String = "",
@@ -30,6 +31,7 @@ data class Property(
         val flatNo: String = "",
     )
 
+    @Serializable
     enum class Building {
         BLOCK, TOWER, FLAT;
 
@@ -45,21 +47,3 @@ data class Property(
     }
 
 }
-
-/*
-object BuildingTypeConverter {
-    @TypeConverter
-    fun fromBuilding(building: Property.Building): String {
-        return building.name
-    }
-
-    @TypeConverter
-    fun toBuilding(value: String?): Property.Building {
-        return if (value.isNullOrEmpty()) {
-            Property.Building.FLAT
-        } else {
-            Property.Building.fromString(value)
-        }
-    }
-}
-*/

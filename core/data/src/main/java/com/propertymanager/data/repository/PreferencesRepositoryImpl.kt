@@ -1,6 +1,6 @@
 package com.propertymanager.data.repository
 
-import com.propertymanager.common.preferences.PreferencesDataSource
+import com.propertymanager.common.preferences.temp.PreferencesDataSource
 import com.propertymanager.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

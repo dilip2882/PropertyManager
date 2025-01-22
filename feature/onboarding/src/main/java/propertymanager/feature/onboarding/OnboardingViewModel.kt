@@ -7,14 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
-import com.propertymanager.common.preferences.AppPreferences
-import com.propertymanager.common.utils.Constants.COLLECTION_NAME_USERS
-import com.propertymanager.domain.model.Role
+import com.propertymanager.common.preferences.temp.AppPreferences
 import com.propertymanager.domain.model.User
-import com.propertymanager.domain.usecase.UserUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

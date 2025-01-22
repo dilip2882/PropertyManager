@@ -17,7 +17,7 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.rememberNavController
-import com.propertymanager.common.preferences.AppPreferences
+import com.propertymanager.common.preferences.temp.AppPreferences
 import com.propertymanager.common.system.dpToPx
 import com.propertymanager.domain.model.biometrics.BiometricAuthState
 import com.propertymanager.navigation.MainNavigation

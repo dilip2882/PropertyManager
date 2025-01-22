@@ -5,6 +5,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.repository.PropertyRepository
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -13,39 +17,51 @@ class PropertyRepositoryImpl @Inject constructor(
 ) : PropertyRepository {
     private val propertyCollection = firestore.collection("properties")
 
-    override suspend fun getProperties(): List<Property> {
-        val snapshot = propertyCollection.get().await()
-        return snapshot.documents.mapNotNull { document ->
-            try {
-                document.toObject(Property::class.java)?.copy(id = document.id)
-            } catch (e: Exception) {
-                // Fallback manual conversion if automatic conversion fails
-                val data = document.data ?: return@mapNotNull null
-                val address = (data["address"] as? Map<*, *>)?.let { addressMap ->
-                    Property.Address(
-                        country = addressMap["country"] as? String ?: "",
-                        state = addressMap["state"] as? String ?: "",
-                        city = addressMap["city"] as? String ?: "",
-                        society = addressMap["society"] as? String ?: "",
-                        building = try {
-                            Property.Building.valueOf((addressMap["building"] as? String ?: "FLAT").uppercase())
-                        } catch (e: IllegalArgumentException) {
-                            Property.Building.FLAT
-                        },
-                        flatNo = addressMap["flatNo"] as? String ?: ""
-                    )
-                } ?: Property.Address()
+    override fun getProperties(): Flow<List<Property>> = callbackFlow {
+        val subscription = propertyCollection
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                
+                if (snapshot != null) {
+                    val properties = snapshot.documents.mapNotNull { document ->
+                        try {
+                            document.toObject(Property::class.java)?.copy(id = document.id)
+                        } catch (e: Exception) {
+                            // Fallback manual conversion if automatic conversion fails
+                            val data = document.data ?: return@mapNotNull null
+                            val address = (data["address"] as? Map<*, *>)?.let { addressMap ->
+                                Property.Address(
+                                    country = addressMap["country"] as? String ?: "",
+                                    state = addressMap["state"] as? String ?: "",
+                                    city = addressMap["city"] as? String ?: "",
+                                    society = addressMap["society"] as? String ?: "",
+                                    building = try {
+                                        Property.Building.valueOf((addressMap["building"] as? String ?: "FLAT").uppercase())
+                                    } catch (e: IllegalArgumentException) {
+                                        Property.Building.FLAT
+                                    },
+                                    flatNo = addressMap["flatNo"] as? String ?: ""
+                                )
+                            } ?: Property.Address()
 
-                Property(
-                    id = document.id,
-                    address = address,
-                    ownerId = data["ownerId"] as? String ?: "",
-                    currentTenantId = data["currentTenantId"] as? String ?: "",
-                    maintenanceRequests = (data["maintenanceRequests"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
-                    createdAt = data["createdAt"] as? Timestamp
-                )
+                            Property(
+                                id = document.id,
+                                address = address,
+                                ownerId = data["ownerId"] as? String ?: "",
+                                currentTenantId = data["currentTenantId"] as? String ?: "",
+                                maintenanceRequests = (data["maintenanceRequests"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                                createdAt = data["createdAt"] as? Timestamp
+                            )
+                        }
+                    }
+                    trySend(properties)
+                }
             }
-        }
+
+        awaitClose { subscription.remove() }
     }
 
     override suspend fun addProperty(property: Property): String {

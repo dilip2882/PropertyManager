@@ -49,7 +49,6 @@ class CategoryViewModel @Inject constructor(
         }
     }
 
-
     fun toggleSortCategories() {
         if (_categoriesResponse.value is Response.Success) {
             val sortedList = (categoriesResponse.value as Response.Success).data.sortedBy {
@@ -88,8 +87,7 @@ class CategoryViewModel @Inject constructor(
         this[j] = temp
     }
 
-
-fun addCategory(category: Category) {
+    fun addCategory(category: Category) {
         viewModelScope.launch {
             _operationResponse.value = Response.Loading
             try {

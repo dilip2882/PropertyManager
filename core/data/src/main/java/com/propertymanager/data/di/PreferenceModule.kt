@@ -1,7 +1,7 @@
 package com.propertymanager.data.di
 
 import android.content.Context
-import com.propertymanager.common.preferences.PreferencesDataSource
+import com.propertymanager.common.preferences.temp.PreferencesDataSource
 import com.propertymanager.data.repository.PreferencesRepositoryImpl
 import com.propertymanager.domain.repository.PreferencesRepository
 import com.propertymanager.domain.usecase.settings.GetDarkModeUseCase

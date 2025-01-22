@@ -27,43 +27,39 @@ class BiometricViewModel @Inject constructor(
     private val useCase: BiometricAuthUseCase,
     private val getBiometricAuthUseCase: GetBiometricAuthUseCase,
     private val setBiometricAuthUseCase: SetBiometricAuthUseCase,
-    private val biometricAvailabilityUseCase: BiometricAvailabilityUseCase
+    private val biometricAvailabilityUseCase: BiometricAvailabilityUseCase,
 ) : ViewModel() {
 
-    private val _biometricAvailability :MutableStateFlow<BiometricCheckResult>
-        = MutableStateFlow(BiometricCheckResult.NoneEnrolled)
-    val biometricAvailability : StateFlow<BiometricCheckResult> get() = _biometricAvailability
+    private val _biometricAvailability: MutableStateFlow<BiometricCheckResult> =
+        MutableStateFlow(BiometricCheckResult.NoneEnrolled)
+    val biometricAvailability: StateFlow<BiometricCheckResult> get() = _biometricAvailability
 
     private val _hasAuthenticated = MutableStateFlow(false)
-    val hasAuthenticated :StateFlow<Boolean> get() = _hasAuthenticated
-
+    val hasAuthenticated: StateFlow<Boolean> get() = _hasAuthenticated
 
     private val _authResult = MutableStateFlow<AuthenticationResult>(AuthenticationResult.Uninitialized)
     val authResult: StateFlow<AuthenticationResult> get() = _authResult
 
-    private val _biometricAuthState :MutableStateFlow<BiometricAuthState> = MutableStateFlow(BiometricAuthState.LOADING)
+    private val _biometricAuthState: MutableStateFlow<BiometricAuthState> = MutableStateFlow(BiometricAuthState.LOADING)
     val biometricAuthState: StateFlow<BiometricAuthState> = _biometricAuthState
-
 
     init {
 
-        getBiometricAuthUseCase.execute().map {isEnabled->
-            _biometricAuthState.value = if (isEnabled) BiometricAuthState.ENABLED else {
+        getBiometricAuthUseCase.execute().map { isEnabled ->
+            _biometricAuthState.value = if (isEnabled) {
+                BiometricAuthState.ENABLED
+            } else {
                 _hasAuthenticated.value = true
                 BiometricAuthState.DISABLED
             }
         }.launchIn(viewModelScope)
-
-
 
         viewModelScope.launch {
             biometricAvailabilityUseCase.execute().collect {
                 _biometricAvailability.value = it
             }
         }
-
     }
-
 
     fun setBiometricAuth(enabled: Boolean) {
         viewModelScope.launch {
@@ -81,7 +77,7 @@ class BiometricViewModel @Inject constructor(
 
     fun handleBiometricAuth(
         biometricAuthResult: AuthenticationResult,
-        context: Context
+        context: Context,
     ) {
         when (biometricAuthResult) {
             is AuthenticationResult.Error -> {

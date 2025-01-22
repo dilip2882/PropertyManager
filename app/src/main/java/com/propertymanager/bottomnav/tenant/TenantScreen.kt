@@ -91,6 +91,11 @@ fun TenantScreen(
                     onNavigateToDetails = { requestId ->
                         navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
                     },
+                    onNavigateToAddProperty = {
+                        navController.navigate(Dest.SelectCountryScreen)
+                    },
+                    propertyViewModel = hiltViewModel(),
+                    userViewModel = hiltViewModel()
                 )
             }
 
@@ -99,6 +104,10 @@ fun TenantScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.EditProfileScreen)
                     },
+                    onNavigateToPropertyManager = {
+                        navController.navigate(Dest.PropertyManagerScreen)
+                    },
+                    propertyViewModel = hiltViewModel()
                 )
             }
 
@@ -116,18 +125,27 @@ fun TenantScreen(
                     remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
                 )
                 AddPropertyScreen(
-                    viewModel = hiltViewModel(),
+                    propertyViewModel = hiltViewModel(),
                     locationViewModel = sharedViewModel,
                     onPropertyAdded = {
-                        navController.navigate(TenantBottomNavItem.HOME.route) {
-                            popUpTo(Dest.TenantHomeScreen) { inclusive = true }
+                        navController.navigate(Dest.PropertyManagerScreen) {
+                            popUpTo(Dest.PropertyManagerScreen) { inclusive = true }
                         }
                     },
-                    onNavigateToSelectFlat = {
-                        navController.navigate(Dest.SelectFlatScreen)
+                    onNavigateToSelectCountry = {
+                        navController.navigate(Dest.SelectCountryScreen)
+                    },
+                    onNavigateToSelectState = {
+                        navController.navigate(Dest.SelectStateScreen)
+                    },
+                    onNavigateToSelectCity = {
+                        navController.navigate(Dest.SelectCityScreen)
+                    },
+                    onNavigateToSelectFlat = { parentId, buildingType ->
+                        navController.navigate(Dest.SelectFlatScreen(parentId, buildingType = buildingType))
                     },
                     onNavigateToSelectSociety = {
-                        navController.navigate((Dest.SelectSocietyScreen))
+                        navController.navigate(Dest.SelectSocietyScreen)
                     },
                     onNavigateBack = { navController.navigateUp() },
                 )
@@ -138,6 +156,10 @@ fun TenantScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.EditProfileScreen)
                     },
+                    onNavigateToPropertyManager = {
+                        navController.navigate(Dest.PropertyManagerScreen)
+                    },
+                    propertyViewModel = hiltViewModel()
                 )
             }
 

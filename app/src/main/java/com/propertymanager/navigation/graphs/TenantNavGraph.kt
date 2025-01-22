@@ -9,8 +9,10 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.propertymanager.bottomnav.tenant.TenantBottomNavItem
 import com.propertymanager.bottomnav.tenant.TenantScreen
+import com.propertymanager.domain.model.Property
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
+import propertymanager.feature.staff.settings.property.PropertyManagerScreen
 import propertymanager.feature.tenant.home.TenantHomeScreen
 import propertymanager.feature.tenant.support.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.support.MaintenanceDetailsScreen
@@ -22,6 +24,7 @@ import propertymanager.presentation.components.property.AddPropertyScreen
 import propertymanager.presentation.components.property.SelectCityScreen
 import propertymanager.presentation.components.property.SelectCountryScreen
 import propertymanager.presentation.components.property.SelectFlatScreen
+import propertymanager.presentation.components.property.SelectSocietyScreen
 import propertymanager.presentation.components.property.SelectStateScreen
 
 fun NavGraphBuilder.tenantNavGraph(
@@ -85,30 +88,55 @@ fun NavGraphBuilder.tenantNavGraph(
             val sharedViewModel: LocationViewModel = hiltViewModel(
                 remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
             )
-            SelectFlatScreen(
-                locationViewModel = sharedViewModel,
-                parentId = it.toRoute(),
-                onFlatSelected = {
+            SelectCityScreen(
+                viewModel = sharedViewModel,
+                onNavigateToAddProperty = {
                     navController.navigate(Dest.AddPropertyScreen)
                 },
                 onNavigateBack = { navController.navigateUp() },
-                locationState = LocationState()
             )
         }
     }
 
-    composable<Dest.SelectFlatScreen> {
+    composable<Dest.SelectSocietyScreen> {
         val sharedViewModel: LocationViewModel = hiltViewModel(
-            remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) },
+            remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
         )
-        SelectFlatScreen(
+        SelectSocietyScreen(
             locationViewModel = sharedViewModel,
-            onFlatSelected = {
+            onSocietySelected = {
                 navController.navigate(Dest.AddPropertyScreen)
             },
-            onNavigateBack = { navController.navigateUp() },
-            parentId = it.toRoute(),
-            locationState = LocationState()
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+
+    composable<Dest.SelectFlatScreen> { backStackEntry ->
+        val sharedViewModel: LocationViewModel = hiltViewModel(
+            remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
+        )
+        val args = backStackEntry.toRoute<Dest.SelectFlatScreen>()
+        SelectFlatScreen(
+            locationViewModel = sharedViewModel,
+            propertyViewModel = hiltViewModel(),
+            buildingType = args.buildingType,
+            parentId = args.parentId,
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+
+    composable<Dest.PropertyManagerScreen> {
+        PropertyManagerScreen(
+            onNavigateToAddProperty = {
+                navController.navigate(Dest.SelectCountryScreen)
+            },
+            onNavigateToEditProperty = {
+
+            },
+            onNavigateBack = {
+                navController.navigateUp()
+            },
+            viewModel = hiltViewModel(),
         )
     }
 
@@ -117,18 +145,27 @@ fun NavGraphBuilder.tenantNavGraph(
             remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
         )
         AddPropertyScreen(
-            viewModel = hiltViewModel(),
+            propertyViewModel = hiltViewModel(),
             locationViewModel = sharedViewModel,
             onPropertyAdded = {
                 navController.navigate(TenantBottomNavItem.HOME.route) {
                     popUpTo(TenantBottomNavItem.HOME.route) { inclusive = true }
                 }
             },
+            onNavigateToSelectCountry = {
+                navController.navigate(Dest.SelectCountryScreen)
+            },
+            onNavigateToSelectState = {
+                navController.navigate(Dest.SelectStateScreen)
+            },
+            onNavigateToSelectCity = {
+                navController.navigate(Dest.SelectCityScreen)
+            },
+            onNavigateToSelectFlat = { parentId, buildingType ->
+                navController.navigate(Dest.SelectFlatScreen(parentId, buildingType))
+            },
             onNavigateToSelectSociety = {
                 navController.navigate(Dest.SelectSocietyScreen)
-            },
-            onNavigateToSelectFlat = {
-                navController.navigate(Dest.SelectFlatScreen)
             },
             onNavigateBack = { navController.navigateUp() },
         )
@@ -142,6 +179,11 @@ fun NavGraphBuilder.tenantNavGraph(
             onNavigateToDetails = { requestId ->
                 navController.navigate(Dest.MaintenanceDetailsScreen(requestId))
             },
+            onNavigateToAddProperty = {
+                navController.navigate(Dest.SelectCountryScreen)
+            },
+            propertyViewModel = hiltViewModel(),
+            userViewModel = hiltViewModel()
         )
     }
 

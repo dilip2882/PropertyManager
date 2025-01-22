@@ -4,7 +4,7 @@ import com.propertymanager.domain.model.Property
 import kotlinx.coroutines.flow.Flow
 
 interface PropertyRepository {
-    suspend fun getProperties(): List<Property>
+    fun getProperties(): Flow<List<Property>>
     suspend fun addProperty(property: Property): String
     suspend fun updateProperty(property: Property)
     suspend fun deleteProperty(propertyId: String)

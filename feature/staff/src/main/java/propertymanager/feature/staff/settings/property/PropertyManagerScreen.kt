@@ -1,89 +1,83 @@
 package propertymanager.feature.staff.settings.property
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.propertymanager.common.utils.Response
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.domain.model.Property
-import propertymanager.feature.staff.settings.property.componenets.EmptyPropertyList
 import propertymanager.feature.staff.settings.property.componenets.PropertyList
+import propertymanager.presentation.components.property.PropertyEvent
 import propertymanager.presentation.components.property.PropertyViewModel
-import propertymanager.presentation.screens.LoadingScreen
+import propertymanager.presentation.theme.PropertyManagerIcons
 
 @Composable
 fun PropertyManagerScreen(
-    viewModel: PropertyViewModel,
-    onNavigateBack: () -> Unit,
     onNavigateToAddProperty: () -> Unit,
+    onNavigateToEditProperty: (Property) -> Unit,
+    onNavigateBack: () -> Unit,
+    viewModel: PropertyViewModel = hiltViewModel(),
 ) {
-    val propertiesResponse by viewModel.propertiesResponse.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Properties") },
+                title = { Text("Property Manager") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(PropertyManagerIcons.ArrowBack, "Back")
                     }
                 },
-
-                )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAddProperty,
-//                containerColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Icon(Icons.Default.Add, "Add Property")
-            }
+                actions = {
+                    IconButton(onClick = onNavigateToAddProperty) {
+                        Icon(PropertyManagerIcons.Add, "Add Property")
+                    }
+                },
+            )
         },
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            when (propertiesResponse) {
-                is Response.Loading -> {
-                    LoadingScreen()
-                }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            } else {
+                PropertyList(
+                    properties = state.properties,
+                    onEditProperty = { property ->
+                        onNavigateToEditProperty(property)
+                    },
+                    onDeleteProperty = { property ->
+                        viewModel.onEvent(PropertyEvent.DeleteProperty(property))
+                    },
+                )
+            }
 
-                is Response.Success -> {
-                    val properties = (propertiesResponse as Response.Success<List<Property>>).data
-                    if (properties.isEmpty()) {
-                        EmptyPropertyList(onAddClick = onNavigateToAddProperty)
-                    } else {
-                        PropertyList(
-                            properties = properties,
-                            onEditProperty = {
-                                viewModel.updateProperty(it)
-                            },
-                            onDeleteProperty = { property ->
-                                viewModel.deleteProperty(propertyId = property.id)
-                            },
-                        )
-                    }
-                }
-
-                is Response.Error -> {
-                    Text(
-                        text = (propertiesResponse as Response.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center),
-                    )
-                    Log.d("TAG", "PropertyManagerScreen: ${propertiesResponse as Response.Error}")
+            // Error Handling
+            state.error?.let { error ->
+                LaunchedEffect(error) {
+                    Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                    viewModel.onEvent(PropertyEvent.ClearError)
                 }
             }
         }

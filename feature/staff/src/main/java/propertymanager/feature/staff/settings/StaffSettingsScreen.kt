@@ -68,10 +68,10 @@ import propertymanager.presentation.components.ImageWrapper
 import propertymanager.presentation.components.LocalPreferenceHighlighted
 import propertymanager.presentation.components.LocalPreferenceMinHeight
 import propertymanager.presentation.components.TextPreferenceWidget
-import propertymanager.presentation.i18n.stringResource
-import propertymanager.presentation.screens.LoadingScreen
 import propertymanager.presentation.components.user.ProfileScreen
 import propertymanager.presentation.components.user.UserViewModel
+import propertymanager.presentation.i18n.stringResource
+import propertymanager.presentation.screens.LoadingScreen
 import java.util.Locale
 
 @Composable
@@ -104,11 +104,9 @@ fun StaffSettingsScreen(
     }
 
     val biometricAuthChange: (Boolean) -> Unit = remember(biometricAuthViewModel) {
-
         {
             biometricAuthViewModel.setBiometricAuth(it)
         }
-
     }
 
     var expanded by remember { mutableStateOf(false) }
@@ -232,7 +230,6 @@ fun StaffSettingsScreen(
                     onSwitchChanged = darkModeChange,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-
             }
 
             item {
@@ -254,7 +251,6 @@ fun StaffSettingsScreen(
                         onSwitchChanged = biometricAuthChange,
                     )
                 }
-
             }
 
             item {
@@ -312,9 +308,7 @@ fun StaffSettingsScreen(
                     },
                 )
             }
-
         }
-
     }
 }
 
@@ -464,13 +458,12 @@ fun Profile(user: User) {
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        text = fetchedUser.role,
+                        text = fetchedUser.role.toString(),
                         fontSize = 14.sp,
                         color = Color.Gray,
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
-
             }
         }
     }

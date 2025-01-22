@@ -8,8 +8,9 @@ import com.propertymanager.domain.usecase.property.GetPropertiesUseCase
 import com.propertymanager.domain.usecase.property.GetPropertyByIdUseCase
 import com.propertymanager.domain.usecase.property.UpdateAddressUseCase
 import com.propertymanager.domain.usecase.property.UpdatePropertyUseCase
+import javax.inject.Inject
 
-data class PropertyUseCases(
+data class PropertyUseCases @Inject constructor(
     val getProperties: GetPropertiesUseCase,
     val addProperty: AddPropertyUseCase,
     val deleteProperty: DeletePropertyUseCase,

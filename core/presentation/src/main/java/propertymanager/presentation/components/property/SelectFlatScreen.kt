@@ -20,42 +20,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.domain.model.location.Flat
+import com.propertymanager.domain.model.Property
+import propertymanager.presentation.components.location.LocationEvent
 import propertymanager.presentation.components.location.LocationState
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.location.UiEvent
 import propertymanager.presentation.screens.LoadingScreen
+import propertymanager.presentation.components.property.PropertyViewModel
 
 @Composable
 fun SelectFlatScreen(
+    locationViewModel: LocationViewModel,
+    propertyViewModel: PropertyViewModel,
+    buildingType: Property.Building,
     parentId: Int,
-    locationViewModel: LocationViewModel = hiltViewModel(),
-    onFlatSelected: (Flat) -> Unit,
-    onNavigateBack: () -> Unit,
-    locationState: LocationState
+    onNavigateBack: () -> Unit
 ) {
     val state by locationViewModel.state.collectAsState()
-    val context = LocalContext.current
 
-    // Load flats based on parent ID
-
-    LaunchedEffect(parentId) {
-        // Check if parent is in blocks or towers
-        val isBlock = locationState.blocks.any { it.id == parentId }
-        if (isBlock) {
-            locationViewModel.loadFlatsForBlock(parentId)
-        } else {
-            locationViewModel.loadFlatsForTower(parentId)
-        }
-    }
-    // Collect UI events
-    LaunchedEffect(true) {
-        locationViewModel.uiEvent.collect { event ->
-            when (event) {
-                is UiEvent.Error -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
-                }
-                else -> {}
-            }
+    LaunchedEffect(parentId, buildingType) {
+        // Load flats based on building type and parent ID
+        when (buildingType) {
+            Property.Building.BLOCK -> locationViewModel.loadFlatsForBlock(parentId)
+            Property.Building.TOWER -> locationViewModel.loadFlatsForTower(parentId)
+            else -> locationViewModel.loadFlatsForSociety(parentId)
         }
     }
 
@@ -71,20 +59,21 @@ fun SelectFlatScreen(
             )
         }
     ) { padding ->
-        if (state.isLoading) {
-            LoadingScreen()
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                items(state.flats) { flat ->
-                    FlatItem(
-                        flat = flat,
-                        onClick = { onFlatSelected(flat) }
-                    )
-                }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            items(state.flats) { flat ->
+                FlatItem(
+                    flat = flat,
+                    onClick = {
+                        // Update
+                        locationViewModel.onEvent(LocationEvent.SelectFlat(flat)) // using this
+//                        propertyViewModel.updateSelectedLocation(flat = flat) // not using currently
+                        onNavigateBack()
+                    }
+                )
             }
         }
     }

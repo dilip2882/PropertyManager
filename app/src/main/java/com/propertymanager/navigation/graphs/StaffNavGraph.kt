@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.propertymanager.bottomnav.staff.StaffScreen
+import com.propertymanager.domain.model.Property
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.staff.home.StaffHomeScreen
@@ -96,6 +97,9 @@ fun NavGraphBuilder.staffNavGraph(
                 onNavigateToAddProperty = {
                     navController.navigate(Dest.SelectCountryScreen)
                 },
+                onNavigateToEditProperty = {
+
+                },
                 onNavigateBack = {
                     navController.navigateUp()
                 },
@@ -151,18 +155,17 @@ fun NavGraphBuilder.staffNavGraph(
             )
         }
 
-        composable<Dest.SelectFlatScreen> {
+        composable<Dest.SelectFlatScreen> { backStackEntry ->
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) },
+                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
             )
+            val args = backStackEntry.toRoute<Dest.SelectFlatScreen>()
             SelectFlatScreen(
                 locationViewModel = sharedViewModel,
-                onFlatSelected = {
-                    navController.navigate(Dest.AddPropertyScreen)
-                },
-                onNavigateBack = { navController.navigateUp() },
-                parentId = it.toRoute(),
-                locationState = LocationState()
+                propertyViewModel = hiltViewModel(),
+                buildingType = args.buildingType,
+                parentId = args.parentId,
+                onNavigateBack = { navController.navigateUp() }
             )
         }
 
@@ -171,15 +174,24 @@ fun NavGraphBuilder.staffNavGraph(
                 remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
             )
             AddPropertyScreen(
-                viewModel = hiltViewModel(),
+                propertyViewModel = hiltViewModel(),
                 locationViewModel = sharedViewModel,
                 onPropertyAdded = {
                     navController.navigate(Dest.PropertyManagerScreen) {
                         popUpTo(Dest.PropertyManagerScreen) { inclusive = true }
                     }
                 },
-                onNavigateToSelectFlat = { parentId ->
-                    navController.navigate(Dest.SelectFlatScreen(parentId))
+                onNavigateToSelectCountry = {
+                    navController.navigate(Dest.SelectCountryScreen)
+                },
+                onNavigateToSelectState = {
+                    navController.navigate(Dest.SelectStateScreen)
+                },
+                onNavigateToSelectCity = {
+                    navController.navigate(Dest.SelectCityScreen)
+                },
+                onNavigateToSelectFlat = { parentId, buildingType ->
+                    navController.navigate(Dest.SelectFlatScreen(parentId, buildingType))
                 },
                 onNavigateToSelectSociety = {
                     navController.navigate(Dest.SelectSocietyScreen)

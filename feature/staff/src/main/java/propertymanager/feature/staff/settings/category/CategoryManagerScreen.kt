@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -89,7 +88,7 @@ fun CategoryManagerScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .background(color = MaterialTheme.colorScheme.background)
+                .background(color = MaterialTheme.colorScheme.background),
         ) {
             when (categoriesResponse) {
                 is Response.Loading -> LoadingScreen()

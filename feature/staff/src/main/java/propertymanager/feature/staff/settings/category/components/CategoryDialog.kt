@@ -11,7 +11,7 @@ fun CategoryDialog(
     categoryName: String,
     onNameChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -20,7 +20,7 @@ fun CategoryDialog(
             OutlinedTextField(
                 value = categoryName,
                 onValueChange = onNameChange,
-                label = { Text("Category Name") }
+                label = { Text("Category Name") },
             )
         },
         confirmButton = {
@@ -28,6 +28,6 @@ fun CategoryDialog(
         },
         dismissButton = {
             Button(onClick = onDismiss) { Text("Cancel") }
-        }
+        },
     )
 }

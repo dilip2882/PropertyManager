@@ -2,13 +2,6 @@ package propertymanager.presentation.components.location
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.propertymanager.domain.model.location.Block
-import com.propertymanager.domain.model.location.City
-import com.propertymanager.domain.model.location.Country
-import com.propertymanager.domain.model.location.Flat
-import com.propertymanager.domain.model.location.Society
-import com.propertymanager.domain.model.location.State
-import com.propertymanager.domain.model.location.Tower
 import com.propertymanager.domain.usecase.LocationUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -21,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocationViewModel @Inject constructor(
-    private val locationUseCases: LocationUseCases
+    private val locationUseCases: LocationUseCases,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocationState())
@@ -42,7 +35,7 @@ class LocationViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             countries = countries,
-                            isLoading = false
+                            isLoading = false,
                         )
                     }
                 }
@@ -57,88 +50,63 @@ class LocationViewModel @Inject constructor(
     fun onEvent(event: LocationEvent) {
         when (event) {
             is LocationEvent.SelectCountry -> {
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            selectedCountry = event.country,
-                            selectedState = null,
-                            selectedCity = null,
-                            selectedSociety = null,
-                        )
-                    }
-                    locationUseCases.getStatesForCountry(event.country.id).collect { states ->
-                        _state.update { it.copy(states = states) }
-                    }
-                }
+                _state.update { it.copy(
+                    selectedCountry = event.country,
+                    states = emptyList(),
+                    cities = emptyList(),
+                    societies = emptyList(),
+                    blocks = emptyList(),
+                    towers = emptyList(),
+                    flats = emptyList()
+                ) }
+                loadStatesForCountry(event.country.id)
             }
 
             is LocationEvent.SelectState -> {
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            selectedState = event.state,
-                            selectedCity = null,
-                            selectedSociety = null,
-                        )
-                    }
-                    locationUseCases.getCitiesForState(event.state.id).collect { cities ->
-                        _state.update { it.copy(cities = cities) }
-                    }
-                }
+                _state.update { it.copy(
+                    selectedState = event.state,
+                    cities = emptyList(),
+                    societies = emptyList(),
+                    blocks = emptyList(),
+                    towers = emptyList(),
+                    flats = emptyList()
+                ) }
+                loadCitiesForState(event.state.id)
             }
 
             is LocationEvent.SelectCity -> {
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            selectedCity = event.city,
-                            selectedSociety = null,
-                        )
-                    }
-                    locationUseCases.getSocietiesForCity(event.city.id).collect { societies ->
-                        _state.update { it.copy(societies = societies) }
-                    }
-                }
+                _state.update { it.copy(
+                    selectedCity = event.city,
+                    societies = emptyList(),
+                    blocks = emptyList(),
+                    towers = emptyList(),
+                    flats = emptyList()
+                ) }
+                loadSocietiesForCity(event.city.id)
             }
 
             is LocationEvent.SelectSociety -> {
                 viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            selectedSociety = event.society,
-                            selectedBlock = null,
-                            selectedTower = null,
-                        )
-                    }
-
-                    launch {
-                        locationUseCases.getBlocksForSociety(event.society.id).collect { blocks ->
-                            _state.update { it.copy(blocks = blocks) }
-                        }
-                    }
-
-                    launch {
-                        locationUseCases.getTowersForSociety(event.society.id).collect { towers ->
-                            _state.update { it.copy(towers = towers) }
-                        }
-                    }
-
-                    launch {
-                        locationUseCases.getFlatsForSociety(event.society.id).collect { flats ->
-                            _state.update { it.copy(flats = flats) }
-                        }
-                    }
+                    _state.update { it.copy(
+                        selectedSociety = event.society,
+                        selectedBlock = null,
+                        selectedTower = null,
+                        blocks = emptyList(),
+                        towers = emptyList(),
+                        flats = emptyList()
+                    ) }
+                    // Load blocks and towers for society if needed
+                    loadBlocksAndTowersForSociety(event.society.id)
                 }
             }
 
             is LocationEvent.SelectBlock -> {
                 viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            selectedBlock = event.block,
-                            selectedTower = null,
-                        )
-                    }
+                    _state.update { it.copy(
+                        selectedBlock = event.block,
+                        selectedTower = null,
+                        flats = emptyList()
+                    ) }
                     locationUseCases.getFlatsForBlock(event.block.id).collect { flats ->
                         _state.update { it.copy(flats = flats) }
                     }
@@ -147,12 +115,11 @@ class LocationViewModel @Inject constructor(
 
             is LocationEvent.SelectTower -> {
                 viewModelScope.launch {
-                    _state.update {
-                        it.copy(
-                            selectedTower = event.tower,
-                            selectedBlock = null,
-                        )
-                    }
+                    _state.update { it.copy(
+                        selectedTower = event.tower,
+                        selectedBlock = null,
+                        flats = emptyList()
+                    ) }
                     locationUseCases.getFlatsForTower(event.tower.id).collect { flats ->
                         _state.update { it.copy(flats = flats) }
                     }
@@ -168,10 +135,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getStatesForCountry(event.countryId).collect { states ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     states = states,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -187,10 +154,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getCitiesForState(event.stateId).collect { cities ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     cities = cities,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -206,10 +173,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getSocietiesForCity(event.cityId).collect { societies ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     societies = societies,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -225,10 +192,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getBlocksForSociety(event.societyId).collect { blocks ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     blocks = blocks,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -244,10 +211,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getTowersForSociety(event.societyId).collect { towers ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     towers = towers,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -263,10 +230,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getFlatsForSociety(event.societyId).collect { flats ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     flats = flats,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -282,10 +249,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getFlatsForBlock(event.blockId).collect { flats ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     flats = flats,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -301,10 +268,10 @@ class LocationViewModel @Inject constructor(
                     try {
                         _state.update { it.copy(isLoading = true) }
                         locationUseCases.getFlatsForTower(event.towerId).collect { flats ->
-                            _state.update { 
+                            _state.update {
                                 it.copy(
                                     flats = flats,
-                                    isLoading = false
+                                    isLoading = false,
                                 )
                             }
                         }
@@ -331,7 +298,7 @@ class LocationViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             states = states,
-                            isLoading = false
+                            isLoading = false,
                         )
                     }
                 }
@@ -376,17 +343,15 @@ class LocationViewModel @Inject constructor(
 
     fun loadBlocksAndTowersForSociety(societyId: Int) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
             try {
-                // Fetch both blocks and towers
                 locationUseCases.getBlocksForSociety(societyId).collect { blocks ->
                     _state.update { it.copy(blocks = blocks) }
                 }
                 locationUseCases.getTowersForSociety(societyId).collect { towers ->
-                    _state.update { it.copy(towers = towers, isLoading = false) }
+                    _state.update { it.copy(towers = towers) }
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false) }
+                // Handle error
             }
         }
     }
@@ -396,9 +361,13 @@ class LocationViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 locationUseCases.getFlatsForBlock(blockId).collect { flats ->
-                    _state.update { it.copy(flats = flats, isLoading = false) }
+                    _state.update { it.copy(
+                        flats = flats,
+                        isLoading = false
+                    ) }
                 }
             } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -408,28 +377,31 @@ class LocationViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 locationUseCases.getFlatsForTower(towerId).collect { flats ->
-                    _state.update { it.copy(flats = flats, isLoading = false) }
+                    _state.update { it.copy(
+                        flats = flats,
+                        isLoading = false
+                    ) }
                 }
             } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
-}
 
-data class LocationState(
-    val countries: List<Country> = emptyList(),
-    val selectedCountry: Country? = null,
-    val selectedState: State? = null,
-    val selectedCity: City? = null,
-    val selectedSociety: Society? = null,
-    val selectedBlock: Block? = null,
-    val selectedTower: Tower? = null,
-    val selectedFlat: Flat? = null,
-    val states: List<State> = emptyList(),
-    val cities: List<City> = emptyList(),
-    val societies: List<Society> = emptyList(),
-    val blocks: List<Block> = emptyList(),
-    val towers: List<Tower> = emptyList(),
-    val flats: List<Flat> = emptyList(),
-    val isLoading: Boolean = false
-)
+    fun loadFlatsForSociety(societyId: Int) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            try {
+                locationUseCases.getFlatsForSociety(societyId).collect { flats ->
+                    _state.update { it.copy(
+                        flats = flats,
+                        isLoading = false
+                    ) }
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+}

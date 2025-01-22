@@ -19,4 +19,4 @@ sealed class LocationEvent {
     data class SelectBlock(val block: Block) : LocationEvent()
     data class SelectTower(val tower: Tower) : LocationEvent()
     data class SelectFlat(val flat: Flat) : LocationEvent()
-} 
+}

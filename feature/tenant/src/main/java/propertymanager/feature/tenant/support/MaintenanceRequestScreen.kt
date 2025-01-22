@@ -55,17 +55,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import com.google.firebase.auth.FirebaseAuth
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.MediaType
 import com.propertymanager.domain.model.RequestStatus
 import kotlinx.coroutines.launch
+import propertymanager.presentation.components.property.PropertyViewModel
+import propertymanager.presentation.components.user.UserViewModel
 import java.util.UUID
 
 @Composable
@@ -74,10 +76,20 @@ fun MaintenanceRequestScreen(
     selectedSubcategory: String,
     onNavigateUp: () -> Unit,
     onSubmitSuccess: () -> Unit,
+    propertyViewModel: PropertyViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel(),
 ) {
     val viewModel = hiltViewModel<MaintenanceRequestViewModel>()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Get current property and user states
+    val propertyState by propertyViewModel.state.collectAsState()
+    val userState by userViewModel.state.collectAsState()
+
+    val selectedProperty = remember(propertyState.properties, userState.user?.selectedPropertyId) {
+        propertyState.properties.find { it.id == userState.user?.selectedPropertyId }
+    }
 
     // States
     val categoriesResponse by viewModel.categoriesResponse.collectAsState()
@@ -86,6 +98,7 @@ fun MaintenanceRequestScreen(
 
     var currentCategory by remember { mutableStateOf(selectedCategory) }
     var currentSubcategory by remember { mutableStateOf(selectedSubcategory) }
+    val maxDescriptionLength = 300
     var issueDescription by remember { mutableStateOf("") }
     var isUrgent by remember { mutableStateOf(false) }
     val photoUriList = remember { mutableStateListOf<Uri>() }
@@ -101,10 +114,19 @@ fun MaintenanceRequestScreen(
     val descriptionError = showErrors && issueDescription.isBlank()
     val isUploading = mediaUploadState.values.any { it is Response.Loading }
 
+    val remainingChars = maxDescriptionLength - issueDescription.length
+
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-    ) { uri: Uri? ->
-        uri?.let { photoUriList.add(it) }
+        contract = ActivityResultContracts.GetMultipleContents(),
+    ) { uris: List<Uri> ->
+        // Check if adding these new images would exceed the limit
+        val remainingSlots = 5 - photoUriList.size
+        if (remainingSlots > 0) {
+            val newUris = uris.take(remainingSlots)
+            photoUriList.addAll(newUris)
+        } else {
+            Toast.makeText(context, "Maximum 5 images allowed", Toast.LENGTH_SHORT).show()
+        }
     }
 
     LaunchedEffect(mediaUploadState) {
@@ -122,6 +144,8 @@ fun MaintenanceRequestScreen(
                                 issueSubcategory = currentSubcategory,
                                 photos = uploadedPhotoUrls.toList(),
                                 status = RequestStatus.PENDING.label,
+                                propertyId = selectedProperty?.id ?: "",
+                                tenantId = userState.user?.userId ?: "",
                             )
                             viewModel.createMaintenanceRequestSafely(request)
                         }
@@ -217,22 +241,41 @@ fun MaintenanceRequestScreen(
                     )
                 }
 
-                // Description
-                OutlinedTextField(
-                    value = issueDescription,
-                    onValueChange = { issueDescription = it },
-                    label = { Text("Describe your issue") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .height(150.dp),
-                    maxLines = 6,
-                    singleLine = false,
-                    isError = descriptionError,
-                    supportingText = if (descriptionError) {
-                        { Text("Please provide a description") }
-                    } else null,
-                )
+                // Description with character counter
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = issueDescription,
+                        onValueChange = { 
+                            if (it.length <= maxDescriptionLength) {
+                                issueDescription = it 
+                            }
+                        },
+                        label = { Text("Describe your issue") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(150.dp),
+                        maxLines = 6,
+                        singleLine = false,
+                        isError = descriptionError,
+                        supportingText = if (descriptionError) {
+                            { Text("Please provide a description") }
+                        } else null,
+                    )
+                    
+                    Text(
+                        text = "$remainingChars",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (remainingChars <= 50) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 24.dp, bottom = 8.dp)
+                    )
+                }
 
                 // Is Urgent
                 Row(
@@ -255,11 +298,31 @@ fun MaintenanceRequestScreen(
                         .fillMaxWidth()
                         .padding(16.dp),
                 ) {
-                    Text(
-                        "Attach Photos (${photoUriList.size}/5)",
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Attach Photos (${photoUriList.size}/5)",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                        
+                        if (photoUriList.size < 5) {
+                            IconButton(
+                                onClick = { launcher.launch("image/*") },
+                                enabled = photoUriList.size < 5
+                            ) {
+                                Icon(
+                                    Icons.Default.AddAPhoto,
+                                    contentDescription = "Add photos",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -274,7 +337,36 @@ fun MaintenanceRequestScreen(
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
                                 )
+
+                                // Delete button
+                                IconButton(
+                                    onClick = {
+                                        photoUriList.removeAt(index)
+                                        // If the photo was already uploaded, remove it from uploaded URLs
+                                        mediaUploadState[uri]?.let {
+                                            if (it is Response.Success) {
+                                                uploadedPhotoUrls.remove(it.data)
+                                                viewModel.deleteUploadedFile(it.data)
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .size(24.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                            shape = CircleShape
+                                        )
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Remove photo",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
 
                                 when (val uploadState = mediaUploadState[uri]) {
                                     is Response.Loading -> {
@@ -307,50 +399,6 @@ fun MaintenanceRequestScreen(
 
                                     else -> {}
                                 }
-
-                                // Delete
-                                IconButton(
-                                    onClick = {
-                                        val url = mediaUploadState[uri]?.let {
-                                            if (it is Response.Success) it.data else null
-                                        }
-                                        if (url != null) {
-                                            viewModel.deleteUploadedFile(url)
-                                            uploadedPhotoUrls.remove(url)
-                                        }
-                                        photoUriList.removeAt(index)
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .size(24.dp)
-                                        .background(
-                                            Color.White.copy(alpha = 0.8f),
-                                            CircleShape,
-                                        ),
-                                ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Remove photo",
-                                        modifier = Modifier.size(16.dp),
-                                    )
-                                }
-                            }
-                        }
-
-                        // Add photo
-                        if (photoUriList.size < 5) {
-                            IconButton(
-                                onClick = { launcher.launch("image/*") },
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.LightGray),
-                            ) {
-                                Icon(
-                                    Icons.Default.AddAPhoto,
-                                    contentDescription = "Add Photo",
-                                    tint = Color.DarkGray,
-                                )
                             }
                         }
                     }
@@ -365,9 +413,19 @@ fun MaintenanceRequestScreen(
                             return@Button
                         }
 
+                        // Validate property and user
+                        if (selectedProperty == null) {
+                            Toast.makeText(context, "Please select a property first", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
+                        if (userState.user?.userId == null) {
+                            Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
                         isSubmitting = true
 
-                        val tenantId = FirebaseAuth.getInstance().currentUser?.uid
                         if (photoUriList.isEmpty()) {
                             val request = MaintenanceRequest(
                                 issueDescription = issueDescription,
@@ -376,7 +434,8 @@ fun MaintenanceRequestScreen(
                                 issueSubcategory = currentSubcategory,
                                 photos = emptyList(),
                                 status = RequestStatus.PENDING.label,
-                                tenantId = tenantId!!
+                                propertyId = selectedProperty.id,
+                                tenantId = userState.user?.userId ?: "",
                             )
                             viewModel.createMaintenanceRequestSafely(request)
                         } else {

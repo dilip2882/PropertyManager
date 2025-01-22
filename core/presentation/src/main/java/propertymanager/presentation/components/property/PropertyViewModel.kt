@@ -1,131 +1,127 @@
 package propertymanager.presentation.components.property
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.propertymanager.common.utils.Response
+import com.google.firebase.auth.FirebaseAuth
 import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.usecase.PropertyUseCases
+import com.propertymanager.domain.usecase.UserUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PropertyViewModel @Inject constructor(
-    val propertyUseCases: PropertyUseCases
+    private val propertyUseCases: PropertyUseCases,
+    private val userUseCases: UserUseCases,
+    private val auth: FirebaseAuth
 ) : ViewModel() {
 
-    private val _propertiesResponse = MutableStateFlow<Response<List<Property>>>(Response.Loading)
-    val propertiesResponse: StateFlow<Response<List<Property>>> = _propertiesResponse
-
-    private val _operationResponse = MutableStateFlow<Response<Unit>>(Response.Success(Unit))
-    val operationResponse: StateFlow<Response<Unit>> = _operationResponse
-
-    private var propertiesLoaded = false
+    private val _state = MutableStateFlow(PropertyState())
+    val state = _state.asStateFlow()
 
     init {
-        fetchProperties()
+        loadProperties()
     }
 
-    fun resetProperties() {
-        propertiesLoaded = false
-        fetchProperties()
-    }
+    fun onEvent(event: PropertyEvent) {
+        when (event) {
+            is PropertyEvent.DeleteProperty -> {
+                viewModelScope.launch {
+                    try {
+                        _state.update { it.copy(isLoading = true) }
+                        propertyUseCases.deleteProperty(event.property.id)
+                        // Refresh the properties list
+//                        loadProperties() //  snapshot listener
+                    } catch (e: Exception) {
+                        _state.update { it.copy(
+                            error = "Failed to delete property: ${e.message}",
+                            isLoading = false
+                        ) }
+                    }
+                }
+            }
 
-    private fun fetchProperties() {
-        if (propertiesLoaded) return
+            is PropertyEvent.EditProperty -> {
+                viewModelScope.launch {
+                    try {
+                        propertyUseCases.updateProperty(event.property)
+                    } catch (e: Exception) {
+                        _state.update { it.copy(error = e.message) }
+                    }
+                }
+            }
 
-        viewModelScope.launch {
-            _propertiesResponse.value = Response.Loading
-            try {
-                val properties = propertyUseCases.getProperties()
-                _propertiesResponse.value = Response.Success(properties)
-                propertiesLoaded = true
-            } catch (e: Exception) {
-                _propertiesResponse.value = Response.Error(e.message ?: "Unknown Error")
+            is PropertyEvent.AddProperty -> {
+                viewModelScope.launch {
+                    try {
+                        _state.update { it.copy(isLoading = true) }
+                        val propertyId = propertyUseCases.addProperty(event.property)
+                        
+                        // Associate property with user
+                        auth.currentUser?.uid?.let { userId ->
+                            userUseCases.associateProperty(userId, propertyId)
+                            userUseCases.updateSelectedProperty(userId, propertyId)
+                        }
+
+                        _state.update { it.copy(
+                            lastAddedPropertyId = propertyId,
+                            isLoading = false
+                        ) }
+                    } catch (e: Exception) {
+                        _state.update { it.copy(
+                            error = e.message,
+                            isLoading = false
+                        ) }
+                    }
+                }
+            }
+
+            is PropertyEvent.ClearError -> {
+                _state.update { it.copy(error = null) }
             }
         }
     }
 
-    fun addProperty(property: Property) {
+    fun loadProperties() {
         viewModelScope.launch {
-            _operationResponse.value = Response.Loading
-            try {
-                propertyUseCases.addProperty(property)
-                fetchProperties()
-                _operationResponse.value = Response.Success(Unit)
-            } catch (e: Exception) {
-                _operationResponse.value = Response.Error(e.message ?: "Failed to add property")
-            }
-        }
-    }
+            _state.update { it.copy(isLoading = true) }
 
-    fun updateProperty(property: Property) {
-        viewModelScope.launch {
-            _operationResponse.value = Response.Loading
-            try {
-                propertyUseCases.updateProperty(property)
-                fetchProperties()
-                _operationResponse.value = Response.Success(Unit)
-                Log.d("PropertyViewModel", "Property updated successfully")
-            } catch (e: Exception) {
-                _operationResponse.value = Response.Error(e.message ?: "Failed to update property")
-                Log.e("PropertyViewModel", "Error updating property: ${e.message}")
-            }
+            propertyUseCases.getProperties()
+                .catch { e ->
+                    _state.update {
+                        it.copy(
+                            error = e.message,
+                            isLoading = false,
+                        )
+                    }
+                }
+                .collect { properties ->
+                    _state.update {
+                        it.copy(
+                            properties = properties,
+                            isLoading = false,
+                        )
+                    }
+                }
         }
     }
+}
 
-    fun deleteProperty(propertyId: String) {
-        viewModelScope.launch {
-            _operationResponse.value = Response.Loading
-            try {
-                propertyUseCases.deleteProperty(propertyId)
-                fetchProperties()
-                _operationResponse.value = Response.Success(Unit)
-            } catch (e: Exception) {
-                _operationResponse.value = Response.Error(e.message ?: "Failed to delete property")
-            }
-        }
-    }
+data class PropertyState(
+    val properties: List<Property> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val lastAddedPropertyId: String? = null
+)
 
-    fun addAddress(propertyId: String, address: Property.Address) {
-        viewModelScope.launch {
-            _operationResponse.value = Response.Loading
-            try {
-                propertyUseCases.addAddress(propertyId, address)
-                fetchProperties()
-                _operationResponse.value = Response.Success(Unit)
-            } catch (e: Exception) {
-                _operationResponse.value = Response.Error(e.message ?: "Failed to add address")
-            }
-        }
-    }
-
-    fun deleteAddress(propertyId: String) {
-        viewModelScope.launch {
-            _operationResponse.value = Response.Loading
-            try {
-                propertyUseCases.deleteAddress(propertyId)
-                fetchProperties()
-                _operationResponse.value = Response.Success(Unit)
-            } catch (e: Exception) {
-                _operationResponse.value = Response.Error(e.message ?: "Failed to delete address")
-            }
-        }
-    }
-
-    fun updateAddress(propertyId: String, address: Property.Address) {
-        viewModelScope.launch {
-            _operationResponse.value = Response.Loading
-            try {
-                propertyUseCases.updateAddress(propertyId, address)
-                fetchProperties()
-                _operationResponse.value = Response.Success(Unit)
-            } catch (e: Exception) {
-                _operationResponse.value = Response.Error(e.message ?: "Failed to update address")
-            }
-        }
-    }
+sealed class PropertyEvent {
+    data class DeleteProperty(val property: Property) : PropertyEvent()
+    data class EditProperty(val property: Property) : PropertyEvent()
+    data class AddProperty(val property: Property) : PropertyEvent()
+    data object ClearError : PropertyEvent()
 }
