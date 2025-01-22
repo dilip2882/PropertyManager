@@ -65,6 +65,7 @@ import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.MediaType
 import com.propertymanager.domain.model.RequestStatus
+import com.propertymanager.domain.model.isActive
 import kotlinx.coroutines.launch
 import propertymanager.presentation.components.property.PropertyViewModel
 import propertymanager.presentation.components.user.UserViewModel
@@ -186,13 +187,32 @@ fun MaintenanceRequestScreen(
         }
     }
 
-    LaunchedEffect(currentCategory) {
-        val categories = (categoriesResponse as? Response.Success<List<Category>>)?.data
-        val category = categories?.find { it.name == currentCategory }
-        subcategories = category?.subcategories ?: emptyList()
+    LaunchedEffect(currentCategory, categoriesResponse) {
+        when (categoriesResponse) {
+            is Response.Success -> {
+                val categories = (categoriesResponse as Response.Success<List<Category>>).data
+                val selectedCategoryData = categories.find { it.name == currentCategory }
+                subcategories = selectedCategoryData?.subcategories ?: emptyList()
+                
+                // If no subcategory is selected but we have subcategories available, then selecting the first one
+                if (currentSubcategory.isEmpty() && subcategories.isNotEmpty()) {
+                    currentSubcategory = subcategories.first()
+                }
+            }
+            else -> {}
+        }
+    }
 
-        if (!subcategories.contains(currentSubcategory)) {
-            currentSubcategory = ""
+    // Add property status check
+    LaunchedEffect(selectedProperty) {
+        if (selectedProperty?.isActive() != true) {
+            // If property is not active, navigate back
+            onNavigateUp()
+            Toast.makeText(
+                context, 
+                "Maintenance requests can only be created for approved properties", 
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -219,8 +239,10 @@ fun MaintenanceRequestScreen(
                 DropdownMenuField(
                     label = "Category",
                     selectedOption = currentCategory,
-                    options = (categoriesResponse as? Response.Success<List<Category>>)
-                        ?.data?.map { it.name } ?: emptyList(),
+                    options = when (val response = categoriesResponse) {
+                        is Response.Success -> response.data.map { it.name }
+                        else -> emptyList()
+                    },
                     onOptionSelected = { category ->
                         currentCategory = category
                         currentSubcategory = ""
@@ -485,21 +507,24 @@ fun DropdownMenuField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = it },
         ) {
-            TextField(
+            OutlinedTextField(
                 value = selectedOption,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(label) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .menuAnchor()
+                    .fillMaxWidth(),
                 isError = isError,
             )
             ExposedDropdownMenu(

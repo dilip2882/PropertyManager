@@ -4,11 +4,11 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.propertymanager.domain.model.Property
+import com.propertymanager.domain.model.PropertyStatus
 import com.propertymanager.domain.repository.PropertyRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -28,9 +28,6 @@ class PropertyRepositoryImpl @Inject constructor(
                 if (snapshot != null) {
                     val properties = snapshot.documents.mapNotNull { document ->
                         try {
-                            document.toObject(Property::class.java)?.copy(id = document.id)
-                        } catch (e: Exception) {
-                            // Fallback manual conversion if automatic conversion fails
                             val data = document.data ?: return@mapNotNull null
                             val address = (data["address"] as? Map<*, *>)?.let { addressMap ->
                                 Property.Address(
@@ -53,8 +50,11 @@ class PropertyRepositoryImpl @Inject constructor(
                                 ownerId = data["ownerId"] as? String ?: "",
                                 currentTenantId = data["currentTenantId"] as? String ?: "",
                                 maintenanceRequests = (data["maintenanceRequests"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
-                                createdAt = data["createdAt"] as? Timestamp
+                                status = PropertyStatus.fromString(data["status"] as? String ?: ""),
+                                createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now()
                             )
+                        } catch (e: Exception) {
+                            null
                         }
                     }
                     trySend(properties)
@@ -77,6 +77,7 @@ class PropertyRepositoryImpl @Inject constructor(
             "ownerId" to property.ownerId,
             "currentTenantId" to property.currentTenantId,
             "maintenanceRequests" to property.maintenanceRequests,
+            "status" to property.status.label,
             "createdAt" to property.createdAt
         )
 
@@ -97,6 +98,7 @@ class PropertyRepositoryImpl @Inject constructor(
             "ownerId" to property.ownerId,
             "currentTenantId" to property.currentTenantId,
             "maintenanceRequests" to property.maintenanceRequests,
+            "status" to property.status.label,
             "createdAt" to property.createdAt
         )
 
@@ -110,9 +112,6 @@ class PropertyRepositoryImpl @Inject constructor(
     override suspend fun getPropertyById(propertyId: String): Property? {
         val snapshot = propertyCollection.document(propertyId).get().await()
         return try {
-            snapshot.toObject(Property::class.java)?.copy(id = snapshot.id)
-        } catch (e: Exception) {
-            // Fallback manual conversion
             val data = snapshot.data ?: return null
             val address = (data["address"] as? Map<*, *>)?.let { addressMap ->
                 Property.Address(
@@ -135,8 +134,11 @@ class PropertyRepositoryImpl @Inject constructor(
                 ownerId = data["ownerId"] as? String ?: "",
                 currentTenantId = data["currentTenantId"] as? String ?: "",
                 maintenanceRequests = (data["maintenanceRequests"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
-                createdAt = data["createdAt"] as? Timestamp
+                status = PropertyStatus.fromString(data["status"] as? String ?: ""),
+                createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now()
             )
+        } catch (e: Exception) {
+            null
         }
     }
 

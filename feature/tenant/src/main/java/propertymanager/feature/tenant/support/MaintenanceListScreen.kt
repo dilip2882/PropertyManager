@@ -38,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -63,6 +64,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.RequestStatus
+import com.propertymanager.domain.model.Property
+import com.propertymanager.domain.model.PropertyStatus
+import com.propertymanager.domain.model.isActive
 import kotlinx.coroutines.launch
 import propertymanager.feature.tenant.support.components.MaintenancePostCard
 import propertymanager.feature.tenant.support.components.PullRefresh
@@ -84,24 +88,39 @@ fun MaintenanceListScreen(
     val propertyState by propertyViewModel.state.collectAsState()
     val userState by userViewModel.state.collectAsState()
     var showDropdown by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val selectedProperty = remember(propertyState.properties, userState.user?.selectedPropertyId) {
         propertyState.properties.find { it.id == userState.user?.selectedPropertyId }
     }
 
-    // Filter maintenance requests based on selected property
-    val filteredRequests = remember(maintenanceRequests, selectedProperty) {
+    // Map tab index to RequestStatus
+    val tabToStatus = remember {
+        mapOf(
+            0 to RequestStatus.PENDING.label,
+            1 to RequestStatus.IN_PROGRESS.label,
+            2 to RequestStatus.COMPLETED.label
+        )
+    }
+
+    // Filter maintenance requests based on selected property and status
+    val filteredRequests = remember(maintenanceRequests, selectedProperty, selectedTab) {
         when (maintenanceRequests) {
             is Response.Success -> {
                 val requests = (maintenanceRequests as Response.Success<List<MaintenanceRequest>>).data
-                if (selectedProperty != null) {
-                    Response.Success(requests.filter { it.propertyId == selectedProperty.id })
+                val propertyFiltered = if (selectedProperty != null) {
+                    requests.filter { it.propertyId == selectedProperty.id }
                 } else {
-                    Response.Success(emptyList())
+                    emptyList()
                 }
+                // filter by status
+                Response.Success(
+                    propertyFiltered.filter { 
+                        it.status == tabToStatus[selectedTab]
+                    }
+                )
             }
             else -> maintenanceRequests
         }
@@ -243,11 +262,14 @@ fun MaintenanceListScreen(
                 }
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = onNavigateToMaintenanceRequest,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Create Request")
+                // Only show FAB if property is active
+                if (selectedProperty?.isActive() == true) {
+                    FloatingActionButton(
+                        onClick = onNavigateToMaintenanceRequest,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Create Maintenance Request")
+                    }
                 }
             },
         ) { paddingValues ->
@@ -284,10 +306,10 @@ fun MaintenanceListScreen(
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Text(
-                                            text = if (selectedProperty == null) 
-                                                "Please select a property" 
-                                            else 
-                                                "No maintenance requests found",
+                                            text = when {
+                                                selectedProperty == null -> "Please select a property"
+                                                else -> "No ${tabToStatus[selectedTab]?.lowercase()} maintenance requests"
+                                            },
                                             style = MaterialTheme.typography.bodyLarge,
                                             textAlign = TextAlign.Center,
                                         )
@@ -443,6 +465,21 @@ fun MaintenanceListScreen(
                                 )
                             }
                         }
+                    }
+                }
+
+                // Show status message for non-active properties
+                if (selectedProperty?.status == PropertyStatus.PENDING_APPROVAL) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "This property is pending approval. Maintenance requests will be available once approved.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
                 }
             }

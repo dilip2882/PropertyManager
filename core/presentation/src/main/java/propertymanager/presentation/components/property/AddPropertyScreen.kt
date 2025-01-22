@@ -273,7 +273,7 @@ fun AddPropertyScreen(
                     title = { Text("Select Building Type") },
                     text = {
                         Column {
-                            Property.Building.values().forEach { building ->
+                            Property.Building.entries.forEach { building ->
                                 TextButton(
                                     onClick = {
                                         showBuildingDialog = false

@@ -10,7 +10,9 @@ data class Property(
     val ownerId: String = "",
     val currentTenantId: String = "",
     val maintenanceRequests: List<String> = emptyList(),
-    val createdAt: Timestamp? = null,
+    val status: PropertyStatus = PropertyStatus.PENDING_APPROVAL,
+    val createdAt: Timestamp = Timestamp.now(),
+    val updatedAt: Timestamp = Timestamp.now()
 ) {
     constructor() : this(
         id = "",
@@ -18,7 +20,9 @@ data class Property(
         ownerId = "",
         currentTenantId = "",
         maintenanceRequests = emptyList(),
+        status = PropertyStatus.PENDING_APPROVAL,
         createdAt = Timestamp.now(),
+        updatedAt = Timestamp.now()
     )
 
     // property address
@@ -47,3 +51,20 @@ data class Property(
     }
 
 }
+
+enum class PropertyStatus(val label: String) {
+    ACTIVE("Active"),
+    PENDING_APPROVAL("Pending Approval"),
+    EXPIRED("Expired");
+
+    companion object {
+        fun fromString(value: String): PropertyStatus =
+            entries.firstOrNull { it.label.equals(value, ignoreCase = true) } 
+                ?: PENDING_APPROVAL
+
+        fun getAllStatuses(): List<String> = entries.map { it.label }
+    }
+}
+
+// Extension function to check if property is active
+fun Property.isActive(): Boolean = status == PropertyStatus.ACTIVE
