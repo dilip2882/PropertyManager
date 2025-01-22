@@ -1,4 +1,4 @@
-package propertymanager.presentation.components.property
+package propertymanager.presentation.components.property.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

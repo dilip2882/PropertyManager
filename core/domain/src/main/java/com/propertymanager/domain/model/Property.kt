@@ -55,16 +55,14 @@ data class Property(
 enum class PropertyStatus(val label: String) {
     ACTIVE("Active"),
     PENDING_APPROVAL("Pending Approval"),
+    REJECTED("Rejected"),
     EXPIRED("Expired");
 
     companion object {
         fun fromString(value: String): PropertyStatus =
             entries.firstOrNull { it.label.equals(value, ignoreCase = true) } 
                 ?: PENDING_APPROVAL
-
-        fun getAllStatuses(): List<String> = entries.map { it.label }
     }
 }
 
-// Extension function to check if property is active
 fun Property.isActive(): Boolean = status == PropertyStatus.ACTIVE

@@ -183,5 +183,15 @@ class PropertyRepositoryImpl @Inject constructor(
         )
         propertyCollection.document(propertyId).set(addressMap, SetOptions.merge()).await()
     }
+
+    override suspend fun updatePropertyStatus(propertyId: String, status: PropertyStatus) {
+        try {
+            propertyCollection.document(propertyId)
+                .update("status", status.label)
+                .await()
+        } catch (e: Exception) {
+            throw Exception("Failed to update property status: ${e.message}")
+        }
+    }
 }
 

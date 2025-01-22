@@ -24,17 +24,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -63,9 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
-import com.propertymanager.domain.model.RequestStatus
-import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.model.PropertyStatus
+import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.isActive
 import kotlinx.coroutines.launch
 import propertymanager.feature.tenant.support.components.MaintenancePostCard
@@ -101,7 +96,7 @@ fun MaintenanceListScreen(
         mapOf(
             0 to RequestStatus.PENDING.label,
             1 to RequestStatus.IN_PROGRESS.label,
-            2 to RequestStatus.COMPLETED.label
+            2 to RequestStatus.COMPLETED.label,
         )
     }
 
@@ -117,11 +112,12 @@ fun MaintenanceListScreen(
                 }
                 // filter by status
                 Response.Success(
-                    propertyFiltered.filter { 
+                    propertyFiltered.filter {
                         it.status == tabToStatus[selectedTab]
-                    }
+                    },
                 )
             }
+
             else -> maintenanceRequests
         }
     }
@@ -213,18 +209,6 @@ fun MaintenanceListScreen(
                             }
                         },
                         actions = {
-                            // Search Icon
-                            IconButton(onClick = { /* Handle search */ }) {
-                                Icon(Icons.Default.Search, "Search")
-                            }
-                            // Notification Icon
-                            IconButton(onClick = { /* Handle notifications */ }) {
-                                Icon(Icons.Default.Notifications, "Notifications")
-                            }
-                            // Chat Icon
-                            IconButton(onClick = { /* Handle chat */ }) {
-                                Icon(Icons.AutoMirrored.Filled.Chat, "Chat")
-                            }
                             // Profile Icon
                             Box(
                                 modifier = Modifier
@@ -266,7 +250,7 @@ fun MaintenanceListScreen(
                 if (selectedProperty?.isActive() == true) {
                     FloatingActionButton(
                         onClick = onNavigateToMaintenanceRequest,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Create Maintenance Request")
                     }
@@ -472,13 +456,13 @@ fun MaintenanceListScreen(
                 if (selectedProperty?.status == PropertyStatus.PENDING_APPROVAL) {
                     Surface(
                         color = MaterialTheme.colorScheme.errorContainer,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
                             text = "This property is pending approval. Maintenance requests will be available once approved.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
                 }

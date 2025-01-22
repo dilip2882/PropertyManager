@@ -1,6 +1,5 @@
-package propertymanager.presentation.components.property
+package propertymanager.presentation.components.property.components
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,15 +16,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.propertymanager.domain.model.location.Flat
 import com.propertymanager.domain.model.Property
 import propertymanager.presentation.components.location.LocationEvent
-import propertymanager.presentation.components.location.LocationState
 import propertymanager.presentation.components.location.LocationViewModel
-import propertymanager.presentation.components.location.UiEvent
-import propertymanager.presentation.screens.LoadingScreen
 import propertymanager.presentation.components.property.PropertyViewModel
 
 @Composable

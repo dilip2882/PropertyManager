@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.MaintenanceRequest
+import com.propertymanager.domain.model.Property
+import com.propertymanager.domain.model.PropertyStatus
 import com.propertymanager.domain.model.WorkerDetails
 import com.propertymanager.domain.usecase.StaffUseCases
+import com.propertymanager.domain.repository.PropertyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class StaffViewModel @Inject constructor(
     private val staffUseCases: StaffUseCases,
+    private val propertyRepository: PropertyRepository
 ) : ViewModel() {
 
     private val _assignedRequests = MutableStateFlow<Response<List<MaintenanceRequest>>>(Response.Loading)
@@ -33,6 +37,9 @@ class StaffViewModel @Inject constructor(
 
     private val _updateNotesResponse = MutableStateFlow<Response<Boolean>?>(null)
     val updateNotesResponse: StateFlow<Response<Boolean>?> = _updateNotesResponse.asStateFlow()
+
+    private val _properties = MutableStateFlow<List<Property>>(emptyList())
+    val properties = _properties.asStateFlow()
 
     fun fetchAssignedRequests(staffId: String) {
         viewModelScope.launch {
@@ -79,5 +86,13 @@ class StaffViewModel @Inject constructor(
         _updatePriorityResponse.value = null
         _assignWorkerResponse.value = null
         _updateNotesResponse.value = null
+    }
+
+    fun loadPendingProperties() {
+        viewModelScope.launch {
+            propertyRepository.getProperties().collect { properties ->
+                _properties.value = properties.filter { it.status == PropertyStatus.PENDING_APPROVAL }
+            }
+        }
     }
 }

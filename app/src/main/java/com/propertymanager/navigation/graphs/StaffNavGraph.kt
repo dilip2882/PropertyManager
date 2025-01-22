@@ -8,21 +8,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.propertymanager.bottomnav.staff.StaffScreen
-import com.propertymanager.domain.model.Property
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.staff.home.StaffHomeScreen
+import propertymanager.feature.staff.property.PropertyApproveScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 import propertymanager.feature.staff.settings.category.CategoryManagerScreen
-import propertymanager.feature.staff.settings.property.PropertyManagerScreen
+import propertymanager.presentation.components.property.PropertyManagerScreen
 import propertymanager.presentation.components.location.LocationManagerScreen
 import propertymanager.presentation.components.location.LocationScreen
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
-import propertymanager.presentation.components.property.SelectCityScreen
-import propertymanager.presentation.components.property.SelectCountryScreen
-import propertymanager.presentation.components.property.SelectSocietyScreen
-import propertymanager.presentation.components.property.SelectStateScreen
+import propertymanager.presentation.components.property.components.SelectCityScreen
+import propertymanager.presentation.components.property.components.SelectCountryScreen
+import propertymanager.presentation.components.property.components.SelectSocietyScreen
+import propertymanager.presentation.components.property.components.SelectStateScreen
 import propertymanager.presentation.components.user.EditProfileScreen
 import propertymanager.presentation.components.user.ProfileScreen
 import propertymanager.presentation.components.user.UserViewModel
@@ -30,8 +30,7 @@ import propertymanager.presentation.components.location.components.CityManagerSc
 import propertymanager.presentation.components.location.components.CountryManagerScreen
 import propertymanager.presentation.components.location.LocationManagerViewModel
 import propertymanager.presentation.components.location.components.StateManagerScreen
-import propertymanager.presentation.components.location.LocationState
-import propertymanager.presentation.components.property.SelectFlatScreen
+import propertymanager.presentation.components.property.components.SelectFlatScreen
 
 fun NavGraphBuilder.staffNavGraph(
     navController: NavHostController,
@@ -78,7 +77,7 @@ fun NavGraphBuilder.staffNavGraph(
                     navController.navigate(Dest.CategoryManagerScreen)
                 },
                 onNavigateToPropertyManager = {
-                    navController.navigate(Dest.PropertyManagerScreen)
+                    navController.navigate(Dest.PropertyApproveScreen)
                 },
                 onNavigateToLocationManager = {
                     navController.navigate(Dest.CountryManagerScreen)
@@ -89,6 +88,17 @@ fun NavGraphBuilder.staffNavGraph(
         composable<Dest.CategoryManagerScreen> {
             CategoryManagerScreen(
                 onNavigateUp = { navController.navigateUp() },
+            )
+        }
+
+        composable<Dest.PropertyApproveScreen> {
+            PropertyApproveScreen(
+                propertyId = "",
+                propertyViewModel = hiltViewModel(),
+                userViewModel = hiltViewModel(),
+                onNavigateUp = {
+                    navController.navigateUp()
+                }
             )
         }
 

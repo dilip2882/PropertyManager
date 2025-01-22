@@ -69,6 +69,27 @@ sealed interface Dest {
     @Serializable
     data object TenantSettingsScreen : Dest
 
+    // Property
+    @Serializable
+    data object PropertyManagerScreen: Dest
+    @Serializable
+    data object AddPropertyScreen: Dest
+    @Serializable
+    data class EditPropertyScreen(val propertyId: String): Dest
+    @Serializable
+    data object SelectCountryScreen: Dest
+    @Serializable
+    data object SelectStateScreen: Dest
+    @Serializable
+    data object SelectCityScreen: Dest
+    @Serializable
+    data object SelectSocietyScreen: Dest
+    @Serializable
+    data class SelectFlatScreen(
+        val parentId: Int,
+        val buildingType: Property.Building
+    ) : Dest
+
     /* ----------------- * Staff screens * ----------------- */
     @Serializable
     data object StaffHomeScreen : Dest
@@ -96,24 +117,6 @@ sealed interface Dest {
 
     // Property
     @Serializable
-    data object PropertyManagerScreen: Dest
-    @Serializable
-    data object AddPropertyScreen: Dest
-    @Serializable
-    data class EditPropertyScreen(val propertyId: String): Dest
-    @Serializable
-    data object SelectCountryScreen: Dest
-    @Serializable
-    data object SelectStateScreen: Dest
-    @Serializable
-    data object SelectCityScreen: Dest
-    @Serializable
-    data object SelectSocietyScreen: Dest
-    @Serializable
-    data class SelectFlatScreen(
-        val parentId: Int,
-        val buildingType: Property.Building
-    ) : Dest
-
+    data object PropertyApproveScreen: Dest
 }
 

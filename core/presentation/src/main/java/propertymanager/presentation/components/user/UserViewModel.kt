@@ -55,6 +55,14 @@ class UserViewModel @Inject constructor(
         }
     }
 
+    fun getUserInfo(userId: String) {
+        viewModelScope.launch {
+            userUseCases.getUserDetailsUseCases(userId).collect { response ->
+                _getUserData.value = response
+            }
+        }
+    }
+
     fun setUserInfo(user: User) {
         viewModelScope.launch {
             userUseCases.setUserDetailsUseCase(user).collect { response ->
@@ -89,7 +97,7 @@ class UserViewModel @Inject constructor(
                 viewModelScope.launch {
                     try {
                         state.value.user?.userId?.let { userId ->
-                            userRepository.updateSelectedProperty(userId, event.propertyId)
+                            userUseCases.updateSelectedProperty(userId, event.propertyId)
                         }
                     } catch (e: Exception) {
                         _state.update { it.copy(error = e.message) }
@@ -100,7 +108,7 @@ class UserViewModel @Inject constructor(
                 viewModelScope.launch {
                     try {
                         state.value.user?.userId?.let { userId ->
-                            userRepository.associateProperty(userId, event.propertyId)
+                            userUseCases.associateProperty(userId, event.propertyId)
                         }
                     } catch (e: Exception) {
                         _state.update { it.copy(error = e.message) }
@@ -112,7 +120,7 @@ class UserViewModel @Inject constructor(
 
     private fun loadCurrentUser() {
         viewModelScope.launch {
-            userRepository.getCurrentUser()
+            userUseCases.getCurrentUser()
                 .catch { e ->
                     _state.update { it.copy(error = e.message) }
                 }

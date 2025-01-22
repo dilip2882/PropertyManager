@@ -1,4 +1,4 @@
-package propertymanager.presentation.components.property
+package propertymanager.presentation.components.property.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -31,9 +31,9 @@ import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
-fun SelectStateScreen(
+fun SelectCountryScreen(
     viewModel: LocationViewModel,
-    onNavigateToCity: () -> Unit,
+    onNavigateToState: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -47,7 +47,7 @@ fun SelectStateScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                 },
-                title = { Text("Select State") },
+                title = { Text("Select Country") },
             )
         }
     ) { padding ->
@@ -56,13 +56,14 @@ fun SelectStateScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            // Search
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                placeholder = { Text("Search state") },
+                placeholder = { Text("Search country") },
                 leadingIcon = { Icon(Icons.Default.Search, "Search") }
             )
 
@@ -73,15 +74,16 @@ fun SelectStateScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(
-                        state.states.filter {
+                        state.countries.filter {
                             it.name.contains(searchQuery, ignoreCase = true)
                         }
-                    ) { stateItem ->
+                    ) { country ->
                         ListItem(
-                            headlineContent = { Text(stateItem.name) },
+                            headlineContent = { Text(country.name) },
+                            leadingContent = { Text(country.emoji) },
                             modifier = Modifier.clickable {
-                                viewModel.onEvent(LocationEvent.SelectState(stateItem))
-                                onNavigateToCity()
+                                viewModel.onEvent(LocationEvent.SelectCountry(country))
+                                onNavigateToState()
                             }
                         )
                         HorizontalDivider()
@@ -91,4 +93,3 @@ fun SelectStateScreen(
         }
     }
 }
-

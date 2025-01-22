@@ -9,23 +9,21 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.propertymanager.bottomnav.tenant.TenantBottomNavItem
 import com.propertymanager.bottomnav.tenant.TenantScreen
-import com.propertymanager.domain.model.Property
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
-import propertymanager.feature.staff.settings.property.PropertyManagerScreen
+import propertymanager.presentation.components.property.PropertyManagerScreen
 import propertymanager.feature.tenant.home.TenantHomeScreen
 import propertymanager.feature.tenant.support.MaintenanceCategoriesScreen
 import propertymanager.feature.tenant.support.MaintenanceDetailsScreen
 import propertymanager.feature.tenant.support.MaintenanceListScreen
 import propertymanager.feature.tenant.support.MaintenanceRequestScreen
-import propertymanager.presentation.components.location.LocationState
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
-import propertymanager.presentation.components.property.SelectCityScreen
-import propertymanager.presentation.components.property.SelectCountryScreen
-import propertymanager.presentation.components.property.SelectFlatScreen
-import propertymanager.presentation.components.property.SelectSocietyScreen
-import propertymanager.presentation.components.property.SelectStateScreen
+import propertymanager.presentation.components.property.components.SelectCityScreen
+import propertymanager.presentation.components.property.components.SelectCountryScreen
+import propertymanager.presentation.components.property.components.SelectFlatScreen
+import propertymanager.presentation.components.property.components.SelectSocietyScreen
+import propertymanager.presentation.components.property.components.SelectStateScreen
 
 fun NavGraphBuilder.tenantNavGraph(
     navController: NavHostController,
@@ -213,7 +211,7 @@ fun NavGraphBuilder.tenantNavGraph(
             selectedSubcategory = args.subcategory,
             onNavigateUp = { navController.navigateUp() },
             onSubmitSuccess = {
-                navController.navigate(TenantBottomNavItem.SUPPORT.route) {
+                navController.navigate(TenantBottomNavItem.HOME.route) {
                     popUpTo(Dest.MaintenanceCategoriesScreen) { inclusive = true } // Clear the previous screens
                     launchSingleTop = true
                 }

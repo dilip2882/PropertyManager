@@ -47,12 +47,12 @@ enum class TenantBottomNavItem(
         labelResId = MR.strings.tenant_home,
         route = "tenant_home",
     ),
-    SUPPORT(
-        selectedIcon = PropertyManagerIcons.Support,
-        unselectedIcon = PropertyManagerIcons.SupportBorder,
-        labelResId = MR.strings.tenant_support,
-        route = "tenant_support",
-    ),
+//    SUPPORT(
+//        selectedIcon = PropertyManagerIcons.Support,
+//        unselectedIcon = PropertyManagerIcons.SupportBorder,
+//        labelResId = MR.strings.tenant_support,
+//        route = "tenant_support",
+//    ),
     SETTINGS(
         selectedIcon = PropertyManagerIcons.Settings,
         unselectedIcon = PropertyManagerIcons.SettingsBorder,
@@ -110,7 +110,7 @@ fun TenantNavBar(
                         )
 
                         val rotation by animateFloatAsState(
-                            targetValue = if (selected && item == TenantBottomNavItem.SUPPORT && item == TenantBottomNavItem.SETTINGS) 90f else 0f,
+                            targetValue = if (selected && item == TenantBottomNavItem.SETTINGS) 90f else 0f,
                             animationSpec = tween(durationMillis = 300),
                             label = "Rotation",
                         )

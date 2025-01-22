@@ -1,5 +1,3 @@
-@file:Suppress("NAME_SHADOWING")
-
 package propertymanager.feature.tenant.support
 
 import android.net.Uri
@@ -40,7 +38,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,7 +62,6 @@ import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.model.MaintenanceRequest
 import com.propertymanager.domain.model.MediaType
 import com.propertymanager.domain.model.RequestStatus
-import com.propertymanager.domain.model.isActive
 import kotlinx.coroutines.launch
 import propertymanager.presentation.components.property.PropertyViewModel
 import propertymanager.presentation.components.user.UserViewModel
@@ -193,26 +189,14 @@ fun MaintenanceRequestScreen(
                 val categories = (categoriesResponse as Response.Success<List<Category>>).data
                 val selectedCategoryData = categories.find { it.name == currentCategory }
                 subcategories = selectedCategoryData?.subcategories ?: emptyList()
-                
+
                 // If no subcategory is selected but we have subcategories available, then selecting the first one
                 if (currentSubcategory.isEmpty() && subcategories.isNotEmpty()) {
                     currentSubcategory = subcategories.first()
                 }
             }
-            else -> {}
-        }
-    }
 
-    // Add property status check
-    LaunchedEffect(selectedProperty) {
-        if (selectedProperty?.isActive() != true) {
-            // If property is not active, navigate back
-            onNavigateUp()
-            Toast.makeText(
-                context, 
-                "Maintenance requests can only be created for approved properties", 
-                Toast.LENGTH_LONG
-            ).show()
+            else -> {}
         }
     }
 
@@ -267,9 +251,9 @@ fun MaintenanceRequestScreen(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = issueDescription,
-                        onValueChange = { 
+                        onValueChange = {
                             if (it.length <= maxDescriptionLength) {
-                                issueDescription = it 
+                                issueDescription = it
                             }
                         },
                         label = { Text("Describe your issue") },
@@ -284,7 +268,7 @@ fun MaintenanceRequestScreen(
                             { Text("Please provide a description") }
                         } else null,
                     )
-                    
+
                     Text(
                         text = "$remainingChars",
                         style = MaterialTheme.typography.bodySmall,
@@ -295,7 +279,7 @@ fun MaintenanceRequestScreen(
                         },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(end = 24.dp, bottom = 8.dp)
+                            .padding(end = 24.dp, bottom = 8.dp),
                     )
                 }
 
@@ -323,22 +307,22 @@ fun MaintenanceRequestScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             "Attach Photos (${photoUriList.size}/5)",
                             style = MaterialTheme.typography.labelLarge,
                         )
-                        
+
                         if (photoUriList.size < 5) {
                             IconButton(
                                 onClick = { launcher.launch("image/*") },
-                                enabled = photoUriList.size < 5
+                                enabled = photoUriList.size < 5,
                             ) {
                                 Icon(
                                     Icons.Default.AddAPhoto,
                                     contentDescription = "Add photos",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.primary,
                                 )
                             }
                         }
@@ -359,7 +343,7 @@ fun MaintenanceRequestScreen(
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
+                                    contentScale = ContentScale.Crop,
                                 )
 
                                 // Delete button
@@ -379,14 +363,14 @@ fun MaintenanceRequestScreen(
                                         .size(24.dp)
                                         .background(
                                             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                                            shape = CircleShape
-                                        )
+                                            shape = CircleShape,
+                                        ),
                                 ) {
                                     Icon(
                                         Icons.Default.Close,
                                         contentDescription = "Remove photo",
                                         modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.error
+                                        tint = MaterialTheme.colorScheme.error,
                                     )
                                 }
 
@@ -510,7 +494,7 @@ fun DropdownMenuField(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
     ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -523,7 +507,7 @@ fun DropdownMenuField(
                 label = { Text(label) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryEditable)
                     .fillMaxWidth(),
                 isError = isError,
             )
