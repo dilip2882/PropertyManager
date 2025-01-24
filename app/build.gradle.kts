@@ -46,10 +46,50 @@ android {
             isMinifyEnabled = true
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
+        create("benchmark") {
+            initWith(buildTypes.getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
+        }
+        create("preview") {
+            initWith(getByName("release"))
+            buildConfigField("boolean", "PREVIEW", "true")
+
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks.add("release")
+            val debugType = getByName("debug")
+            versionNameSuffix = debugType.versionNameSuffix
+            applicationIdSuffix = debugType.applicationIdSuffix
+        }
+        if (findByName("benchmark") == null) {
+            create("benchmark") {
+                initWith(getByName("release"))
+
+                signingConfig = signingConfigs.getByName("debug")
+                matchingFallbacks.add("release")
+                isDebuggable = false
+                isProfileable = true
+                versionNameSuffix = "-benchmark"
+                applicationIdSuffix = ".benchmark"
+            }
+        }
     }
 
+    sourceSets {
+        getByName("preview").res.srcDirs("src/debug/res")
+        getByName("benchmark").res.srcDirs("src/debug/res")
+    }
+
+
     buildFeatures {
+        viewBinding = true
         buildConfig = true
+
+        // Disable some unused things
+        aidl = false
+        renderScript = false
+        shaders = false
     }
 
     packaging {
@@ -101,12 +141,11 @@ dependencies {
     implementation(project(":feature:staff"))
     implementation(project(":feature:tenant"))
     implementation(project(":feature:landlord"))
-
+    implementation(project(":feature:onboarding"))
 
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.firebase.messaging.ktx)
-    implementation(project(":feature:onboarding"))
     implementation(libs.google.firebase.database.ktx)
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.firebase.auth.ktx)

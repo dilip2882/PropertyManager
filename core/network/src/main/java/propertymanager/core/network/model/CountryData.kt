@@ -12,7 +12,7 @@ data class StateData(
     val latitude: String? = null,
     val longitude: String? = null,
     val type: String? = null,
-    val cities: List<CityData> = emptyList()
+    val cities: List<CityData> = emptyList(),
 )
 
 @Serializable
@@ -20,7 +20,7 @@ data class CityData(
     val id: Int,
     val name: String,
     val latitude: String? = null,
-    val longitude: String? = null
+    val longitude: String? = null,
 )
 
 @Serializable
@@ -52,7 +52,7 @@ data class CountryData(
     val longitude: String? = null,
     val emoji: String? = null,
     val emojiU: String? = null,
-    val states: List<StateData> = emptyList()
+    val states: List<StateData> = emptyList(),
 )
 
 @Serializable
@@ -61,5 +61,5 @@ data class TimezoneData(
     val gmtOffset: Int,
     val gmtOffsetName: String,
     val abbreviation: String,
-    val tzName: String
+    val tzName: String,
 )

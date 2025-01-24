@@ -3,7 +3,8 @@ plugins {
     kotlin("android")
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
-    kotlin("plugin.serialization")}
+    kotlin("plugin.serialization")
+}
 
 android {
     namespace = "com.propertymanager.network"

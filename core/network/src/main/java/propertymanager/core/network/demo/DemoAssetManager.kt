@@ -9,7 +9,7 @@ fun interface DemoAssetManager {
 }
 
 class DemoAssetManagerImpl @Inject constructor(
-    private val context: Context
+    private val context: Context,
 ) : DemoAssetManager {
 
     override fun open(fileName: String): InputStream {

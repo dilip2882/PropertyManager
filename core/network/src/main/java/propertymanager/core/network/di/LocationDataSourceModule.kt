@@ -37,7 +37,7 @@ object LocationDataSourceModule {
     fun provideLocationDataSource(
         @Dispatcher(PropertyManagerDispatchers.IO) ioDispatcher: CoroutineDispatcher,
         networkJson: Json,
-        assets: DemoAssetManager
+        assets: DemoAssetManager,
     ): LocationDataSource {
         return DemoLocationDataSource(ioDispatcher, networkJson, assets)
     }
