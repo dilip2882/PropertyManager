@@ -372,7 +372,7 @@ fun AddPropertyScreen(
                                     else -> Property.Building.FLAT
                                 }
                             ),
-                            ownerId = Firebase.auth.currentUser?.uid ?: "",
+                            currentTenantId = Firebase.auth.currentUser?.uid ?: "",
                             createdAt = Timestamp.now()
                         )
 

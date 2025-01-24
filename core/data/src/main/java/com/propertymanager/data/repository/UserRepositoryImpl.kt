@@ -84,7 +84,16 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getUserById(userId: String): User? {
-        TODO("Not yet implemented")
+        return try {
+            firestore.collection(COLLECTION_NAME_USERS)
+                .document(userId)
+                .get()
+                .await()
+                .toObject(User::class.java)?.copy(userId = userId)
+        } catch (e: Exception) {
+            println("DEBUG: Error fetching user by ID: ${e.message}")
+            null
+        }
     }
 
     override suspend fun updateSelectedProperty(userId: String, propertyId: String?) {

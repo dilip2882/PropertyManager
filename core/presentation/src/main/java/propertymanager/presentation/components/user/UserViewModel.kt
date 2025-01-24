@@ -11,12 +11,14 @@ import com.propertymanager.domain.model.User
 import com.propertymanager.domain.repository.UserRepository
 import com.propertymanager.domain.usecase.UserUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -42,7 +44,7 @@ class UserViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        loadCurrentUser()
+        getCurrentUser()
     }
 
     fun getUserInfo(){
@@ -118,7 +120,7 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    private fun loadCurrentUser() {
+    private fun getCurrentUser() {
         viewModelScope.launch {
             userUseCases.getCurrentUser()
                 .catch { e ->
@@ -129,6 +131,16 @@ class UserViewModel @Inject constructor(
                 }
         }
     }
+
+    fun getUserById(userId: String): Flow<User?> = flow {
+        try {
+            val user = userRepository.getUserById(userId)
+            emit(user)
+        } catch (e: Exception) {
+            println("DEBUG: Error fetching user: ${e.message}")
+            emit(null)
+        }
+    }.flowOn(Dispatchers.IO)
 }
 
 data class UserState(

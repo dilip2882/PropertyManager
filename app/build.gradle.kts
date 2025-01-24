@@ -1,3 +1,5 @@
+import propertymanager.buildlogic.getCommitCount
+
 plugins {
     id("propertymanager.android.application")
     id("propertymanager.android.application.compose")
@@ -19,13 +21,30 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions.add("version")
+    productFlavors {
+        create("tenanat") {
+            dimension = "version"
+            applicationIdSuffix = ".tenant"
+            versionNameSuffix = "-tenant"
+        }
+        create("staff") {
+            dimension = "version"
+            applicationIdSuffix = ".staff"
+            versionNameSuffix = ""
+        }
+    }
+
     buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+        named("debug") {
+            versionNameSuffix = "-${getCommitCount()}"
+//            applicationIdSuffix = ".debug"
+            isPseudoLocalesEnabled = true
+        }
+        named("release") {
+            isShrinkResources = true
+            isMinifyEnabled = true
+            proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
     }
 

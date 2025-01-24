@@ -2,7 +2,6 @@ package propertymanager.feature.staff.property
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,26 +9,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,263 +37,236 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.propertymanager.common.utils.Response
+import com.propertymanager.domain.model.Property
 import com.propertymanager.domain.model.PropertyStatus
-import com.propertymanager.domain.model.formatDate
 import propertymanager.presentation.components.property.PropertyViewModel
 import propertymanager.presentation.components.user.UserViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertyApproveScreen(
-    propertyId: String,
-    onNavigateUp: () -> Unit,
-    propertyViewModel: PropertyViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit,
+    viewModel: PropertyViewModel = hiltViewModel(),
 ) {
-    val property by propertyViewModel.property.collectAsState()
-    var showStatusDialog by remember { mutableStateOf(false) }
-    var selectedStatus by remember { mutableStateOf<PropertyStatus?>(null) }
-
-    LaunchedEffect(Unit) {
-//        propertyViewModel.getPropertyById(propertyId)
-        propertyViewModel.loadProperties()
-    }
-
-    // Fetch tenant details when property is loaded
-    LaunchedEffect(property) {
-        property?.currentTenantId?.let { tenantId ->
-            userViewModel.getUserInfo(tenantId)
-        }
-    }
-
-    val tenantDetails by userViewModel.getUserData.collectAsState()
+    val properties by viewModel.getAllProperties().collectAsState(initial = emptyList())
+    var searchQuery by remember { mutableStateOf("") }
+    var showStatusSheet by remember { mutableStateOf<Property?>(null) }
+    val bottomSheetState = rememberModalBottomSheetState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Property Approval") },
+                title = { Text("Property Approvals") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                },
-                actions = {
-                    TextButton(
-                        onClick = { showStatusDialog = true },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
-                    ) {
-                        Text("Change Status")
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
                     }
                 },
             )
         },
     ) { padding ->
-        when {
-            property == null || tenantDetails is Response.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                placeholder = { Text("Search properties") },
+                leadingIcon = { Icon(Icons.Default.Search, "Search") },
+                singleLine = true,
+            )
 
-            tenantDetails is Response.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = (tenantDetails as Response.Error).message,
-                        color = MaterialTheme.colorScheme.error,
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(
+                    properties.filter {
+                        val searchText = with(it.address) {
+                            "${flatNo}, ${society}"
+                        }
+                        searchText.contains(searchQuery, ignoreCase = true)
+                    },
+                ) { property ->
+                    PropertyApprovalItem(
+                        property = property,
+                        onStatusChange = { showStatusSheet = property },
                     )
-                }
-            }
-
-            else -> {
-                val tenant = (tenantDetails as? Response.Success)?.data
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    // Status Card
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = when (property?.status) {
-                                PropertyStatus.ACTIVE -> MaterialTheme.colorScheme.primaryContainer
-                                PropertyStatus.PENDING_APPROVAL -> MaterialTheme.colorScheme.tertiaryContainer
-                                PropertyStatus.REJECTED -> MaterialTheme.colorScheme.errorContainer
-                                PropertyStatus.EXPIRED -> MaterialTheme.colorScheme.surfaceVariant
-                                null -> MaterialTheme.colorScheme.surface
-                            },
-                        ),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text(
-                                text = property?.status?.label ?: "",
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                            Text(
-                                text = "Request created on ${property?.createdAt?.toDate()?.formatDate()}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                        }
-                    }
-
-                    // Property Details
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Property Details",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            DetailRow(
-                                label = "Flat/Villa No",
-                                value = "${property?.address?.flatNo}",
-                            )
-                            DetailRow(
-                                label = "Society",
-                                value = "${property?.address?.society}",
-                            )
-                            DetailRow(
-                                label = "City",
-                                value = "${property?.address?.city}",
-                            )
-                            DetailRow(
-                                label = "State",
-                                value = "${property?.address?.state}",
-                            )
-                        }
-                    }
-
-                    // Tenant Details
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Tenant Details",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            DetailRow(
-                                label = "Name",
-                                value = tenant?.name ?: "N/A",
-                            )
-                            DetailRow(
-                                label = "Email",
-                                value = tenant?.email ?: "N/A",
-                            )
-                            DetailRow(
-                                label = "Phone",
-                                value = tenant?.phone ?: "N/A",
-                            )
-                        }
-                    }
+                    HorizontalDivider()
                 }
             }
         }
-    }
 
-    // Status Change Dialog
-    if (showStatusDialog) {
-        AlertDialog(
-            onDismissRequest = { showStatusDialog = false },
-            title = { Text("Change Property Status") },
-            text = {
-                Column {
-                    PropertyStatus.entries.forEach { status ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { selectedStatus = status }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(
-                                selected = selectedStatus == status,
-                                onClick = { selectedStatus = status },
-                            )
-                            Text(
-                                text = status.label,
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
+        // Bottom Sheet
+        showStatusSheet?.let { property ->
+            ModalBottomSheet(
+                onDismissRequest = { showStatusSheet = null },
+                sheetState = bottomSheetState,
+            ) {
+                PropertyStatusBottomSheet(
+                    currentStatus = property.status,
+                    onStatusSelected = { newStatus ->
+                        viewModel.updatePropertyStatus(property.id, newStatus)
+                        showStatusSheet = null
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PropertyApprovalItem(
+    property: Property,
+    onStatusChange: () -> Unit,
+    userViewModel: UserViewModel = hiltViewModel(),
+) {
+    val ownerState by userViewModel.getUserById(property.ownerId).collectAsState(initial = null)
+    val tenantState by userViewModel.getUserById(property.currentTenantId).collectAsState(initial = null)
+
+    ListItem(
+        headlineContent = {
+            Text(
+                text = with(property.address) {
+                    buildString {
+                        append(flatNo)
+                        if (building != null) {
+                            append(", $building")
                         }
                     }
+                },
+                style = MaterialTheme.typography.titleMedium,
+            )
+        },
+        supportingContent = {
+            Column {
+                Text(
+                    text = property.address.society,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                // Owner name
+                ownerState?.let { owner ->
+                    Text(
+                        text = "Tenant: ${owner.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        selectedStatus?.let { status ->
-                            propertyViewModel.updatePropertyStatus(propertyId, status)
-                            showStatusDialog = false
-                        }
-                    },
+                // Current Tenant name
+                tenantState?.let { tenant ->
+                    Text(
+                        text = "Current Tenant: ${tenant.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Confirm")
+                    StatusChip(status = property.status)
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showStatusDialog = false }) {
-                    Text("Cancel")
-                }
-            },
+            }
+        },
+        trailingContent = {
+            IconButton(onClick = onStatusChange) {
+                Icon(Icons.Default.Edit, "Change Status")
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onStatusChange),
+    )
+}
+
+@Composable
+private fun StatusChip(status: PropertyStatus) {
+    val (backgroundColor, contentColor) = when (status) {
+        PropertyStatus.PENDING_APPROVAL -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+        PropertyStatus.ACTIVE -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+        PropertyStatus.REJECTED -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+        PropertyStatus.EXPIRED -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+    }
+
+    Surface(
+        color = backgroundColor,
+        contentColor = contentColor,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.padding(end = 8.dp),
+    ) {
+        Text(
+            text = status.name,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
         )
     }
 }
 
 @Composable
-private fun DetailRow(
-    label: String,
-    value: String,
+private fun PropertyStatusBottomSheet(
+    currentStatus: PropertyStatus,
+    onStatusSelected: (PropertyStatus) -> Unit,
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(16.dp),
     ) {
         Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Change Status",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 16.dp),
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+
+        PropertyStatus.entries.forEach { status ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onStatusSelected(status) }
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(
+                    selected = status == currentStatus,
+                    onClick = { onStatusSelected(status) },
+                )
+
+                Column {
+                    Text(
+                        text = status.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = getStatusDescription(status),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (status != PropertyStatus.entries.last()) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+        }
+    }
+}
+
+private fun getStatusDescription(status: PropertyStatus): String {
+    return when (status) {
+        PropertyStatus.PENDING_APPROVAL -> "Property is waiting for approval"
+        PropertyStatus.ACTIVE -> "Property will be approved"
+        PropertyStatus.REJECTED -> "Property will be rejected"
+        PropertyStatus.EXPIRED -> "Property will expire"
     }
 }
 

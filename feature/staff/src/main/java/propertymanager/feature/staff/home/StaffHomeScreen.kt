@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,7 +33,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -65,96 +70,173 @@ import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.WorkerDetails
 import com.propertymanager.domain.model.formatDate
-import propertymanager.feature.staff.settings.StaffViewModel
+import propertymanager.feature.staff.StaffViewModel
 import propertymanager.presentation.components.user.UserViewModel
+import androidx.compose.material3.rememberModalBottomSheetState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StaffHomeScreen(
     staffId: String,
+    viewModel: StaffViewModel = hiltViewModel(),
+    filterViewModel: MaintenanceFilterViewModel = hiltViewModel()
 ) {
-    val staffViewModel = hiltViewModel<StaffViewModel>()
+    var showFilterSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState()
 
-    val assignedRequests by staffViewModel.assignedRequests.collectAsState()
-    val updateStatusResponse by staffViewModel.updateStatusResponse.collectAsState()
-    val updatePriorityResponse by staffViewModel.updatePriorityResponse.collectAsState()
-    val assignWorkerResponse by staffViewModel.assignWorkerResponse.collectAsState()
+    val assignedRequests by viewModel.assignedRequests.collectAsState()
+    val filterState by filterViewModel.filterState.collectAsState()
+    val updateStatusResponse by viewModel.updateStatusResponse.collectAsState()
+    val updatePriorityResponse by viewModel.updatePriorityResponse.collectAsState()
+    val assignWorkerResponse by viewModel.assignWorkerResponse.collectAsState()
     val context = LocalContext.current
 
     var showWorkerDialog by remember { mutableStateOf(false) }
     var selectedRequest by remember { mutableStateOf<MaintenanceRequest?>(null) }
 
     LaunchedEffect(Unit) {
-        staffViewModel.fetchAssignedRequests(staffId)
+        viewModel.fetchAssignedRequests(staffId)
     }
 
     LaunchedEffect(updateStatusResponse, updatePriorityResponse, assignWorkerResponse) {
         when {
             updateStatusResponse is Response.Success -> {
                 Toast.makeText(context, "Status updated successfully", Toast.LENGTH_SHORT).show()
-                staffViewModel.resetResponses()
+                viewModel.resetResponses()
             }
 
             updatePriorityResponse is Response.Success -> {
                 Toast.makeText(context, "Priority updated successfully", Toast.LENGTH_SHORT).show()
-                staffViewModel.resetResponses()
+                viewModel.resetResponses()
             }
 
             assignWorkerResponse is Response.Success -> {
                 Toast.makeText(context, "Worker assigned successfully", Toast.LENGTH_SHORT).show()
-                staffViewModel.resetResponses()
+                viewModel.resetResponses()
             }
         }
+    }
+
+    // Filter and sort the requests based on filterState
+    val filteredRequests = when (assignedRequests) {
+        is Response.Success -> {
+            var requests = (assignedRequests as Response.Success<List<MaintenanceRequest>>).data
+
+            // Apply status filters
+            if (filterState.selectedStatuses.isNotEmpty()) {
+                requests = requests.filter { request ->
+                    filterState.selectedStatuses.contains(request.status)
+                }
+            }
+
+            // Apply priority filters
+            if (filterState.selectedPriorities.isNotEmpty()) {
+                requests = requests.filter { request ->
+                    filterState.selectedPriorities.contains(request.priority)
+                }
+            }
+
+            // Apply sorting
+            requests = when (filterState.sortBy) {
+                SortOption.ALPHABETICAL -> requests.sortedBy { it.issueDescription }
+                SortOption.DATE_ADDED -> requests.sortedBy { it.createdAt }
+                SortOption.LAST_UPDATED -> requests.sortedBy { it.updatedAt }
+            }
+
+            // Apply sort direction
+            if (!filterState.isAscending) {
+                requests = requests.reversed()
+            }
+
+            Response.Success(requests)
+        }
+        is Response.Loading -> Response.Loading
+        is Response.Error -> assignedRequests
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Staff Dashboard") },
+                actions = {
+                    IconButton(onClick = { showFilterSheet = true }) {
+                        Icon(Icons.Default.FilterList, "Filter")
+                    }
+                }
             )
-        },
+        }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            when (val requests = assignedRequests) {
+            when (filteredRequests) {
                 is Response.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .fillMaxSize()
-                            .wrapContentSize(Alignment.Center),
+                            .wrapContentSize(Alignment.Center)
                     )
                 }
-
                 is Response.Success -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                    ) {
-                        items(requests.data) { request ->
-                            StaffMaintenanceCard(
-                                request = request,
-                                onStatusChange = { newStatus ->
-                                    staffViewModel.updateRequestStatus(request.maintenanceRequestsId!!, newStatus)
-                                },
-                                onPriorityChange = { newPriority ->
-                                    staffViewModel.updateRequestPriority(request.maintenanceRequestsId!!, newPriority)
-                                },
-                                onAssignWorker = {
-                                    selectedRequest = request
-                                    showWorkerDialog = true
-                                },
+                    if (filteredRequests.data.isEmpty()) {
+                        // Show empty state
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "No maintenance requests found",
+                                style = MaterialTheme.typography.titleMedium
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            if (filterState.selectedStatuses.isNotEmpty() || 
+                                filterState.selectedPriorities.isNotEmpty()
+                            ) {
+                                Text(
+                                    text = "Try adjusting your filters",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            items(filteredRequests.data) { request ->
+                                StaffMaintenanceCard(
+                                    request = request,
+                                    onStatusChange = { newStatus ->
+                                        viewModel.updateRequestStatus(
+                                            request.maintenanceRequestsId!!, 
+                                            newStatus
+                                        )
+                                    },
+                                    onPriorityChange = { newPriority ->
+                                        viewModel.updateRequestPriority(
+                                            request.maintenanceRequestsId!!, 
+                                            newPriority
+                                        )
+                                    },
+                                    onAssignWorker = {
+                                        selectedRequest = request
+                                        showWorkerDialog = true
+                                    },
+                                    userViewModel = hiltViewModel()
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
                     }
                 }
-
                 is Response.Error -> {
                     Text(
-                        text = requests.message,
+                        text = filteredRequests.message,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .fillMaxSize()
-                            .wrapContentSize(Alignment.Center),
+                            .wrapContentSize(Alignment.Center)
                     )
                 }
             }
@@ -164,10 +246,20 @@ fun StaffHomeScreen(
                     currentWorker = selectedRequest!!.workerDetails,
                     onDismiss = { showWorkerDialog = false },
                     onAssign = { workerDetails ->
-                        staffViewModel.assignWorker(selectedRequest!!.maintenanceRequestsId!!, workerDetails)
+                        viewModel.assignWorker(selectedRequest!!.maintenanceRequestsId!!, workerDetails)
                         showWorkerDialog = false
                     },
                 )
+            }
+
+            if (showFilterSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showFilterSheet = false },
+                    sheetState = bottomSheetState
+                ) {
+                    MaintenanceFilters()
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
     }
@@ -194,6 +286,7 @@ fun StaffMaintenanceCard(
                 is Response.Error -> {
                     Log.e("StaffMaintenanceCard", "Error fetching tenant: ${response.message}")
                 }
+
                 is Response.Loading -> {
                 }
             }
@@ -275,7 +368,7 @@ fun StaffMaintenanceCard(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
                     },
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
                 )
 
                 ExposedDropdownMenu(
@@ -309,7 +402,7 @@ fun StaffMaintenanceCard(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityExpanded)
                     },
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
                 )
 
                 ExposedDropdownMenu(

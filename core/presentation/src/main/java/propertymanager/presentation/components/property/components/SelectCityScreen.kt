@@ -30,10 +30,17 @@ import propertymanager.presentation.components.location.LocationEvent
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.screens.LoadingScreen
 
+enum class SelectCityMode {
+    ADD_PROPERTY,
+    SELECT_PROPERTY
+}
+
 @Composable
 fun SelectCityScreen(
     viewModel: LocationViewModel,
+    mode: SelectCityMode = SelectCityMode.ADD_PROPERTY,
     onNavigateToAddProperty: () -> Unit,
+    onNavigateToPropertyList: (String) -> Unit = {},
     onNavigateBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
@@ -81,7 +88,10 @@ fun SelectCityScreen(
                             headlineContent = { Text(city.name) },
                             modifier = Modifier.clickable {
                                 viewModel.onEvent(LocationEvent.SelectCity(city))
-                                onNavigateToAddProperty()
+                                when (mode) {
+                                    SelectCityMode.ADD_PROPERTY -> onNavigateToAddProperty()
+                                    SelectCityMode.SELECT_PROPERTY -> onNavigateToPropertyList(city.id.toString())
+                                }
                             },
                         )
                         HorizontalDivider()

@@ -1,5 +1,6 @@
 package com.propertymanager.navigation.graphs
 
+import CityPropertiesScreen
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -7,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.propertymanager.bottomnav.staff.StaffBottomNavItem
 import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
@@ -31,6 +33,8 @@ import propertymanager.presentation.components.location.components.CountryManage
 import propertymanager.presentation.components.location.LocationManagerViewModel
 import propertymanager.presentation.components.location.components.StateManagerScreen
 import propertymanager.presentation.components.property.components.SelectFlatScreen
+import propertymanager.presentation.components.property.components.SelectCityMode
+import propertymanager.presentation.components.user.UserEvent
 
 fun NavGraphBuilder.staffNavGraph(
     navController: NavHostController,
@@ -93,10 +97,8 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.PropertyApproveScreen> {
             PropertyApproveScreen(
-                propertyId = "",
-                propertyViewModel = hiltViewModel(),
-                userViewModel = hiltViewModel(),
-                onNavigateUp = {
+                viewModel = hiltViewModel(),
+                onNavigateBack = {
                     navController.navigateUp()
                 }
             )
@@ -128,7 +130,7 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.SelectCountryScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+                remember { navController.getBackStackEntry(StaffBottomNavItem.HOME.route) }
             )
             SelectCountryScreen(
                 viewModel = sharedViewModel,
@@ -141,7 +143,7 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.SelectStateScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+                remember { navController.getBackStackEntry(StaffBottomNavItem.HOME.route) }
             )
             SelectStateScreen(
                 viewModel = sharedViewModel,
@@ -154,12 +156,16 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.SelectCityScreen> {
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+                remember { navController.getBackStackEntry(StaffBottomNavItem.HOME.route) }
             )
             SelectCityScreen(
                 viewModel = sharedViewModel,
+                mode = SelectCityMode.SELECT_PROPERTY,
                 onNavigateToAddProperty = {
                     navController.navigate(Dest.AddPropertyScreen)
+                },
+                onNavigateToPropertyList = { cityId ->
+                    navController.navigate(Dest.CityPropertiesScreen(cityId.toInt()))
                 },
                 onNavigateBack = { navController.navigateUp() },
             )
@@ -167,7 +173,7 @@ fun NavGraphBuilder.staffNavGraph(
 
         composable<Dest.SelectFlatScreen> { backStackEntry ->
             val sharedViewModel: LocationViewModel = hiltViewModel(
-                remember { navController.getBackStackEntry(Dest.PropertyManagerScreen) }
+                remember { navController.getBackStackEntry(Dest.StaffHomeScreen) }
             )
             val args = backStackEntry.toRoute<Dest.SelectFlatScreen>()
             SelectFlatScreen(
@@ -273,6 +279,20 @@ fun NavGraphBuilder.staffNavGraph(
                 locationViewModel = hiltViewModel<LocationViewModel>(),
                 locationManagerViewModel = hiltViewModel<LocationManagerViewModel>(),
                 onNavigateBack = { navController.navigateUp() },
+            )
+        }
+
+        composable<Dest.CityPropertiesScreen> { backStackEntry ->
+            val args = backStackEntry.toRoute<Dest.CityPropertiesScreen>()
+            val userViewModel = hiltViewModel<UserViewModel>()
+            println("DEBUG: Navigating to CityPropertiesScreen with cityId: ${args.cityId}")  // Debug log
+            CityPropertiesScreen(
+                cityId = args.cityId,
+                onPropertySelected = { propertyId ->
+                    userViewModel.onEvent(UserEvent.SelectProperty(propertyId))
+                    navController.navigateUp()
+                },
+                onNavigateBack = { navController.navigateUp() }
             )
         }
 

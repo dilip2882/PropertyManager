@@ -89,6 +89,8 @@ sealed interface Dest {
         val parentId: Int,
         val buildingType: Property.Building
     ) : Dest
+    @Serializable
+    data class CityPropertiesScreen(val cityId: Int): Dest
 
     /* ----------------- * Staff screens * ----------------- */
     @Serializable
