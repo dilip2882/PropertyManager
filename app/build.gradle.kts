@@ -46,12 +46,6 @@ android {
             isMinifyEnabled = true
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
-        create("benchmark") {
-            initWith(buildTypes.getByName("release"))
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks += listOf("release")
-            isDebuggable = false
-        }
         create("preview") {
             initWith(getByName("release"))
             buildConfigField("boolean", "PREVIEW", "true")
@@ -62,17 +56,15 @@ android {
             versionNameSuffix = debugType.versionNameSuffix
             applicationIdSuffix = debugType.applicationIdSuffix
         }
-        if (findByName("benchmark") == null) {
-            create("benchmark") {
-                initWith(getByName("release"))
+        create("benchmark") {
+            initWith(getByName("release"))
 
-                signingConfig = signingConfigs.getByName("debug")
-                matchingFallbacks.add("release")
-                isDebuggable = false
-                isProfileable = true
-                versionNameSuffix = "-benchmark"
-                applicationIdSuffix = ".benchmark"
-            }
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks.add("release")
+            isDebuggable = false
+            isProfileable = true
+            versionNameSuffix = "-benchmark"
+            applicationIdSuffix = ".benchmark"
         }
     }
 
@@ -80,7 +72,6 @@ android {
         getByName("preview").res.srcDirs("src/debug/res")
         getByName("benchmark").res.srcDirs("src/debug/res")
     }
-
 
     buildFeatures {
         viewBinding = true
