@@ -94,7 +94,11 @@ sealed interface Dest {
 
     /* ----------------- * Staff screens * ----------------- */
     @Serializable
-    data object StaffHomeScreen : Dest
+    data object StaffFlatScreen: Dest
+    @Serializable
+    data class StaffHomeScreen(val propertyId: String): Dest {
+        fun createRoute(propertyId: String) = "staff/home/$propertyId"
+    }
     @Serializable
     data object StaffSettingsScreen : Dest
 
@@ -121,4 +125,3 @@ sealed interface Dest {
     @Serializable
     data object PropertyApproveScreen: Dest
 }
-

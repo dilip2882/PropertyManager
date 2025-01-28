@@ -19,10 +19,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.graphs.staffNavGraph
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
+import propertymanager.feature.staff.StaffFlatScreen
 import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
 import propertymanager.presentation.components.location.LocationViewModel
@@ -74,8 +76,12 @@ fun StaffScreen(
             modifier = Modifier.padding(paddingValues),
         ) {
             composable(StaffBottomNavItem.HOME.route) {
-                StaffHomeScreen(
-                    staffId = "",
+                StaffFlatScreen(
+                    propertyViewModel = hiltViewModel(),
+                    locationViewModel = hiltViewModel(),
+                    onNavigateToHome = { property ->
+                        navController.navigate(Dest.StaffHomeScreen(property.id))
+                    }
                 )
             }
 
@@ -85,7 +91,7 @@ fun StaffScreen(
                         navController.navigate(Dest.EditProfileScreen)
                     },
                     onNavigateToRoles = {
-
+                        navController.navigate(Dest.StaffFlatScreen)
                     },
                     onNavigateToCategoryManager = {
                         navController.navigate(Dest.CategoryManagerScreen)

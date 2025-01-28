@@ -95,7 +95,7 @@ fun MaintenanceFilters(
         ) {
             Box(
                 modifier = Modifier
-                    .width(80.dp)
+                    .width(60.dp)
                     .height(2.dp)
                     .background(MaterialTheme.colorScheme.primary)
                     .align(when (filterState.selectedTab) {

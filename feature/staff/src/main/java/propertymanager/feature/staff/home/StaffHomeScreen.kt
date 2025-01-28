@@ -78,6 +78,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 @Composable
 fun StaffHomeScreen(
     staffId: String,
+    propertyId: String,
     viewModel: StaffViewModel = hiltViewModel(),
     filterViewModel: MaintenanceFilterViewModel = hiltViewModel()
 ) {
@@ -96,6 +97,15 @@ fun StaffHomeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.fetchAssignedRequests(staffId)
+    }
+
+    LaunchedEffect(assignedRequests) {
+        if (assignedRequests is Response.Success) {
+            // Filter requests for the selected property
+            val filteredRequests = (assignedRequests as Response.Success<List<MaintenanceRequest>>).data
+                .filter { it.propertyId == propertyId }
+            viewModel.updateFilteredRequests(filteredRequests)
+        }
     }
 
     LaunchedEffect(updateStatusResponse, updatePriorityResponse, assignWorkerResponse) {
@@ -122,28 +132,28 @@ fun StaffHomeScreen(
         is Response.Success -> {
             var requests = (assignedRequests as Response.Success<List<MaintenanceRequest>>).data
 
-            // Apply status filters
+            // status filters
             if (filterState.selectedStatuses.isNotEmpty()) {
                 requests = requests.filter { request ->
                     filterState.selectedStatuses.contains(request.status)
                 }
             }
 
-            // Apply priority filters
+            // priority filters
             if (filterState.selectedPriorities.isNotEmpty()) {
                 requests = requests.filter { request ->
                     filterState.selectedPriorities.contains(request.priority)
                 }
             }
 
-            // Apply sorting
+            // sorting
             requests = when (filterState.sortBy) {
                 SortOption.ALPHABETICAL -> requests.sortedBy { it.issueDescription }
                 SortOption.DATE_ADDED -> requests.sortedBy { it.createdAt }
                 SortOption.LAST_UPDATED -> requests.sortedBy { it.updatedAt }
             }
 
-            // Apply sort direction
+            // sort direction
             if (!filterState.isAscending) {
                 requests = requests.reversed()
             }
@@ -157,7 +167,7 @@ fun StaffHomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Staff Dashboard") },
+                title = { Text("Maintenance requests") },
                 actions = {
                     IconButton(onClick = { showFilterSheet = true }) {
                         Icon(Icons.Default.FilterList, "Filter")
@@ -255,8 +265,9 @@ fun StaffHomeScreen(
             if (showFilterSheet) {
                 ModalBottomSheet(
                     onDismissRequest = { showFilterSheet = false },
-                    sheetState = bottomSheetState
-                ) {
+                    sheetState = bottomSheetState,
+                    dragHandle = null,
+                    ) {
                     MaintenanceFilters()
                     Spacer(modifier = Modifier.height(20.dp))
                 }

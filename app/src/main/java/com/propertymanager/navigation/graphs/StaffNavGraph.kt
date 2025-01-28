@@ -12,6 +12,7 @@ import com.propertymanager.bottomnav.staff.StaffBottomNavItem
 import com.propertymanager.bottomnav.staff.StaffScreen
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
+import propertymanager.feature.staff.StaffFlatScreen
 import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.property.PropertyApproveScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
@@ -45,9 +46,21 @@ fun NavGraphBuilder.staffNavGraph(
             StaffScreen()
         }
 
-        composable<Dest.StaffHomeScreen> {
+        composable<Dest.StaffFlatScreen> {
+            StaffFlatScreen(
+                propertyViewModel = hiltViewModel(),
+                locationViewModel = hiltViewModel(),
+                onNavigateToHome = { property ->
+                    navController.navigate(Dest.StaffHomeScreen(property.id))
+                }
+            )
+        }
+
+        composable<Dest.StaffHomeScreen> { backStackEntry ->
+            val propertyId = backStackEntry.arguments?.getString("propertyId") ?: ""
             StaffHomeScreen(
                 staffId = "",
+                propertyId = propertyId
             )
         }
 

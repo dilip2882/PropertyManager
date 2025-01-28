@@ -26,6 +26,9 @@ class StaffViewModel @Inject constructor(
     private val _assignedRequests = MutableStateFlow<Response<List<MaintenanceRequest>>>(Response.Loading)
     val assignedRequests: StateFlow<Response<List<MaintenanceRequest>>> = _assignedRequests.asStateFlow()
 
+    private val _filteredRequests = MutableStateFlow<List<MaintenanceRequest>>(emptyList())
+    val filteredRequests: StateFlow<List<MaintenanceRequest>> = _filteredRequests.asStateFlow()
+
     private val _updateStatusResponse = MutableStateFlow<Response<Boolean>?>(null)
     val updateStatusResponse: StateFlow<Response<Boolean>?> = _updateStatusResponse.asStateFlow()
 
@@ -41,10 +44,17 @@ class StaffViewModel @Inject constructor(
     private val _properties = MutableStateFlow<List<Property>>(emptyList())
     val properties = _properties.asStateFlow()
 
+    fun updateFilteredRequests(requests: List<MaintenanceRequest>) {
+        _filteredRequests.value = requests
+    }
+
     fun fetchAssignedRequests(staffId: String) {
         viewModelScope.launch {
             staffUseCases.getAssignedRequests(staffId).collectLatest { response ->
                 _assignedRequests.value = response
+                if (response is Response.Success) {
+                    _filteredRequests.value = response.data
+                }
             }
         }
     }

@@ -49,9 +49,42 @@ class LocationViewModel @Inject constructor(
 
     fun onEvent(event: LocationEvent) {
         when (event) {
+            is LocationEvent.ResetLocations -> {
+                _state.value = state.value.copy(
+                    selectedState = null,
+                    selectedCity = null,
+                    selectedSociety = null,
+                    states = emptyList(),
+                    cities = emptyList(),
+                    societies = emptyList(),
+                    flats = emptyList()
+                )
+            }
+            is LocationEvent.ResetFromState -> {
+                _state.value = state.value.copy(
+                    selectedCity = null,
+                    selectedSociety = null,
+                    cities = emptyList(),
+                    societies = emptyList(),
+                    flats = emptyList()
+                )
+            }
+            is LocationEvent.ResetFromCity -> {
+                _state.value = state.value.copy(
+                    selectedSociety = null,
+                    societies = emptyList(),
+                    flats = emptyList()
+                )
+            }
             is LocationEvent.SelectCountry -> {
                 _state.update { it.copy(
                     selectedCountry = event.country,
+                    selectedState = null,
+                    selectedCity = null,
+                    selectedSociety = null,
+                    selectedBlock = null,
+                    selectedTower = null,
+                    selectedFlat = null,
                     states = emptyList(),
                     cities = emptyList(),
                     societies = emptyList(),
@@ -65,6 +98,11 @@ class LocationViewModel @Inject constructor(
             is LocationEvent.SelectState -> {
                 _state.update { it.copy(
                     selectedState = event.state,
+                    selectedCity = null,
+                    selectedSociety = null,
+                    selectedBlock = null,
+                    selectedTower = null,
+                    selectedFlat = null,
                     cities = emptyList(),
                     societies = emptyList(),
                     blocks = emptyList(),
@@ -77,6 +115,10 @@ class LocationViewModel @Inject constructor(
             is LocationEvent.SelectCity -> {
                 _state.update { it.copy(
                     selectedCity = event.city,
+                    selectedSociety = null,
+                    selectedBlock = null,
+                    selectedTower = null,
+                    selectedFlat = null,
                     societies = emptyList(),
                     blocks = emptyList(),
                     towers = emptyList(),
@@ -86,18 +128,16 @@ class LocationViewModel @Inject constructor(
             }
 
             is LocationEvent.SelectSociety -> {
-                viewModelScope.launch {
-                    _state.update { it.copy(
-                        selectedSociety = event.society,
-                        selectedBlock = null,
-                        selectedTower = null,
-                        blocks = emptyList(),
-                        towers = emptyList(),
-                        flats = emptyList()
-                    ) }
-                    // Load blocks and towers for society if needed
-                    loadBlocksAndTowersForSociety(event.society.id)
-                }
+                _state.update { it.copy(
+                    selectedSociety = event.society,
+                    selectedBlock = null,
+                    selectedTower = null,
+                    selectedFlat = null,
+                    blocks = emptyList(),
+                    towers = emptyList(),
+                    flats = emptyList()
+                ) }
+                loadFlatsForSociety(event.society.id)
             }
 
             is LocationEvent.SelectBlock -> {
@@ -284,7 +324,7 @@ class LocationViewModel @Inject constructor(
         }
     }
 
-    private fun loadStatesForCountry(countryId: Int) {
+    fun loadStatesForCountry(countryId: Int) {
         viewModelScope.launch {
             try {
                 println("DEBUG: Fetching states for country ID: $countryId")
