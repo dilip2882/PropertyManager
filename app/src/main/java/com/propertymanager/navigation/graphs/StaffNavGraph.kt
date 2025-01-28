@@ -50,6 +50,7 @@ fun NavGraphBuilder.staffNavGraph(
             StaffFlatScreen(
                 propertyViewModel = hiltViewModel(),
                 locationViewModel = hiltViewModel(),
+                staffViewModel = hiltViewModel(),
                 onNavigateToHome = { property ->
                     navController.navigate(Dest.StaffHomeScreen(property.id))
                 }
@@ -59,8 +60,9 @@ fun NavGraphBuilder.staffNavGraph(
         composable<Dest.StaffHomeScreen> { backStackEntry ->
             val propertyId = backStackEntry.arguments?.getString("propertyId") ?: ""
             StaffHomeScreen(
-                staffId = "",
-                propertyId = propertyId
+                staffId = "",  // Pass appropriate staffId
+                propertyId = propertyId,
+                viewModel = hiltViewModel()
             )
         }
 

@@ -1,42 +1,31 @@
 package propertymanager.feature.staff.home
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,74 +34,60 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.domain.model.PriorityLevel
 import com.propertymanager.domain.model.RequestStatus
+import kotlin.reflect.KFunction2
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceFilters(
     viewModel: MaintenanceFilterViewModel = hiltViewModel()
 ) {
     val filterState by viewModel.filterState.collectAsState()
+    var selectedTab by remember { mutableStateOf(FilterTab.FILTER) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .padding(16.dp)
     ) {
-        // Simple Tab Row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+        TabRow(
+            selectedTabIndex = selectedTab.ordinal,
+            modifier = Modifier.fillMaxWidth()
         ) {
             FilterTab.entries.forEach { tab ->
-                TextButton(
-                    onClick = { viewModel.updateSelectedTab(tab) },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = if (filterState.selectedTab == tab)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                ) {
-                    Text(
-                        text = tab.title,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+                Tab(
+                    selected = selectedTab == tab,
+                    onClick = { selectedTab = tab },
+                    text = { Text(text = tab.title) }
+                )
             }
         }
 
-        // Blue indicator for selected tab
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(2.dp)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .align(when (filterState.selectedTab) {
-                        FilterTab.FILTER -> Alignment.CenterStart
-                        FilterTab.SORT -> Alignment.Center
-                        FilterTab.DISPLAY -> Alignment.CenterEnd
-                    })
-            )
-        }
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Divider(modifier = Modifier.padding(top = 1.dp))
-
-        // Content based on selected tab
-        when (filterState.selectedTab) {
-            FilterTab.FILTER -> FilterContent(filterState, viewModel)
-            FilterTab.SORT -> SortContent(filterState, viewModel)
-            FilterTab.DISPLAY -> DisplayContent(filterState, viewModel)
+        when (selectedTab) {
+            FilterTab.FILTER -> {
+                FilterContent(
+                    filterState = filterState,
+                    onStatusFilterChange = viewModel::updateStatusFilter,
+                    onPriorityFilterChange = viewModel::updatePriorityFilter
+                )
+            }
+            FilterTab.SORT -> {
+                SortContent(
+                    filterState = filterState,
+                    onSortOptionChange = viewModel::updateSortOption,
+                    onSortDirectionChange = viewModel::toggleSortDirection
+                )
+            }
+            FilterTab.DISPLAY -> {
+                DisplayContent(
+                    filterState = filterState,
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }
@@ -120,126 +95,120 @@ fun MaintenanceFilters(
 @Composable
 private fun FilterContent(
     filterState: MaintenanceFilterState,
-    viewModel: MaintenanceFilterViewModel
+    onStatusFilterChange: KFunction2<String, Boolean, Unit>,
+    onPriorityFilterChange: KFunction2<String, Boolean, Unit>
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        // Status Section
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Status",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        RequestStatus.getAllStatuses().forEach { status ->
-            FilterOption(
-                text = status,
-                checked = filterState.selectedStatuses.contains(status),
-                onCheckedChange = { checked ->
-                    viewModel.updateStatusFilter(status, checked)
-                }
-            )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            RequestStatus.entries.forEach { status ->
+                FilterChip(
+                    selected = filterState.selectedStatuses.contains(status.label),
+                    onClick = { 
+                        onStatusFilterChange(
+                            status.label, 
+                            !filterState.selectedStatuses.contains(status.label)
+                        )
+                    },
+                    label = { Text(status.label) }
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Priority Section
         Text(
             text = "Priority",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        PriorityLevel.getAllPriorities().forEach { priority ->
-            FilterOption(
-                text = priority,
-                checked = filterState.selectedPriorities.contains(priority),
-                onCheckedChange = { checked ->
-                    viewModel.updatePriorityFilter(priority, checked)
-                }
-            )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            PriorityLevel.entries.forEach { priority ->
+                FilterChip(
+                    selected = filterState.selectedPriorities.contains(priority.label),
+                    onClick = { 
+                        onPriorityFilterChange(
+                            priority.label, 
+                            !filterState.selectedPriorities.contains(priority.label)
+                        )
+                    },
+                    label = { Text(priority.label) }
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun FilterOption(
-    text: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(vertical = 0.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = CheckboxDefaults.colors(
-                checkedColor = MaterialTheme.colorScheme.primary,
-                uncheckedColor = MaterialTheme.colorScheme.outline
-            )
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(start = 12.dp)
-        )
     }
 }
 
 @Composable
 private fun SortContent(
     filterState: MaintenanceFilterState,
-    viewModel: MaintenanceFilterViewModel
+    onSortOptionChange: (SortOption) -> Unit,
+    onSortDirectionChange: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        SortOption.entries.forEach { sortOption ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { 
-                        if (filterState.sortBy == sortOption) {
-                            viewModel.toggleSortDirection()
-                        } else {
-                            viewModel.updateSortOption(sortOption)
-                        }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Sort by",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SortOption.entries.forEach { option ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSortOptionChange(option) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = filterState.sortBy == option,
+                        onClick = { onSortOptionChange(option) }
+                    )
+                    Text(
+                        text = option.title,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Order",
+                style = MaterialTheme.typography.titleMedium
+            )
+            IconButton(onClick = onSortDirectionChange) {
+                Icon(
+                    imageVector = if (filterState.isAscending) {
+                        Icons.Default.ArrowUpward
+                    } else {
+                        Icons.Default.ArrowDownward
+                    },
+                    contentDescription = if (filterState.isAscending) {
+                        "Sort Ascending"
+                    } else {
+                        "Sort Descending"
                     }
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = sortOption.title,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = sortOption.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                if (filterState.sortBy == sortOption) {
-                    Icon(
-                        imageVector = if (filterState.isAscending) 
-                            Icons.Default.ArrowUpward 
-                        else Icons.Default.ArrowDownward,
-                        contentDescription = if (filterState.isAscending) 
-                            "Sort Ascending" 
-                        else "Sort Descending",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                )
             }
         }
     }
@@ -256,12 +225,11 @@ private fun DisplayContent(
             .padding(16.dp)
     ) {
         Text(
-            text = "Display mode",
+            text = "Display Mode",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
-
-        // Display mode options
+        
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -270,19 +238,24 @@ private fun DisplayContent(
                 OutlinedButton(
                     onClick = { viewModel.updateDisplayMode(mode) },
                     shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (filterState.displayMode == mode) 
-                            MaterialTheme.colorScheme.primaryContainer 
-                        else MaterialTheme.colorScheme.surface
-                    ),
                     border = BorderStroke(
-                        1.dp,
-                        if (filterState.displayMode == mode) 
-                            MaterialTheme.colorScheme.primary 
+                        width = 1.dp,
+                        color = if (filterState.displayMode == mode)
+                            MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.outline
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (filterState.displayMode == mode)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    Text(mode.title)
+                    Text(
+                        text = mode.title,
+                        color = if (filterState.displayMode == mode)
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }

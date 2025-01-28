@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,15 +66,21 @@ import propertymanager.presentation.components.property.PropertyViewModel
 fun StaffFlatScreen(
     propertyViewModel: PropertyViewModel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
+    staffViewModel: StaffViewModel = hiltViewModel(),
     onNavigateToHome: (Property) -> Unit
 ) {
     val propertyState by propertyViewModel.state.collectAsState()
     val locationState by locationViewModel.state.collectAsState()
+    val maintenanceCountMap by staffViewModel.maintenanceRequestsMap.collectAsState()
     val context = LocalContext.current
     
     var searchQuery by remember { mutableStateOf("") }
     var showLocationSheet by remember { mutableStateOf(false) }
     var selectedLocationType by remember { mutableStateOf(LocationType.COUNTRY) }
+
+    LaunchedEffect(Unit) {
+        staffViewModel.fetchAssignedRequests("")  // Pass the appropriate staffId
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -91,7 +98,6 @@ fun StaffFlatScreen(
                         contentDescription = "Search"
                     )
                 },
-                
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
@@ -244,6 +250,7 @@ fun StaffFlatScreen(
                         if (matchesLocation && matchesSearch) {
                             PropertyCard(
                                 property = property,
+                                maintenanceCount = maintenanceCountMap[property.id] ?: 0,
                                 onPropertyClick = { onNavigateToHome(property) }
                             )
                         }
@@ -454,6 +461,7 @@ private fun LocationSelectionSheet(
 @Composable
 private fun PropertyCard(
     property: Property,
+    maintenanceCount: Int = 0,
     onPropertyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -485,26 +493,30 @@ private fun PropertyCard(
                             append(property.address.society)
                             append(", ")
                             append(property.address.city)
-                            append("\n")
-                            append(property.address.state)
-                            append(", ")
-                            append(property.address.country)
                         },
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
                     Text(
-                        text = "Status: ${property.status.name}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = when (property.status) {
-                            PropertyStatus.ACTIVE -> MaterialTheme.colorScheme.primary
-                            PropertyStatus.REJECTED -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        }
+                        text = "$maintenanceCount",
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
             }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = property.address.state,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

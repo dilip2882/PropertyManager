@@ -99,61 +99,34 @@ fun StaffHomeScreen(
         viewModel.fetchAssignedRequests(staffId)
     }
 
-    LaunchedEffect(assignedRequests) {
-        if (assignedRequests is Response.Success) {
-            // Filter requests for the selected property
-            val filteredRequests = (assignedRequests as Response.Success<List<MaintenanceRequest>>).data
-                .filter { it.propertyId == propertyId }
-            viewModel.updateFilteredRequests(filteredRequests)
-        }
-    }
-
-    LaunchedEffect(updateStatusResponse, updatePriorityResponse, assignWorkerResponse) {
-        when {
-            updateStatusResponse is Response.Success -> {
-                Toast.makeText(context, "Status updated successfully", Toast.LENGTH_SHORT).show()
-                viewModel.resetResponses()
-            }
-
-            updatePriorityResponse is Response.Success -> {
-                Toast.makeText(context, "Priority updated successfully", Toast.LENGTH_SHORT).show()
-                viewModel.resetResponses()
-            }
-
-            assignWorkerResponse is Response.Success -> {
-                Toast.makeText(context, "Worker assigned successfully", Toast.LENGTH_SHORT).show()
-                viewModel.resetResponses()
-            }
-        }
-    }
-
-    // Filter and sort the requests based on filterState
+    // Filter and sort the requests based on filterState and propertyId
     val filteredRequests = when (assignedRequests) {
         is Response.Success -> {
             var requests = (assignedRequests as Response.Success<List<MaintenanceRequest>>).data
+                .filter { it.propertyId == propertyId } // Filter by property ID first
 
-            // status filters
+            // Apply status filters
             if (filterState.selectedStatuses.isNotEmpty()) {
                 requests = requests.filter { request ->
                     filterState.selectedStatuses.contains(request.status)
                 }
             }
 
-            // priority filters
+            // Apply priority filters
             if (filterState.selectedPriorities.isNotEmpty()) {
                 requests = requests.filter { request ->
                     filterState.selectedPriorities.contains(request.priority)
                 }
             }
 
-            // sorting
+            // Apply sorting
             requests = when (filterState.sortBy) {
                 SortOption.ALPHABETICAL -> requests.sortedBy { it.issueDescription }
                 SortOption.DATE_ADDED -> requests.sortedBy { it.createdAt }
                 SortOption.LAST_UPDATED -> requests.sortedBy { it.updatedAt }
             }
 
-            // sort direction
+            // Apply sort direction
             if (!filterState.isAscending) {
                 requests = requests.reversed()
             }
@@ -162,6 +135,23 @@ fun StaffHomeScreen(
         }
         is Response.Loading -> Response.Loading
         is Response.Error -> assignedRequests
+    }
+
+    LaunchedEffect(updateStatusResponse, updatePriorityResponse, assignWorkerResponse) {
+        when {
+            updateStatusResponse is Response.Success -> {
+                Toast.makeText(context, "Status updated successfully", Toast.LENGTH_SHORT).show()
+                viewModel.resetResponses()
+            }
+            updatePriorityResponse is Response.Success -> {
+                Toast.makeText(context, "Priority updated successfully", Toast.LENGTH_SHORT).show()
+                viewModel.resetResponses()
+            }
+            assignWorkerResponse is Response.Success -> {
+                Toast.makeText(context, "Worker assigned successfully", Toast.LENGTH_SHORT).show()
+                viewModel.resetResponses()
+            }
+        }
     }
 
     Scaffold(
@@ -258,7 +248,7 @@ fun StaffHomeScreen(
                     onAssign = { workerDetails ->
                         viewModel.assignWorker(selectedRequest!!.maintenanceRequestsId!!, workerDetails)
                         showWorkerDialog = false
-                    },
+                    }
                 )
             }
 
@@ -266,8 +256,8 @@ fun StaffHomeScreen(
                 ModalBottomSheet(
                     onDismissRequest = { showFilterSheet = false },
                     sheetState = bottomSheetState,
-                    dragHandle = null,
-                    ) {
+                    dragHandle = null
+                ) {
                     MaintenanceFilters()
                     Spacer(modifier = Modifier.height(20.dp))
                 }
