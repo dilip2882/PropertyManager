@@ -15,15 +15,49 @@
     <string name="label_default">Default</string>
     // Tenant
     <string name="tenant_home_title">Maintenance Feed</string>
-    <string name="tenant_profile_title">Profile</string>
+    <string name="tenant_maintenance_request_details_title">Request details</string>
+    <string name="tenant_settings_title">Settings</string>
+    <string name="tenant_edit_profile">Edit Profile</string>
     //staff
-    <string name="staff_home_title">Staff Dashboard</string>
+    <string name="staff_home_title">Maintenance requests</string>
     <string name="staff_settings_title">Settings</string>
-    <string name="staff_property_title">Manage Properties</string>
-    <string name="staff_location_title">Manage Locations</string>
-    <string name="staff_category_title">Manage Categories</string>
+    <string name="staff_edit_profile">Edit Profile</string>
+    <string name="staff_property_title">Manage properties</string>
+    <string name="staff_category_title">Manage categories</string>
+    <string name="staff_property_approvals_title">Property approvals</string>
+    <string name="staff_location_title">Manage locations</string>
+    <string name="staff_location_country_title">Manage countries</string>
+    <string name="staff_location_state-title">Manage states</string>
+    <string name="staff_location_city-title">Manage cities</string>
+
+    <string name="staff_maintenance_request_filter_tab_title">Filter</string>
+    <string name="staff_maintenance_request-filter_priority">Priority</string>
+
+    <string name="staff_maintenance_request-_sort_tab_title">Sort</string>
+    <string name="staff_maintenance_request_sort_by">Sort by</string>
+    <string name="staff_maintenance_request_sort_by_name">Name</string>
+    <string name="staff_maintenance_request_sort_by_date_added">Date added</string>
+    <string name="staff_maintenance_request_sort_by_last_updated">Last updated</string>
+    <string name="staff_maintenance_request_sort_order">Order</string>
+
+    <string name="staff_maintenance_request-display-tab-title">Display</string>
+
+    <string name="staff_settings_edit_profile">Edit Profile</string>
+    <string name="staff_settings_dark-mode">Dark Mode</string>
+    <string name="staff_settings_dynamic_color">Dynamic Color</string>
+    <string name="staff_settings_biometric_authentication">Biometric Authentication</string>
+    <string name="staff_settings_property_approvals">Property Approvals</string>
+    <string name="staff_settings_location">Location</string>
+    <string name="staff_settings_category">Category</string>
+    <string name="staff_settings_logout">Logout</string>
 
     <!-- Categories -->
+
+    <string name="maintenance_request_category">Category</string>
+    <string name="maintenance_request_category_description">Description</string>
+    <string name="maintenance_request_category_created">Created</string>
+    <string name="maintenance_request_category_last_updated">Last updated</string>
+
     <string name="category_car_parking">Car parking</string>
     <string name="category_common_area">Common area</string>
     <string name="category_electrical">Electrical</string>
@@ -47,8 +81,19 @@
     <string name="maintenance_request_status_open">Open</string>
     <string name="maintenance_request_status_progress">In Progress</string>
     <string name="maintenance_request_status_completed">Completed</string>
-    // Tenant Profile Screen
+    <string name="maintenance_request_priority_low">Low</string>
+    <string name="maintenance_request_priority_medium">Medium</string>
+    <string name="maintenance_request_priority_high">High</string>
 
+    // Tenant Settings Screen
+    <string name="tenant_settings_dark_theme_title">Use dark theme</string>
+    <string name="tenant_settings_dark_theme_subtitle">Toggle between light and dark theme</string>
+    <string name="tenant_settings_dynamic_theme_title">Dynamic theme</string>
+    <string name="tenant_settings_dynamic_theme_subtitle">Use system accent colors</string>
+    <string name="tenant_settings_property_manager_title">Property Manager</string>
+    <string name="tenant_settings_property_manager_subtitle">Manage your property details</string>
+    <string name="tenant_settings_logout_title">Logout</string>
+    <string name="tenant_settings_logout_subtitle">Sign out from your account</string>
 
     <!-- Models -->
 
