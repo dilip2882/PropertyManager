@@ -21,6 +21,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.graphs.tenantNavGraph
+import propertymanager.feature.auth.presentation.AuthViewModel
+import propertymanager.feature.auth.presentation.PhoneScreen
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.tenant.profile.TenantProfileScreen
@@ -105,8 +107,11 @@ fun TenantScreen(
                     onNavigateToPropertyManager = {
                         navController.navigate(Dest.PropertyManagerScreen)
                     },
-                    propertyViewModel = hiltViewModel()
+                    onNavigateToPhoneScreen = {
+                        navController.navigate(Dest.PhoneScreen)
+                    }
                 )
+
             }
 
 //            composable<Dest.TenantHomeScreen> {
@@ -117,6 +122,21 @@ fun TenantScreen(
 //                    },
 //                )
 //            }
+
+            composable<Dest.PhoneScreen> {
+                val viewModel: AuthViewModel = hiltViewModel()
+                val state by viewModel.state.collectAsState()
+                val effect by viewModel.effect.collectAsState(initial = null)
+
+                PhoneScreen(
+                    state = state,
+                    effect = effect,
+                    dispatch = { event -> viewModel.event(event) },
+                    onNavigateToOtpScreen = { phoneNumber ->
+                        navController.navigate(Dest.OtpScreen(phoneNumber))
+                    }
+                )
+            }
 
             composable<Dest.AddPropertyScreen> {
                 val sharedViewModel: LocationViewModel = hiltViewModel(
@@ -157,7 +177,9 @@ fun TenantScreen(
                     onNavigateToPropertyManager = {
                         navController.navigate(Dest.PropertyManagerScreen)
                     },
-                    propertyViewModel = hiltViewModel()
+                    onNavigateToPhoneScreen = {
+                        navController.navigate(Dest.PhoneScreen)
+                    }
                 )
             }
 

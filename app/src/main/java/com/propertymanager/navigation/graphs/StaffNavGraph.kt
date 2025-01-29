@@ -2,6 +2,7 @@ package com.propertymanager.navigation.graphs
 
 import CityPropertiesScreen
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -60,9 +61,12 @@ fun NavGraphBuilder.staffNavGraph(
         composable<Dest.StaffHomeScreen> { backStackEntry ->
             val propertyId = backStackEntry.arguments?.getString("propertyId") ?: ""
             StaffHomeScreen(
-                staffId = "",  // Pass appropriate staffId
+                staffId = "",
                 propertyId = propertyId,
-                viewModel = hiltViewModel()
+                viewModel = hiltViewModel(),
+                onNavigateUp = {
+                    navController.navigateUp()
+                }
             )
         }
 
@@ -71,7 +75,8 @@ fun NavGraphBuilder.staffNavGraph(
                 onNavigateToEditProfile = {
                     navController.navigate(Dest.EditProfileScreen)
                 },
-                viewModel = hiltViewModel<UserViewModel>()
+                viewModel = hiltViewModel<UserViewModel>(),
+                modifier = Modifier
             )
         }
 

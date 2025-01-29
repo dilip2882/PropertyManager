@@ -110,7 +110,8 @@ fun StaffScreen(
                     onNavigateToEditProfile = {
                         navController.navigate(Dest.EditProfileScreen)
                     },
-                    viewModel = hiltViewModel<UserViewModel>()
+                    viewModel = hiltViewModel<UserViewModel>(),
+                    modifier = Modifier
                 )
             }
 

@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -73,6 +75,7 @@ import com.propertymanager.domain.model.formatDate
 import propertymanager.feature.staff.StaffViewModel
 import propertymanager.presentation.components.user.UserViewModel
 import androidx.compose.material3.rememberModalBottomSheetState
+import propertymanager.presentation.theme.PropertyManagerIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +83,8 @@ fun StaffHomeScreen(
     staffId: String,
     propertyId: String,
     viewModel: StaffViewModel = hiltViewModel(),
-    filterViewModel: MaintenanceFilterViewModel = hiltViewModel()
+    filterViewModel: MaintenanceFilterViewModel = hiltViewModel(),
+    onNavigateUp:() -> Unit
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
@@ -158,11 +162,16 @@ fun StaffHomeScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Maintenance requests") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showFilterSheet = true }) {
                         Icon(Icons.Default.FilterList, "Filter")
                     }
-                }
+                },
             )
         }
     ) { paddingValues ->

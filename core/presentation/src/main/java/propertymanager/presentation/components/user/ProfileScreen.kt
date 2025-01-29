@@ -44,6 +44,7 @@ import propertymanager.presentation.screens.LoadingScreen
 
 @Composable
 fun ProfileScreen(
+    modifier: Modifier,
     onNavigateToEditProfile: () -> Unit,
     viewModel: UserViewModel = hiltViewModel(),
 ) {
@@ -181,25 +182,28 @@ fun ProfileScreen(
                         onClick = onNavigateToEditProfile,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
                             .height(48.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(25.dp),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Edit Profile",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Edit Profile",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
 
                 }

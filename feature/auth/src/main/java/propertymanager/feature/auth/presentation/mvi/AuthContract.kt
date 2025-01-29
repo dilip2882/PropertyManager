@@ -24,6 +24,7 @@ interface AuthContract : MVIContract<AuthContract.AuthState, AuthContract.AuthEf
     sealed class AuthEffect {
         object NavigateToHome : AuthEffect()
         object NavigateToOtpScreen : AuthEffect()
+        object NNavigateToPhoneScreen: AuthEffect()
         data class ShowToast(val message: String) : AuthEffect()
     }
 }

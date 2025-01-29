@@ -1,211 +1,288 @@
 package propertymanager.feature.tenant.profile
 
-import android.net.Uri
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationCity
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.propertymanager.common.utils.Response
-import com.propertymanager.domain.model.Property
-import com.propertymanager.domain.model.User
-import propertymanager.i18n.MR
-import propertymanager.presentation.components.TextPreferenceWidget
-import propertymanager.presentation.components.property.PropertyViewModel
+import propertymanager.feature.auth.presentation.AuthViewModel
+import propertymanager.feature.auth.presentation.mvi.AuthContract
 import propertymanager.presentation.components.user.ProfileScreen
-import propertymanager.presentation.components.user.UserViewModel
-import propertymanager.presentation.i18n.stringResource
-import propertymanager.presentation.screens.LoadingScreen
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TenantProfileScreen(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToPropertyManager: () -> Unit,
-    propertyViewModel: PropertyViewModel = hiltViewModel(),
+    onNavigateToPhoneScreen: () -> Unit,
+    themeViewModel: TenantThemeViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel(),
 ) {
-    val state by propertyViewModel.state.collectAsState()
-    var selectedProperty by remember { mutableStateOf<Property?>(null) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val darkMode by themeViewModel.darkMode.collectAsState()
+    val dynamicColor by themeViewModel.dynamicColor.collectAsState()
+
+    LaunchedEffect(Unit) {
+        authViewModel.effect.collect { effect ->
+            when (effect) {
+                is AuthContract.AuthEffect.NNavigateToPhoneScreen -> onNavigateToPhoneScreen()
+                else -> {}
+            }
+        }
+    }
 
     Scaffold(
+//        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = Color.Black,
+                title = {
+                    Text(
+                        "Settings",
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                },
+//                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
                 ),
-                title = { Text("Profile") },
+//                modifier = Modifier.height(128.dp),
             )
         },
     ) { padding ->
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Top,
         ) {
             item {
                 ProfileScreen(
-                    onNavigateToEditProfile = {
-                        onNavigateToEditProfile()
-                    },
+                    onNavigateToEditProfile = onNavigateToEditProfile,
+                    modifier = Modifier,
                 )
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.staff_property),
+                SettingsSection(
+                    title = "Property Manager",
                     icon = Icons.Default.LocationCity,
-                    onPreferenceClick = {
-                        onNavigateToPropertyManager()
+                    subtitle = "Manage your property details",
+                    onClick = onNavigateToPropertyManager,
+                )
+            }
+
+            item {
+                AppearanceSection(
+                    darkMode = darkMode,
+                    dynamicColor = dynamicColor,
+                    onDarkModeChange = { enabled ->
+                        themeViewModel.setDarkMode(enabled)
+                    },
+                    onDynamicColorChange = { enabled ->
+                        themeViewModel.setDynamicColor(enabled)
                     },
                 )
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                LogoutSection(onLogout = { authViewModel.event(AuthContract.AuthEvent.SignOut) })
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            item {
-                ProfileBody(user = User())
-            }
-
         }
     }
 }
 
 @Composable
-fun ProfileBody(user: User) {
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
-    val userViewModel = hiltViewModel<UserViewModel>()
-
-    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        selectedImageUri = uri
-    }
-
-    LaunchedEffect(key1 = true) {
-        userViewModel.getUserInfo()
-    }
-
-    LaunchedEffect(selectedImageUri) {
-        selectedImageUri?.let {
-            val imageUrl = try {
-                // Upload image and get the URL
-                userViewModel.uploadImageToFirebase(it, user.userId!!)
-            } catch (e: Exception) {
-                Log.e("Profile", "Error uploading image: ${e.message}")
-                null
-            }
-            if (imageUrl != null) {
-                userViewModel.setUserInfo(user.copy(profileImage = imageUrl))
-            }
-        }
-    }
-
-    val userDataState by userViewModel.getUserData.collectAsState()
-
-    when (val response = userDataState) {
-        is Response.Loading -> {
-            LoadingScreen()
-        }
-
-        is Response.Error -> {
-            Text(text = "Error: ${response.message}")
-        }
-
-        is Response.Success -> {
-            val fetchedUser = response.data ?: user
-            Log.d("Profile", "Fetched User: $fetchedUser")
-
-            // Member Since Section
-            Column(
+private fun SettingsSection(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(
-                        MaterialTheme.colorScheme.secondaryContainer,
-                        RoundedCornerShape(8.dp),
-                    )
-                    .padding(16.dp),
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    "Member Since",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.Default.DateRange,
-                        contentDescription = "Date",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+    }
+}
 
-                    Text(
-                        text = user.createdAt?.let { timestamp ->
-                            val timestampInMillis = timestamp.seconds
+@Composable
+private fun AppearanceSection(
+    darkMode: Boolean,
+    dynamicColor: Boolean,
+    onDarkModeChange: (Boolean) -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        // Appearance Header
+        /*        SettingsSection(
+                    title = "Appearance",
+                    subtitle = "Theme, language & animations",
+                    icon = Icons.Default.Palette,
+                    onClick = { }
+                )
+                */
+        // Theme Options
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column {
+                PreferenceToggleItem(
+                    title = "Use dark theme",
+                    subtitle = "Toggle between light and dark theme",
+                    icon = Icons.Default.DarkMode,
+                    checked = darkMode,
+                    onCheckedChange = onDarkModeChange,
+                    showDivider = true,
+                )
 
-                            val instant = Instant.ofEpochMilli(timestampInMillis)
-
-                            val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-
-                            val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm:ss")
-                            localDateTime.format(formatter)
-                        } ?: "Invalid Date",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-
-                }
+                PreferenceToggleItem(
+                    title = "Dynamic color",
+                    subtitle = "Use system accent colors",
+                    icon = Icons.Default.ColorLens,
+                    checked = dynamicColor,
+                    onCheckedChange = onDynamicColorChange,
+                    showDivider = false,
+                )
             }
         }
     }
-
 }
 
+@Composable
+private fun PreferenceToggleItem(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    showDivider: Boolean = false,
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+        if (showDivider) {
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 64.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f),
+            )
+        }
+    }
+}
 
+@Composable
+private fun LogoutSection(onLogout: () -> Unit) {
+    val authViewModel = hiltViewModel<AuthViewModel>()
+    val context = LocalContext.current
+
+    SettingsSection(
+        title = "Logout",
+        subtitle = "Sign out from your account",
+        icon = Icons.AutoMirrored.Filled.Logout,
+        onClick = {
+            authViewModel.event(AuthContract.AuthEvent.SignOut)
+            onLogout()
+        },
+    )
+}

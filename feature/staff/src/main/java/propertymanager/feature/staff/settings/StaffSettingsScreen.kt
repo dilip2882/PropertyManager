@@ -164,6 +164,7 @@ fun StaffSettingsScreen(
                     onNavigateToEditProfile = {
                         onNavigateToEditProfile()
                     },
+                    modifier = Modifier
                 )
 //                Profile(user = User())
             }

@@ -127,7 +127,6 @@ private fun PropertyApprovalItem(
     onStatusChange: () -> Unit,
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
-    val ownerState by userViewModel.getUserById(property.ownerId).collectAsState(initial = null)
     val tenantState by userViewModel.getUserById(property.currentTenantId).collectAsState(initial = null)
 
     ListItem(
@@ -151,15 +150,6 @@ private fun PropertyApprovalItem(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Owner name
-                ownerState?.let { owner ->
-                    Text(
-                        text = "Tenant: ${owner.name}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
                 // Current Tenant name
                 tenantState?.let { tenant ->
                     Text(
