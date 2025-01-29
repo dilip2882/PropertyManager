@@ -208,24 +208,6 @@ fun MaintenanceListScreen(
                                 }
                             }
                         },
-                        actions = {
-                            // Profile Icon
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 8.dp)
-                                    .size(32.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.tertiary,
-                                        shape = CircleShape,
-                                    ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "N",
-                                    color = MaterialTheme.colorScheme.onTertiary,
-                                )
-                            }
-                        },
                     )
 
                     // Only show tabs when dropdown is not visible
@@ -407,7 +389,7 @@ fun MaintenanceListScreen(
                                                     modifier = Modifier
                                                         .size(24.dp)
                                                         .background(
-                                                            color = MaterialTheme.colorScheme.error,
+                                                            color = MaterialTheme.colorScheme.primary,
                                                             shape = CircleShape,
                                                         ),
                                                     contentAlignment = Alignment.Center,

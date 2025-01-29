@@ -85,7 +85,7 @@ fun PropertyManagerScreen(
             // Filter and Search Surface
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 4.dp,
+                shadowElevation = 0.dp,
             ) {
                 Column {
                     // Status Filter Chips

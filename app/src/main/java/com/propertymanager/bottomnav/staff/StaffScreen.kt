@@ -19,16 +19,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.propertymanager.navigation.Dest
+import com.propertymanager.navigation.graphs.authNavGraph
 import com.propertymanager.navigation.graphs.staffNavGraph
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.staff.StaffFlatScreen
-import propertymanager.feature.staff.home.StaffHomeScreen
 import propertymanager.feature.staff.settings.StaffSettingsScreen
-import propertymanager.presentation.components.location.LocationViewModel
-import propertymanager.presentation.components.property.components.SelectCountryScreen
 import propertymanager.presentation.components.user.EditProfileScreen
 import propertymanager.presentation.components.user.ProfileScreen
 import propertymanager.presentation.components.user.UserViewModel
@@ -44,6 +41,7 @@ fun StaffScreen(
             StaffBottomNavItem.HOME.route,
             StaffBottomNavItem.SETTINGS.route,
                 -> true
+
             else -> false
         }
     }
@@ -81,7 +79,7 @@ fun StaffScreen(
                     locationViewModel = hiltViewModel(),
                     onNavigateToHome = { property ->
                         navController.navigate(Dest.StaffHomeScreen(property.id))
-                    }
+                    },
                 )
             }
 
@@ -101,7 +99,10 @@ fun StaffScreen(
                     },
                     onNavigateToLocationManager = {
                         navController.navigate(Dest.CountryManagerScreen)
-                    }
+                    },
+                    onNavigateToPhoneScreen = {
+                        navController.navigate(Dest.PhoneScreen)
+                    },
                 )
             }
 
@@ -111,7 +112,7 @@ fun StaffScreen(
                         navController.navigate(Dest.EditProfileScreen)
                     },
                     viewModel = hiltViewModel<UserViewModel>(),
-                    modifier = Modifier
+                    modifier = Modifier,
                 )
             }
 
@@ -120,7 +121,7 @@ fun StaffScreen(
                     viewModel = hiltViewModel(),
                     onNavigateBack = {
                         navController.navigateUp()
-                    }
+                    },
                 )
             }
 
@@ -138,6 +139,7 @@ fun StaffScreen(
             }
 
             staffNavGraph(navController)
+            authNavGraph(navController)
         }
     }
 }

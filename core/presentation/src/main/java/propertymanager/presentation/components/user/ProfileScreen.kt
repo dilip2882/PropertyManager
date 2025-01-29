@@ -178,34 +178,41 @@ fun ProfileScreen(
                         }
                     }
                     // Edit Profile Button
-                    Button(
-                        onClick = onNavigateToEditProfile,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Edit Profile",
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        }
-                    }
+              Column(
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(16.dp),
+                  horizontalAlignment = Alignment.CenterHorizontally
+              ) {
+                  Button(
+                      onClick = onNavigateToEditProfile,
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .height(48.dp),
+                      colors = ButtonDefaults.buttonColors(
+                          containerColor = MaterialTheme.colorScheme.primary,
+                          contentColor = Color.White
+                      ),
+                      shape = RoundedCornerShape(8.dp)
+                  ) {
+                      Row(
+                          horizontalArrangement = Arrangement.Center,
+                          verticalAlignment = Alignment.CenterVertically
+                      ) {
+                          Icon(
+                              imageVector = Icons.Default.Edit,
+                              contentDescription = null,
+                              modifier = Modifier.size(18.dp)
+                          )
+                          Spacer(modifier = Modifier.width(8.dp))
+                          Text(
+                              text = "Edit Profile",
+                              style = MaterialTheme.typography.labelLarge
+                          )
+                      }
+                  }
 
+              }
                 }
             }
         }

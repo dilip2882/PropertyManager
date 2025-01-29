@@ -23,9 +23,11 @@ dependencies {
     api(projects.core.presentation)
     api(projects.core.network)
     api(projects.i18n)
+    implementation(project(":feature:auth"))
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(project(":feature:auth"))
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.androidx.compiler)

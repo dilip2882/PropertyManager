@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,14 +34,38 @@ fun TenantProfileScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val darkMode by themeViewModel.darkMode.collectAsState()
     val dynamicColor by themeViewModel.dynamicColor.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         authViewModel.effect.collect { effect ->
             when (effect) {
-                is AuthContract.AuthEffect.NNavigateToPhoneScreen -> onNavigateToPhoneScreen()
+                is AuthContract.AuthEffect.NavigateToPhoneScreen -> onNavigateToPhoneScreen()
                 else -> {}
             }
         }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Confirm Logout") },
+            text = { Text("Are you sure you want to logout?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        authViewModel.event(AuthContract.AuthEvent.SignOut)
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("No")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -78,15 +101,6 @@ fun TenantProfileScreen(
             }
 
             item {
-                SettingsSection(
-                    title = "Property Manager",
-                    icon = Icons.Default.LocationCity,
-                    subtitle = "Manage your property details",
-                    onClick = onNavigateToPropertyManager,
-                )
-            }
-
-            item {
                 AppearanceSection(
                     darkMode = darkMode,
                     dynamicColor = dynamicColor,
@@ -100,8 +114,18 @@ fun TenantProfileScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-                LogoutSection(onLogout = { authViewModel.event(AuthContract.AuthEvent.SignOut) })
+                SettingsSection(
+                    title = "Property Manager",
+                    icon = Icons.Default.LocationCity,
+                    subtitle = "Manage your property details",
+                    onClick = onNavigateToPropertyManager,
+                )
+            }
+
+            item {
+                LogoutSection(
+                    onLogout = { showLogoutDialog = true }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -123,7 +147,7 @@ private fun SettingsSection(
         color = MaterialTheme.colorScheme.surface,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -205,7 +229,7 @@ private fun AppearanceSection(
                     icon = Icons.Default.ColorLens,
                     checked = dynamicColor,
                     onCheckedChange = onDynamicColorChange,
-                    showDivider = false,
+                    showDivider = true,
                 )
             }
         }
@@ -280,9 +304,6 @@ private fun LogoutSection(onLogout: () -> Unit) {
         title = "Logout",
         subtitle = "Sign out from your account",
         icon = Icons.AutoMirrored.Filled.Logout,
-        onClick = {
-            authViewModel.event(AuthContract.AuthEvent.SignOut)
-            onLogout()
-        },
+        onClick = onLogout,
     )
 }

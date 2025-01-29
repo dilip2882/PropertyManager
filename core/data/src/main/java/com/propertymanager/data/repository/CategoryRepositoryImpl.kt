@@ -3,6 +3,9 @@ package com.propertymanager.data.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.domain.model.Category
 import com.propertymanager.domain.repository.CategoryRepository
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class CategoryRepositoryImpl(
@@ -11,12 +14,26 @@ class CategoryRepositoryImpl(
 
     private val categoryCollection = firestore.collection("categories")
 
-    override suspend fun getCategories(): List<Category> {
-        val snapshot = categoryCollection.get().await()
-        return snapshot.documents.map { document ->
-            document.toObject(Category::class.java)?.copy(id = document.id) ?: Category("", "")
+    override suspend fun getCategories(): Flow<List<Category>> = callbackFlow {
+        val subscription = categoryCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                // Handle error
+                close(error)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null) {
+                val categories = snapshot.documents.map { document ->
+                    document.toObject(Category::class.java)?.copy(id = document.id)
+                        ?: Category("", "")
+                }
+                trySend(categories)
+            }
         }
+
+        awaitClose { subscription.remove() }
     }
+
 
     override suspend fun addCategory(category: Category) {
         categoryCollection.add(category).await()

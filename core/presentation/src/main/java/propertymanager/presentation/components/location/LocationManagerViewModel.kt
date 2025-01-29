@@ -194,7 +194,7 @@ class LocationManagerViewModel @Inject constructor(
                 is LocationManagerEvent.AddCountry -> {
                     try {
                         locationUseCases.addCountry(event.country)
-                        loadCountries() // Reload the countries list
+//                        loadCountries() // Reload the countries list
                         _uiEvent.send(UiEvent.Success("Country added successfully"))
                     } catch (e: Exception) {
                         _uiEvent.send(UiEvent.Error(e.message ?: "Failed to add country"))
@@ -203,7 +203,7 @@ class LocationManagerViewModel @Inject constructor(
                 is LocationManagerEvent.UpdateCountry -> {
                     try {
                         locationUseCases.updateCountry(event.country)
-                        loadCountries() // Reload the countries list
+//                        loadCountries() // Reload the countries list
                         _uiEvent.send(UiEvent.Success("Country updated successfully"))
                     } catch (e: Exception) {
                         _uiEvent.send(UiEvent.Error(e.message ?: "Failed to update country"))
@@ -212,7 +212,7 @@ class LocationManagerViewModel @Inject constructor(
                 is LocationManagerEvent.DeleteCountry -> {
                     try {
                         locationUseCases.deleteCountry(event.countryId)
-                        loadCountries() // Reload the countries list
+//                        loadCountries() // Reload the countries list
                         _uiEvent.send(UiEvent.Success("Country deleted successfully"))
                     } catch (e: Exception) {
                         _uiEvent.send(UiEvent.Error(e.message ?: "Failed to delete country"))

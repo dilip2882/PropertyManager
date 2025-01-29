@@ -98,7 +98,8 @@ fun MaintenanceDetailsScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black),
+                        .background(Color.Black)
+                        .clickable { showImageDialog = false },
                 ) {
                     // Close button
                     IconButton(
@@ -121,48 +122,53 @@ fun MaintenanceDetailsScreen(
                     )
 
                     // Full screen image
-                    HorizontalPager(
-                        state = pagerState,
+                    Box(
                         modifier = Modifier.fillMaxSize(),
-                    ) { page ->
-                        var isLoading by remember { mutableStateOf(true) }
-                        var error by remember { mutableStateOf<String?>(null) }
-
-                        Box(
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(photos[page])
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(),
-                                contentScale = ContentScale.Fit,
-                                onLoading = { isLoading = true },
-                                onSuccess = { isLoading = false },
-                                onError = {
-                                    isLoading = false
-                                    error = it.result.throwable.localizedMessage
-                                },
-                            )
+                        ) { page ->
+                            var isLoading by remember { mutableStateOf(true) }
+                            var error by remember { mutableStateOf<String?>(null) }
 
-                            if (isLoading) {
-                                CircularProgressIndicator(
-                                    color = Color.White,
-                                    modifier = Modifier.size(48.dp),
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(photos[page])
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(),
+                                    contentScale = ContentScale.Fit,
+                                    onLoading = { isLoading = true },
+                                    onSuccess = { isLoading = false },
+                                    onError = {
+                                        isLoading = false
+                                        error = it.result.throwable.localizedMessage
+                                    },
                                 )
-                            }
 
-                            error?.let { errorMessage ->
-                                Text(
-                                    text = errorMessage,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(16.dp),
-                                )
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(48.dp),
+                                    )
+                                }
+
+                                error?.let { errorMessage ->
+                                    Text(
+                                        text = errorMessage,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(16.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -199,14 +205,21 @@ fun MaintenanceDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Request Details") },
+                title = {
+                    Text("Request Details", style = MaterialTheme.typography.headlineMedium)
+                        },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             )
         },

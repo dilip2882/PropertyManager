@@ -1,9 +1,10 @@
 package com.propertymanager.domain.repository
 
 import com.propertymanager.domain.model.Category
+import kotlinx.coroutines.flow.Flow
 
 interface CategoryRepository {
-    suspend fun getCategories(): List<Category>
+    suspend fun getCategories(): Flow<List<Category>>
     suspend fun addCategory(category: Category)
     suspend fun deleteCategory(categoryId: String)
     suspend fun updateCategory(category: Category)

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -120,7 +121,7 @@ fun TenantNavBar(
                                 .width(backgroundWidth)
                                 .size(iconSize)
                                 .background(
-                                    color = if (selected) Color(0xFFE7EF9F) else Color.Transparent,
+                                    color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
                                     shape = RoundedCornerShape(iconShape),
                                 )
                                 .graphicsLayer(rotationZ = rotation),

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -20,9 +21,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.propertymanager.navigation.Dest
+import com.propertymanager.navigation.SubGraph
+import com.propertymanager.navigation.graphs.authNavGraph
 import com.propertymanager.navigation.graphs.tenantNavGraph
-import propertymanager.feature.auth.presentation.AuthViewModel
-import propertymanager.feature.auth.presentation.PhoneScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 import propertymanager.feature.tenant.profile.TenantProfileScreen
@@ -31,11 +34,14 @@ import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen
 import propertymanager.presentation.components.user.EditProfileScreen
 
+
 @Composable
 fun TenantScreen(
     navController: NavHostController = rememberNavController(),
 ) {
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination
+    val scope: CoroutineScope = rememberCoroutineScope()
+    val viewModel: TenantScreenViewModel = hiltViewModel()
 
     val isBottomBarVisible = remember(currentDestination) {
         when (currentDestination?.route) {
@@ -86,18 +92,9 @@ fun TenantScreen(
                         navController.navigate(Dest.SelectCountryScreen)
                     },
                     propertyViewModel = hiltViewModel(),
-                    userViewModel = hiltViewModel()
+                    userViewModel = hiltViewModel(),
                 )
             }
-
-//            composable(TenantBottomNavItem.SUPPORT.route) {
-//                TenantHomeScreen(
-//                    propertyViewModel = hiltViewModel(),
-//                    onNavigateToAddProperty = {
-//                        navController.navigate(Dest.SelectCountryScreen)
-//                    },
-//                )
-//            }
 
             composable(TenantBottomNavItem.SETTINGS.route) {
                 TenantProfileScreen(
@@ -108,39 +105,19 @@ fun TenantScreen(
                         navController.navigate(Dest.PropertyManagerScreen)
                     },
                     onNavigateToPhoneScreen = {
-                        navController.navigate(Dest.PhoneScreen)
-                    }
-                )
-
-            }
-
-//            composable<Dest.TenantHomeScreen> {
-//                TenantHomeScreen(
-//                    propertyViewModel = hiltViewModel(),
-//                    onNavigateToAddProperty = {
-//                        navController.navigate(Dest.AddPropertyScreen)
-//                    },
-//                )
-//            }
-
-            composable<Dest.PhoneScreen> {
-                val viewModel: AuthViewModel = hiltViewModel()
-                val state by viewModel.state.collectAsState()
-                val effect by viewModel.effect.collectAsState(initial = null)
-
-                PhoneScreen(
-                    state = state,
-                    effect = effect,
-                    dispatch = { event -> viewModel.event(event) },
-                    onNavigateToOtpScreen = { phoneNumber ->
-                        navController.navigate(Dest.OtpScreen(phoneNumber))
-                    }
+                        scope.launch {
+                            viewModel.clearAuthToken()
+                            navController.navigate(Dest.PhoneScreen) {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                            }
+                        }
+                    },
                 )
             }
 
             composable<Dest.AddPropertyScreen> {
                 val sharedViewModel: LocationViewModel = hiltViewModel(
-                    remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) }
+                    remember { navController.getBackStackEntry(TenantBottomNavItem.HOME.route) },
                 )
                 AddPropertyScreen(
                     propertyViewModel = hiltViewModel(),
@@ -179,7 +156,7 @@ fun TenantScreen(
                     },
                     onNavigateToPhoneScreen = {
                         navController.navigate(Dest.PhoneScreen)
-                    }
+                    },
                 )
             }
 
@@ -203,6 +180,7 @@ fun TenantScreen(
             }
 
             tenantNavGraph(navController)
+            authNavGraph(navController)
         }
     }
 

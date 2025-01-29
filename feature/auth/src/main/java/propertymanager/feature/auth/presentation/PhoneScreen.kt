@@ -7,19 +7,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,14 +34,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import com.hbb20.CountryCodePicker
+import com.dilip.country_code_picker.CCPUtils
+import com.dilip.country_code_picker.CCPValidator
+import com.dilip.country_code_picker.CountryCodePickerTextField
+import com.dilip.country_code_picker.PickerCustomization
+import com.dilip.country_code_picker.ViewCustomization
 import propertymanager.feature.auth.R
 import propertymanager.feature.auth.presentation.mvi.AuthContract
 
@@ -51,7 +57,18 @@ fun PhoneScreen(
 ) {
     val context = LocalContext.current
     var phoneNumber by remember { mutableStateOf("") }
-    var countryCode by remember { mutableStateOf("+91") }
+    var country by remember { mutableStateOf(com.dilip.country_code_picker.Country.India) }
+    val validatePhoneNumber = remember { CCPValidator(context = context) }
+    var isNumberValid by remember(country, phoneNumber) {
+        mutableStateOf(validatePhoneNumber(number = phoneNumber, countryCode = country.countryCode))
+    }
+
+    // Automatically fetch country based on device locale
+    if (!LocalInspectionMode.current) {
+        CCPUtils.getCountryAutomatically(context = context)?.let {
+            country = it
+        }
+    }
 
     LaunchedEffect(effect) {
         when (effect) {
@@ -108,54 +125,57 @@ fun PhoneScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Row(
+        CountryCodePickerTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Country Code Picker
-            AndroidView(
-                factory = { context ->
-                    CountryCodePicker(context).apply {
-                        setDefaultCountryUsingPhoneCode(91) // Default
-                        setOnCountryChangeListener {
-                            countryCode = selectedCountryCodeWithPlus
-                        }
+            textStyle = MaterialTheme.typography.bodyMedium,
+            trailingIcon = if (phoneNumber.isNotEmpty()) {
+                {
+                    IconButton(onClick = { phoneNumber = "" }) {
+                        Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
                     }
-                },
-                modifier = Modifier
-                    .width(70.dp)
-                    .height(56.dp)
-                    .padding(top = 5.dp),
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = {
-                    if (it.length <= 10) phoneNumber = it
-                },
-                label = { Text(text = "Enter Mobile Number", color = Color(0xFF2b472b)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(color = Color(0xFF2b472b)),
-                singleLine = true,
-            )
-        }
+                }
+            } else null,
+            label = {
+                Text(text = "Enter Mobile Number", style = MaterialTheme.typography.bodyMedium)
+            },
+            showError = !isNumberValid && phoneNumber.isNotEmpty(),
+            shape = RoundedCornerShape(10.dp),
+            onValueChange = { countryCode, value, isValid ->
+                phoneNumber = value
+                isNumberValid = isValid
+            },
+            number = phoneNumber,
+            showSheet = true,
+            selectedCountry = country,
+            countryList = com.dilip.country_code_picker.Country.getAllCountries(),
+            viewCustomization = ViewCustomization(
+                showFlag = true,
+                showCountryCode = true,
+                showCountryName = true,
+            ),
+            pickerCustomization = PickerCustomization(
+                showFlag = true,
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            enabled = true,
+        )
 
         Spacer(modifier = Modifier.height(30.dp))
 
         Button(
             onClick = {
-                val fullNumber = "$countryCode$phoneNumber"
+                val fullNumber = "${country.countryCode}$phoneNumber"
                 dispatch(AuthContract.AuthEvent.SubmitPhoneNumber(fullNumber, context as Activity))
             },
             colors = ButtonDefaults.buttonColors(
-                if (phoneNumber.length == 10) Color(0xFF2b472b) else Color.Gray,
+                containerColor = if (isNumberValid && phoneNumber.isNotEmpty()) Color(0xFF2b472b) else Color.Gray,
             ),
-            enabled = phoneNumber.length == 10,
+            enabled = isNumberValid && phoneNumber.isNotEmpty(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
         ) {
             Text(text = "Generate OTP", color = Color.White)
         }

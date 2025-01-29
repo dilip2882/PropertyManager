@@ -27,4 +27,10 @@ object CoreModule {
             produceFile = { context.preferencesDataStoreFile(DATASTORE_NAME) },
         )
     }
+
+    @Singleton
+    @Provides
+    fun providePreferenceStore(@ApplicationContext context: Context): PreferenceStore {
+        return AndroidPreferenceStore(context)
+    }
 }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -44,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.propertymanager.domain.model.location.Block
@@ -172,6 +170,7 @@ fun LocationScreen(
                                     ),
                                 ),
                             )
+                            showDialog = null
                         },
                     )
                 }
@@ -187,6 +186,7 @@ fun LocationScreen(
                                         society.copy(name = name),
                                     ),
                                 )
+                                showDialog = null
                             },
                         )
                     }
@@ -849,11 +849,11 @@ private fun FlatItem(
                 text = "Flat ${flat.number}",
                 style = MaterialTheme.typography.bodyLarge,
             )
-            Text(
-                text = "Floor: ${flat.floor} | Type: ${flat.type} | Area: ${flat.area}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+//            Text(
+//                text = "Floor: ${flat.floor} | Type: ${flat.type} | Area: ${flat.area}",
+//                style = MaterialTheme.typography.bodyMedium,
+//                color = MaterialTheme.colorScheme.onSurfaceVariant,
+//            )
         }
         Row {
             IconButton(onClick = onEdit) {
@@ -924,20 +924,20 @@ fun AddEditBlockDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = type,
-                    onValueChange = { type = it },
-                    label = { Text("Block Type") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                /*                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = type,
+                                    onValueChange = { type = it },
+                                    label = { Text("Block Type") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )*/
             }
         },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(name, type) },
-                enabled = name.isNotBlank() && type.isNotBlank(),
+                enabled = name.isNotBlank(),
             ) {
                 Text(if (block == null) "Add" else "Update")
             }
@@ -1015,36 +1015,36 @@ fun AddEditFlatDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
-                    value = floor,
-                    onValueChange = { floor = it.filter { char -> char.isDigit() } },
-                    label = { Text("Floor") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = type,
-                    onValueChange = { type = it },
-                    label = { Text("Type") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = area,
-                    onValueChange = { area = it.filter { char -> char.isDigit() || char == '.' } },
-                    label = { Text("Area (sq ft)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = status,
-                    onValueChange = { status = it },
-                    label = { Text("Status") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                /*                OutlinedTextField(
+                                    value = floor,
+                                    onValueChange = { floor = it.filter { char -> char.isDigit() } },
+                                    label = { Text("Floor") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                OutlinedTextField(
+                                    value = type,
+                                    onValueChange = { type = it },
+                                    label = { Text("Type") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                OutlinedTextField(
+                                    value = area,
+                                    onValueChange = { area = it.filter { char -> char.isDigit() || char == '.' } },
+                                    label = { Text("Area (sq ft)") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                OutlinedTextField(
+                                    value = status,
+                                    onValueChange = { status = it },
+                                    label = { Text("Status") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )*/
             }
         },
         confirmButton = {
@@ -1058,8 +1058,7 @@ fun AddEditFlatDialog(
                         status,
                     )
                 },
-                enabled = number.isNotBlank() && floor.isNotBlank() && type.isNotBlank() &&
-                    area.isNotBlank() && status.isNotBlank(),
+                enabled = number.isNotBlank(),
             ) {
                 Text(if (flat == null) "Add" else "Update")
             }

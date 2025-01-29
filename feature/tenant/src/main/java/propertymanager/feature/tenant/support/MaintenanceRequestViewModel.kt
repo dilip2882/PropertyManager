@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
@@ -76,12 +77,15 @@ class MaintenanceRequestViewModel @Inject constructor(
 
     private fun fetchCategories() {
         viewModelScope.launch {
-            try {
-                val categories = categoryUseCases.fetchCategories()
-                _categoriesResponse.value = Response.Success(categories)
-            } catch (e: Exception) {
-                _categoriesResponse.value = Response.Error(e.message ?: "Unable to fetch categories")
-            }
+            categoryUseCases.fetchCategories()
+                .catch { e ->
+                    _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")
+                }
+                .collect { categories ->
+                    _categoriesResponse.value = Response.Success(
+                        categories.sortedBy { it.name.lowercase() }
+                    )
+                }
         }
     }
 

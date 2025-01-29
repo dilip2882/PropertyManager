@@ -105,6 +105,9 @@ fun NavGraphBuilder.staffNavGraph(
                 },
                 onNavigateToLocationManager = {
                     navController.navigate(Dest.CountryManagerScreen)
+                },
+                onNavigateToPhoneScreen = {
+                    navController.navigate(Dest.PhoneScreen)
                 }
             )
         }

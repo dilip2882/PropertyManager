@@ -140,7 +140,6 @@ fun CountryManagerScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddCountryDialog(
     onDismiss: () -> Unit,
@@ -253,10 +252,10 @@ private fun CountryItem(
                     text = country.name,
                     style = MaterialTheme.typography.titleMedium,
                 )
-                Text(
+/*                Text(
                     text = country.iso2,
                     style = MaterialTheme.typography.bodyMedium,
-                )
+                )*/
             }
             Row {
                 IconButton(onClick = onEdit) {

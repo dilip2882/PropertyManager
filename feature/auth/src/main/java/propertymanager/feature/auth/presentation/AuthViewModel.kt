@@ -103,7 +103,7 @@ class AuthViewModel @Inject constructor(
                     is Response.Loading -> mutableState.value = AuthContract.AuthState.Loading
                     is Response.Success -> {
                         mutableEffect.emit(AuthContract.AuthEffect.ShowToast("Signed Out Successfully"))
-                        mutableEffect.emit(AuthContract.AuthEffect.NNavigateToPhoneScreen)
+                        mutableEffect.emit(AuthContract.AuthEffect.NavigateToPhoneScreen)
                     }
                     is Response.Error -> mutableState.value = AuthContract.AuthState.Error(result.message)
                 }

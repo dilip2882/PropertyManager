@@ -137,6 +137,7 @@ class LocationViewModel @Inject constructor(
                     towers = emptyList(),
                     flats = emptyList()
                 ) }
+                loadBlocksAndTowersForSociety(event.society.id)
                 loadFlatsForSociety(event.society.id)
             }
 
@@ -384,14 +385,19 @@ class LocationViewModel @Inject constructor(
     fun loadBlocksAndTowersForSociety(societyId: Int) {
         viewModelScope.launch {
             try {
+                println("Loading blocks for society: $societyId")
                 locationUseCases.getBlocksForSociety(societyId).collect { blocks ->
+                    println("Received blocks: ${blocks.size}")
                     _state.update { it.copy(blocks = blocks) }
                 }
+
+                println("Loading towers for society: $societyId")
                 locationUseCases.getTowersForSociety(societyId).collect { towers ->
+                    println("Received towers: ${towers.size}")
                     _state.update { it.copy(towers = towers) }
                 }
             } catch (e: Exception) {
-                // Handle error
+                println("Error loading blocks/towers: ${e.message}")
             }
         }
     }

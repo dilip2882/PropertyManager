@@ -27,10 +27,10 @@ class MaintenanceRequestRepositoryImpl(
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null) {
-                    val requests = snapshot.documents.mapNotNull { doc ->
+                snapshot?.let {
+                    val requests = it.documents.mapNotNull { doc ->
                         doc.toObject(MaintenanceRequest::class.java)?.copy(
-                            maintenanceRequestsId = doc.id,
+                            maintenanceRequestsId = doc.id
                         )
                     }
                     trySend(Response.Success(requests))
@@ -43,25 +43,17 @@ class MaintenanceRequestRepositoryImpl(
     override fun getMaintenanceRequestsByUser(): Flow<Response<List<MaintenanceRequest>>> = callbackFlow {
         trySend(Response.Loading)
 
-        val currentUserId = auth.currentUser?.uid // current user ID
-        if (currentUserId == null) {
-            trySend(Response.Error("User not authenticated"))
-            return@callbackFlow
-        }
-
         val listener = firestore.collection("maintenance_requests")
-            .whereEqualTo("tenantId", currentUserId) // requests for the current user
             .addSnapshotListener { snapshot, error ->
-
                 if (error != null) {
                     trySend(Response.Error(error.localizedMessage ?: "Unknown error"))
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null) {
-                    val requests = snapshot.documents.mapNotNull { doc ->
+                snapshot?.let {
+                    val requests = it.documents.mapNotNull { doc ->
                         doc.toObject(MaintenanceRequest::class.java)?.copy(
-                            maintenanceRequestsId = doc.id,
+                            maintenanceRequestsId = doc.id
                         )
                     }
                     trySend(Response.Success(requests))

@@ -8,6 +8,7 @@ import com.propertymanager.domain.usecase.CategoryUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +26,17 @@ class CategoryViewModel @Inject constructor(
     private var isSortedAscending = true
 
     init {
-        fetchCategories()
+        viewModelScope.launch {
+            categoryUseCases.fetchCategories()
+                .catch { e ->
+                    _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")
+                }
+                .collect { categories ->
+                    _categoriesResponse.value = Response.Success(
+                        categories.sortedBy { it.name.lowercase() }
+                    )
+                }
+        }
     }
 
     private var categoriesLoaded = false
@@ -40,9 +51,12 @@ class CategoryViewModel @Inject constructor(
         viewModelScope.launch {
             _categoriesResponse.value = Response.Loading
             try {
-                val categories = categoryUseCases.fetchCategories().sortedBy { it.name.lowercase() }
-                _categoriesResponse.value = Response.Success(categories)
-                categoriesLoaded = true
+                categoryUseCases.fetchCategories()
+                    .collect { categories ->
+                        val sortedCategories = categories.sortedBy { it.name.lowercase() }
+                        _categoriesResponse.value = Response.Success(sortedCategories)
+                        categoriesLoaded = true
+                    }
             } catch (e: Exception) {
                 _categoriesResponse.value = Response.Error(e.message ?: "Unknown Error")
             }
@@ -92,7 +106,6 @@ class CategoryViewModel @Inject constructor(
             _operationResponse.value = Response.Loading
             try {
                 categoryUseCases.addCategory(category)
-                fetchCategories() // Refresh
                 _operationResponse.value = Response.Success(Unit)
             } catch (e: Exception) {
                 _operationResponse.value = Response.Error(e.message ?: "Failed to add category")
@@ -105,7 +118,6 @@ class CategoryViewModel @Inject constructor(
             _operationResponse.value = Response.Loading
             try {
                 categoryUseCases.deleteCategory(categoryId)
-                fetchCategories()
                 _operationResponse.value = Response.Success(Unit)
             } catch (e: Exception) {
                 _operationResponse.value = Response.Error(e.message ?: "Failed to delete category")
@@ -118,7 +130,6 @@ class CategoryViewModel @Inject constructor(
             _operationResponse.value = Response.Loading
             try {
                 categoryUseCases.updateCategory(category)
-                fetchCategories()
                 _operationResponse.value = Response.Success(Unit)
             } catch (e: Exception) {
                 _operationResponse.value = Response.Error(e.message ?: "Failed to update category")
@@ -131,7 +142,6 @@ class CategoryViewModel @Inject constructor(
             _operationResponse.value = Response.Loading
             try {
                 categoryUseCases.addSubcategory(categoryId, subcategoryName)
-                fetchCategories()
                 _operationResponse.value = Response.Success(Unit)
             } catch (e: Exception) {
                 _operationResponse.value = Response.Error(e.message ?: "Failed to add subcategory")
@@ -144,7 +154,6 @@ class CategoryViewModel @Inject constructor(
             _operationResponse.value = Response.Loading
             try {
                 categoryUseCases.deleteSubcategory(categoryId, subcategoryName)
-                fetchCategories()
                 _operationResponse.value = Response.Success(Unit)
             } catch (e: Exception) {
                 _operationResponse.value = Response.Error(e.message ?: "Failed to delete subcategory")
@@ -157,7 +166,6 @@ class CategoryViewModel @Inject constructor(
             _operationResponse.value = Response.Loading
             try {
                 categoryUseCases.updateSubcategory(categoryId, oldName, newName)
-                fetchCategories()
                 _operationResponse.value = Response.Success(Unit)
             } catch (e: Exception) {
                 _operationResponse.value = Response.Error(e.message ?: "Failed to update subcategory")
