@@ -43,14 +43,43 @@ class AuthViewModel @Inject constructor(
     private fun submitPhoneNumber(phoneNumber: String, activity: Activity) {
         viewModelScope.launch {
             mutableState.value = AuthContract.AuthState.Loading
+
+            // cooldown check
+            if (isInCooldownPeriod()) {
+                mutableState.value = AuthContract.AuthState.Error(
+                    "Please wait a few minutes before trying again."
+                )
+                return@launch
+            }
+
             authUseCases.createUserWithPhoneUseCase(phoneNumber, activity).collect { result ->
                 when (result) {
-                    is Response.Success -> mutableEffect.emit(AuthContract.AuthEffect.NavigateToOtpScreen)
-                    is Response.Error -> mutableState.value = AuthContract.AuthState.Error(result.message)
+                    is Response.Success -> {
+                        mutableEffect.emit(AuthContract.AuthEffect.NavigateToOtpScreen)
+                    }
+                    is Response.Error -> {
+                        if (result.message.contains("unusual activity") ||
+                            result.message.contains("Too many")) {
+                            startCooldownPeriod()
+                        }
+                        mutableState.value = AuthContract.AuthState.Error(result.message)
+                    }
                     Response.Loading -> mutableState.value = AuthContract.AuthState.Loading
                 }
             }
         }
+    }
+
+    private var lastAttemptTime: Long = 0
+    private val COOLDOWN_PERIOD = 1 * 60 * 1000 // 1 minutes in milliseconds
+
+    private fun isInCooldownPeriod(): Boolean {
+        val currentTime = System.currentTimeMillis()
+        return (currentTime - lastAttemptTime) < COOLDOWN_PERIOD
+    }
+
+    private fun startCooldownPeriod() {
+        lastAttemptTime = System.currentTimeMillis()
     }
 
     private fun submitOtp(otp: String) {
@@ -60,7 +89,7 @@ class AuthViewModel @Inject constructor(
                 when (result) {
                     is Response.Success -> mutableEffect.emit(AuthContract.AuthEffect.NavigateToHome)
                     is Response.Error -> {
-                        // Update state to show error
+                        // show error
                         mutableState.value = AuthContract.AuthState.Error(result.message)
                         mutableEffect.emit(AuthContract.AuthEffect.ShowToast(result.message))
                     }

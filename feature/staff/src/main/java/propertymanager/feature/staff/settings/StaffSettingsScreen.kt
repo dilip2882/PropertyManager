@@ -1,10 +1,6 @@
 package propertymanager.feature.staff.settings
 
 import android.content.Context
-import android.net.Uri
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,12 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -31,9 +25,6 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -63,9 +53,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.rememberAsyncImagePainter
-import com.propertymanager.common.utils.Response
-import com.propertymanager.domain.model.User
 import com.propertymanager.domain.model.biometrics.BiometricAuthState
 import com.propertymanager.domain.model.biometrics.BiometricCheckResult
 import propertymanager.feature.auth.presentation.AuthViewModel
@@ -76,9 +63,7 @@ import propertymanager.presentation.components.LocalPreferenceHighlighted
 import propertymanager.presentation.components.LocalPreferenceMinHeight
 import propertymanager.presentation.components.TextPreferenceWidget
 import propertymanager.presentation.components.user.ProfileScreen
-import propertymanager.presentation.components.user.UserViewModel
 import propertymanager.presentation.i18n.stringResource
-import propertymanager.presentation.screens.LoadingScreen
 import java.util.Locale
 
 @Composable
@@ -146,7 +131,7 @@ fun StaffSettingsScreen(
                         showLogoutDialog = false
                         authViewModel.event(AuthContract.AuthEvent.SignOut)
                         onNavigateToPhoneScreen()
-                    }
+                    },
                 ) {
                     Text("Yes")
                 }
@@ -155,7 +140,7 @@ fun StaffSettingsScreen(
                 TextButton(onClick = { showLogoutDialog = false }) {
                     Text("No")
                 }
-            }
+            },
         )
     }
 
@@ -188,7 +173,7 @@ fun StaffSettingsScreen(
                 ),
                 title = { Text(stringResource(MR.strings.staff_settings_title)) },
 
-            )
+                )
         },
     ) { paddingValues ->
 
@@ -204,7 +189,7 @@ fun StaffSettingsScreen(
                     onNavigateToEditProfile = {
                         onNavigateToEditProfile()
                     },
-                    modifier = Modifier
+                    modifier = Modifier,
                 )
             }
 
@@ -335,19 +320,19 @@ fun StaffSettingsScreen(
                 )
             }
 
-/*            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            /*            item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
-            item {
-                TextPreferenceWidget(
-                    title = "Roles",
-                    icon = Icons.Filled.Person,
-                    onPreferenceClick = {
-                        onNavigateToRoles()
-                    },
-                )
-            }*/
+                        item {
+                            TextPreferenceWidget(
+                                title = "Roles",
+                                icon = Icons.Filled.Person,
+                                onPreferenceClick = {
+                                    onNavigateToRoles()
+                                },
+                            )
+                        }*/
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -357,7 +342,7 @@ fun StaffSettingsScreen(
                 TextPreferenceWidget(
                     title = "Logout",
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
-                    onPreferenceClick = { showLogoutDialog = true }
+                    onPreferenceClick = { showLogoutDialog = true },
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -404,7 +389,7 @@ fun SettingsItem(
     onSwitchChanged: (Boolean) -> Unit = {},
     onOptionClick: () -> Unit = {},
     optionValue: String? = null,
-    showArrow: Boolean = false
+    showArrow: Boolean = false,
 ) {
     val highlighted = LocalPreferenceHighlighted.current
     val minHeight = LocalPreferenceMinHeight.current

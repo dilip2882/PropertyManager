@@ -1,12 +1,19 @@
 package com.propertymanager.data.repository
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
@@ -15,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.messaging.FirebaseMessaging
 import com.propertymanager.common.utils.Constants
+import com.propertymanager.common.utils.NetworkUtils
 import com.propertymanager.common.utils.Response
 import com.propertymanager.domain.model.Role
 import com.propertymanager.domain.model.User
@@ -35,7 +43,8 @@ import kotlin.coroutines.resume
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val context: Activity
+    private val context: Activity,
+    private val appCheck: FirebaseAppCheck
 ) : AuthRepository {
 
     private lateinit var verificationCode: String
@@ -57,12 +66,31 @@ class AuthRepositoryImpl @Inject constructor(
     ): Flow<Response<String>> = callbackFlow {
         trySend(Response.Loading)
 
+        // NetworkUtils from common module
+        if (!NetworkUtils.isNetworkAvailable(activity)) {
+            trySend(Response.Error("No internet connection. Please check your network settings."))
+            close()
+            return@callbackFlow
+        }
+
         val onVerificationCallback =
             object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(p0: PhoneAuthCredential) {}
 
                 override fun onVerificationFailed(p0: FirebaseException) {
-                    trySend(Response.Error(p0.toString()))
+                    when (p0) {
+                        is FirebaseNetworkException ->
+                            trySend(Response.Error("Network error. Please check your connection."))
+                        is FirebaseTooManyRequestsException ->
+                            trySend(Response.Error("Too many requests. Please try again later."))
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            when (p0.errorCode) {
+                                "ERROR_INVALID_PHONE_NUMBER" -> "Invalid phone number format."
+                                else -> "Invalid credentials: ${p0.message}"
+                            }
+                        }
+                        else -> trySend(Response.Error(p0.message ?: "Verification failed"))
+                    }
                 }
 
                 override fun onCodeSent(
@@ -70,24 +98,43 @@ class AuthRepositoryImpl @Inject constructor(
                     token: PhoneAuthProvider.ForceResendingToken,
                 ) {
                     super.onCodeSent(sentVerificationCode, token)
+                    verificationCode = sentVerificationCode
+                    verificationToken = token
                     trySend(Response.Success("OTP Sent Successfully"))
-                    verificationCode = sentVerificationCode // Store the actual verification code
-                    verificationToken = token // Store the token for resending
                 }
             }
 
-        val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(phone)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(onVerificationCallback)
-            .build()
+        try {
+            var attempts = 0
+            var success = false
 
-        PhoneAuthProvider.verifyPhoneNumber(options)
-        awaitClose {
-            close()
+            while (attempts < 3 && !success) {
+                try {
+                    val options = PhoneAuthOptions.newBuilder(auth)
+                        .setPhoneNumber(phone)
+                        .setTimeout(60L, TimeUnit.SECONDS)
+                        .setActivity(activity)
+                        .setCallbacks(onVerificationCallback)
+                        .build()
+
+                    PhoneAuthProvider.verifyPhoneNumber(options)
+                    success = true
+                } catch (e: Exception) {
+                    attempts++
+                    if (attempts < 3) {
+                        delay(2000L * attempts) // Exponential backoff
+                    } else {
+                        trySend(Response.Error("Failed to verify phone number after multiple attempts"))
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            trySend(Response.Error("Failed to initialize verification: ${e.message}"))
         }
+
+        awaitClose { close() }
     }
+
 
     private suspend fun checkPlayServices(context: Activity): Boolean {
         return try {

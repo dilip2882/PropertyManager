@@ -2,6 +2,7 @@ package com.propertymanager.data.di
 
 import android.app.Activity
 import android.content.Context
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.propertymanager.data.repository.AuthRepositoryImpl
@@ -26,8 +27,8 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun providesAuthRepository(auth: FirebaseAuth, firestore: FirebaseFirestore): AuthRepository {
-        return AuthRepositoryImpl(auth = auth, firestore = firestore, context = Activity())
+    fun providesAuthRepository(auth: FirebaseAuth, firestore: FirebaseFirestore, appCheck: FirebaseAppCheck): AuthRepository {
+        return AuthRepositoryImpl(auth = auth, firestore = firestore, context = Activity(), appCheck = appCheck)
     }
 
     @Provides

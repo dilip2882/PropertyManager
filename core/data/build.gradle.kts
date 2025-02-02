@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.google.firebase.auth.ktx)
+    implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.appcheck.ktx)
 
     implementation(libs.retrofit)
     implementation(libs.logging.interceptor)
@@ -33,7 +35,6 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(libs.firebase.messaging.ktx)
     ksp(libs.hilt.compiler)
 
     // Data serialization (JSON, protobuf, xml, retrofit)

@@ -25,10 +25,11 @@ dependencies {
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.google.firebase.auth.ktx)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.appcheck.playintegrity)
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(libs.firebase.storage.ktx)
     ksp(libs.hilt.compiler)
 
     // Data serialization (JSON, protobuf, xml, retrofit)

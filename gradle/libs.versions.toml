@@ -44,6 +44,9 @@ firebaseMessagingKtxVersion = "24.1.0"
 firebaseDatabaseKtxVersion = "21.0.0"
 uiautomatorVersion = "2.3.0"
 benchmarkMacroJunit4Version = "1.3.3"
+firebaseAppcheckKtxVersion = "18.0.0"
+firebaseAppcheckPlayintegrityVersion = "18.0.0"
+firebaseAppcheckDebugVersion = "18.0.0"
 
 [libraries]
 desugar = "com.android.tools:desugar_jdk_libs:2.1.3"
@@ -156,6 +159,9 @@ firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messa
 google-firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtxVersion" }
 uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomatorVersion" }
 benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4Version" }
+firebase-appcheck-ktx = { group = "com.google.firebase", name = "firebase-appcheck-ktx", version.ref = "firebaseAppcheckKtxVersion" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity", version.ref = "firebaseAppcheckPlayintegrityVersion" }
+firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug", version.ref = "firebaseAppcheckDebugVersion" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

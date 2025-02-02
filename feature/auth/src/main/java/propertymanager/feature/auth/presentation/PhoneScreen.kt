@@ -56,11 +56,26 @@ fun PhoneScreen(
     onNavigateToOtpScreen: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    var countryCode by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var country by remember { mutableStateOf(com.dilip.country_code_picker.Country.India) }
     val validatePhoneNumber = remember { CCPValidator(context = context) }
     var isNumberValid by remember(country, phoneNumber) {
-        mutableStateOf(validatePhoneNumber(number = phoneNumber, countryCode = country.countryCode))
+        mutableStateOf(validatePhoneNumber(number = phoneNumber, countryCode = countryCode))
+    }
+
+    if (state is AuthContract.AuthState.Error) {
+        val message = state.errorMessage
+        LaunchedEffect(message) {
+            if (message.contains("unusual activity") ||
+                message.contains("Too many verification attempts")) {
+                Toast.makeText(
+                    context,
+                    "Please wait a few minutes before trying again.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     // Automatically fetch country based on device locale
@@ -92,7 +107,7 @@ fun PhoneScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(30.dp))
 
         Image(
             painter = painterResource(id = R.drawable.mail_box_img),
@@ -142,7 +157,8 @@ fun PhoneScreen(
             },
             showError = !isNumberValid && phoneNumber.isNotEmpty(),
             shape = RoundedCornerShape(10.dp),
-            onValueChange = { countryCode, value, isValid ->
+            onValueChange = { code, value, isValid ->
+                countryCode = code
                 phoneNumber = value
                 isNumberValid = isValid
             },
@@ -153,7 +169,7 @@ fun PhoneScreen(
             viewCustomization = ViewCustomization(
                 showFlag = true,
                 showCountryCode = true,
-                showCountryName = true,
+                showCountryName = false,
             ),
             pickerCustomization = PickerCustomization(
                 showFlag = true,
@@ -166,7 +182,7 @@ fun PhoneScreen(
 
         Button(
             onClick = {
-                val fullNumber = "${country.countryCode}$phoneNumber"
+                val fullNumber = "${countryCode}$phoneNumber"
                 dispatch(AuthContract.AuthEvent.SubmitPhoneNumber(fullNumber, context as Activity))
             },
             colors = ButtonDefaults.buttonColors(

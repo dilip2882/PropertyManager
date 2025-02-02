@@ -7,6 +7,11 @@ import android.content.Context
 import android.os.Build
 import coil3.ImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.google.firebase.initialize
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
 
@@ -14,7 +19,16 @@ import okhttp3.OkHttpClient
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Initialize Firebase
+        Firebase.initialize(this)
+        FirebaseApp.initializeApp(this)?.let { firebaseApp ->
+            val appCheck = FirebaseAppCheck.getInstance(firebaseApp)
+            appCheck.installAppCheckProviderFactory(
+                PlayIntegrityAppCheckProviderFactory.getInstance(),
+            )
+        }
 
+        // Notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "PropertyManager", // Channel ID
@@ -28,6 +42,7 @@ class App : Application() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Coil
         ImageLoader.Builder(applicationContext)
             .components {
                 add(
