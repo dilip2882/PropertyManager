@@ -84,5 +84,4 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-
 }

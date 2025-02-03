@@ -10,10 +10,12 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class UiPreferences () {
-    lateinit var preferenceStore: PreferenceStore
-
+@Singleton
+class UiPreferences @Inject constructor(
+    val preferenceStore: PreferenceStore
+) {
     fun themeMode() = preferenceStore.getEnum("pref_theme_mode_key", ThemeMode.SYSTEM)
 
     fun appTheme() = preferenceStore.getEnum(

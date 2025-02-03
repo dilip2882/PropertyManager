@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.propertymanager.common.preferences.temp.DATASTORE_NAME
+import com.propertymanager.common.preferences.temp.PreferencesDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,11 +27,5 @@ object CoreModule {
             corruptionHandler = ReplaceFileCorruptionHandler(produceNewData = { emptyPreferences() }),
             produceFile = { context.preferencesDataStoreFile(DATASTORE_NAME) },
         )
-    }
-
-    @Singleton
-    @Provides
-    fun providePreferenceStore(@ApplicationContext context: Context): PreferenceStore {
-        return AndroidPreferenceStore(context)
     }
 }

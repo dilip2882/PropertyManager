@@ -6,7 +6,7 @@
     <!--============-->
 
     <!--== Theme Base ==-->
-    <style name="Base.Theme.PropertyManager" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.PropertyManager" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Disallow "Force dark theme" -->
         <item name="android:forceDarkAllowed" tools:targetApi="Q">false</item>
 

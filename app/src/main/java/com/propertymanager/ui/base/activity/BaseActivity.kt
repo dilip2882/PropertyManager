@@ -18,6 +18,6 @@ open class BaseActivity : AppCompatActivity(), ThemingDelegate {
     }
 
     override fun applyAppTheme(activity: Activity) {
-
+        themingDelegate.applyAppTheme(activity)
     }
 }

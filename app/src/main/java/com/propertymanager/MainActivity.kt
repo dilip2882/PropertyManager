@@ -28,7 +28,6 @@ import propertymanager.feature.staff.settings.ThemeViewModel
 import propertymanager.presentation.theme.PropertyManagerTheme
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
     @Inject
@@ -37,9 +36,6 @@ class MainActivity : BaseActivity() {
     // To be checked by splash screen. If true then splash screen will be removed.
     var ready = false
 
-    val navOptions = NavOptions.Builder()
-        .build()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         val isLaunch = savedInstanceState == null
 
@@ -47,6 +43,7 @@ class MainActivity : BaseActivity() {
         val splashScreen = if (isLaunch) installSplashScreen() else null
 
         super.onCreate(savedInstanceState)
+
         setContent {
             val viewModel: ThemeViewModel = hiltViewModel()
             val biometricViewModel: BiometricViewModel = hiltViewModel()
@@ -61,7 +58,6 @@ class MainActivity : BaseActivity() {
             val biometricAuthResult by biometricViewModel.authResult.collectAsState()
 
             LaunchedEffect(biometricAuthState) {
-
                 if (biometricAuthState == BiometricAuthState.ENABLED) {
                     biometricViewModel.authenticate(this@MainActivity)
                 }
@@ -70,23 +66,22 @@ class MainActivity : BaseActivity() {
             biometricViewModel.handleBiometricAuth(biometricAuthResult, this)
 
             PropertyManagerTheme(
-                darkTheme = darkMode, dynamicColor = dynamicColor,
+                darkTheme = darkMode,
+                dynamicColor = dynamicColor
             ) {
                 MainNavigation(
                     navController = rememberNavController(),
                     appPreferences = appPreferences,
                 )
-
             }
-
         }
+
         val startTime = System.currentTimeMillis()
         splashScreen?.setKeepOnScreenCondition {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
         }
         setSplashScreenExitAnimation(splashScreen)
-
     }
 
     /**
@@ -132,7 +127,6 @@ class MainActivity : BaseActivity() {
             }
         }
     }
-
 }
 
 // Splash screen

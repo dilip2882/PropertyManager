@@ -53,8 +53,7 @@ dependencies {
 
     implementation(kotlinx.immutables)
 
-    implementation("com.hbb20:ccp:2.7.3")
-    implementation("com.github.dilip2882:Country-Code-Picker-Compose-Library:1.0.0")
+    implementation(libs.country.code.picker.compose.library)
 }
 
 tasks {

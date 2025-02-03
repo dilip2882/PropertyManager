@@ -1,5 +1,6 @@
 [versions]
 aboutlib_version = "11.2.3"
+countryCodePickerComposeLibraryVersion = "1.0.0"
 gsonVersion = "2.11.0"
 leakcanary = "2.14"
 moko = "0.24.2"
@@ -49,6 +50,7 @@ firebaseAppcheckPlayintegrityVersion = "18.0.0"
 firebaseAppcheckDebugVersion = "18.0.0"
 
 [libraries]
+country-code-picker-compose-library = { module = "com.github.dilip2882:Country-Code-Picker-Compose-Library", version.ref = "countryCodePickerComposeLibraryVersion" }
 desugar = "com.android.tools:desugar_jdk_libs:2.1.3"
 android-shortcut-gradle = "com.github.zellius:android-shortcut-gradle-plugin:0.1.2"
 
