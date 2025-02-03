@@ -1,4 +1,4 @@
-package propertymanager.feature.tenant.profile
+package propertymanager.feature.tenant.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

@@ -21,19 +21,23 @@ import com.propertymanager.ui.theme.colorscheme.TealTurqoiseColorScheme
 import com.propertymanager.ui.theme.colorscheme.TidalWaveColorScheme
 import com.propertymanager.ui.theme.colorscheme.YinYangColorScheme
 import com.propertymanager.ui.theme.colorscheme.YotsubaColorScheme
+import javax.inject.Inject
 
 @Composable
 fun PropertyManagerTheme(
     appTheme: AppTheme? = null,
     amoled: Boolean? = null,
     content: @Composable () -> Unit,
-    uiPreferences: UiPreferences
 ) {
-    BasePropertyManagerTheme(
-        appTheme = appTheme ?: uiPreferences.appTheme().get(),
-        isAmoled = amoled ?: uiPreferences.themeDarkAmoled().get(),
-        content = content,
-    )
+    val uiPreferences: UiPreferences? = null
+
+    if (uiPreferences != null) {
+        BasePropertyManagerTheme(
+            appTheme = appTheme ?: uiPreferences.appTheme().get(),
+            isAmoled = amoled ?: uiPreferences.themeDarkAmoled().get(),
+            content = content,
+        )
+    }
 }
 
 @Composable

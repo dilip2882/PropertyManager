@@ -15,12 +15,15 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
+import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.rememberNavController
 import com.propertymanager.common.preferences.temp.AppPreferences
 import com.propertymanager.common.system.dpToPx
 import com.propertymanager.domain.model.biometrics.BiometricAuthState
+import com.propertymanager.domain.model.Role
 import com.propertymanager.navigation.MainNavigation
+import com.propertymanager.navigation.SubGraph
 import com.propertymanager.ui.base.activity.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
 import propertymanager.feature.staff.settings.BiometricViewModel
@@ -35,6 +38,8 @@ class MainActivity : BaseActivity() {
 
     // To be checked by splash screen. If true then splash screen will be removed.
     var ready = false
+
+    private var navController: NavHostController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val isLaunch = savedInstanceState == null
@@ -65,13 +70,14 @@ class MainActivity : BaseActivity() {
 
             biometricViewModel.handleBiometricAuth(biometricAuthResult, this)
 
+            navController = rememberNavController()
             PropertyManagerTheme(
                 darkTheme = darkMode,
                 dynamicColor = dynamicColor
             ) {
                 MainNavigation(
-                    navController = rememberNavController(),
-                    appPreferences = appPreferences,
+                    navController = navController!!,
+                    appPreferences = appPreferences
                 )
             }
         }
@@ -124,6 +130,16 @@ class MainActivity : BaseActivity() {
 
                 activityAnim.start()
                 splashAnim.start()
+            }
+        }
+    }
+
+    override fun handleRoleBasedNavigation(role: Role) {
+        navController?.let { navController ->
+            when (role) {
+                Role.TENANT -> navController.navigate(SubGraph.Tenant)
+                Role.LANDLORD -> navController.navigate(SubGraph.Landlord)
+                Role.MANAGER -> navController.navigate(SubGraph.Staff)
             }
         }
     }

@@ -6,3 +6,4 @@ import androidx.compose.ui.unit.dp
 
 val LocalPreferenceHighlighted = compositionLocalOf(structuralEqualityPolicy()) { false }
 val LocalPreferenceMinHeight = compositionLocalOf(structuralEqualityPolicy()) { 56.dp }
+

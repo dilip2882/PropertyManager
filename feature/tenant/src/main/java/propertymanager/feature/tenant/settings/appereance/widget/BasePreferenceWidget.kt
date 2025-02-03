@@ -1,4 +1,4 @@
-package propertymanager.presentation.components
+package propertymanager.feature.tenant.settings.appereance.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,10 +31,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import propertymanager.presentation.components.LocalPreferenceHighlighted
+import propertymanager.presentation.components.LocalPreferenceMinHeight
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun BasePreferenceWidget(
+internal fun BasePreferenceWidget(
     modifier: Modifier = Modifier,
     title: String? = null,
     subcomponent: @Composable (ColumnScope.() -> Unit)? = null,
@@ -50,7 +50,6 @@ fun BasePreferenceWidget(
         modifier = modifier
             .highlightBackground(highlighted)
             .sizeIn(minHeight = minHeight)
-            .background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(20.dp))
             .clickable(enabled = onClick != null, onClick = { onClick?.invoke() })
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -121,7 +120,6 @@ internal fun Modifier.highlightBackground(highlighted: Boolean): Modifier = comp
 }
 
 internal val TrailingWidgetBuffer = 16.dp
-val PrefsHorizontalPadding = 16.dp
+internal val PrefsHorizontalPadding = 16.dp
 internal val PrefsVerticalPadding = 16.dp
 internal val TitleFontSize = 16.sp
-

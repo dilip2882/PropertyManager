@@ -64,7 +64,7 @@ import com.propertymanager.domain.model.RequestStatus
 import com.propertymanager.domain.model.isActive
 import kotlinx.coroutines.launch
 import propertymanager.feature.tenant.support.components.MaintenancePostCard
-import propertymanager.feature.tenant.support.components.PullRefresh
+import propertymanager.presentation.components.material.PullRefresh
 import propertymanager.presentation.components.property.PropertyViewModel
 import propertymanager.presentation.components.user.UserEvent
 import propertymanager.presentation.components.user.UserViewModel

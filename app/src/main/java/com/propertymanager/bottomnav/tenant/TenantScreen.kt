@@ -21,14 +21,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.propertymanager.navigation.Dest
-import com.propertymanager.navigation.SubGraph
 import com.propertymanager.navigation.graphs.authNavGraph
 import com.propertymanager.navigation.graphs.tenantNavGraph
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
-import propertymanager.feature.tenant.profile.TenantProfileScreen
+import propertymanager.feature.tenant.settings.TenantProfileScreen
 import propertymanager.feature.tenant.support.MaintenanceListScreen
 import propertymanager.presentation.components.location.LocationViewModel
 import propertymanager.presentation.components.property.AddPropertyScreen

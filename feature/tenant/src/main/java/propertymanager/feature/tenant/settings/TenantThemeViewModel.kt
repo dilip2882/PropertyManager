@@ -1,4 +1,4 @@
-package propertymanager.feature.tenant.profile
+package propertymanager.feature.tenant.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
