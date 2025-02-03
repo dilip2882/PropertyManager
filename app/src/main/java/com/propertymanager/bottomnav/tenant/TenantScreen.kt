@@ -165,19 +165,6 @@ fun TenantScreen(
                 )
             }
 
-            composable<Dest.OnboardingFormScreen> {
-                val viewModel: OnboardingViewModel = hiltViewModel()
-                val state by viewModel.state.collectAsState()
-                val effect by viewModel.effect.collectAsState(initial = null)
-
-                OnboardingFormScreen(
-                    state = state,
-                    effect = effect,
-                    dispatch = { event -> viewModel.event(event) },
-                    onComplete = { navController.navigate(Dest.HomeScreen) },
-                )
-            }
-
             tenantNavGraph(navController)
             authNavGraph(navController)
         }

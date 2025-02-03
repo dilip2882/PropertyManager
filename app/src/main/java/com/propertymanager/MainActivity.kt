@@ -9,12 +9,17 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.rememberNavController
@@ -22,10 +27,13 @@ import com.propertymanager.common.preferences.temp.AppPreferences
 import com.propertymanager.common.system.dpToPx
 import com.propertymanager.domain.model.biometrics.BiometricAuthState
 import com.propertymanager.domain.model.Role
+import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.MainNavigation
 import com.propertymanager.navigation.SubGraph
 import com.propertymanager.ui.base.activity.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import propertymanager.feature.staff.settings.BiometricViewModel
 import propertymanager.feature.staff.settings.ThemeViewModel
 import propertymanager.presentation.theme.PropertyManagerTheme
@@ -33,60 +41,77 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
-    @Inject
-    lateinit var appPreferences: AppPreferences
-
-    // To be checked by splash screen. If true then splash screen will be removed.
-    var ready = false
 
     private var navController: NavHostController? = null
+    private var uiState = mutableStateOf<UiState>(UiState.Loading)
+
+    private sealed class UiState {
+        data object Loading : UiState()
+        data class Ready(val destination: Dest) : UiState()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val isLaunch = savedInstanceState == null
-
-        // Prevent splash screen showing up on configuration changes
-        val splashScreen = if (isLaunch) installSplashScreen() else null
-
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // Keep splash screen until we have initial destination
+        splashScreen.setKeepOnScreenCondition { 
+            uiState.value is UiState.Loading 
+        }
+
+        // Check role immediately
+        lifecycleScope.launch {
+            try {
+                val token = appPreferences.getAuthToken().first()
+                val destination = if (token != null) {
+                    when (roleNavigationHelper.determineUserRole()) {
+                        Role.TENANT -> Dest.TenantScreen
+                        Role.LANDLORD -> Dest.LandlordScreen
+                        Role.MANAGER -> Dest.StaffScreen
+                    }
+                } else Dest.PhoneScreen
+                uiState.value = UiState.Ready(destination)
+            } catch (e: Exception) {
+                uiState.value = UiState.Ready(Dest.PhoneScreen)
+            }
+        }
 
         setContent {
             val viewModel: ThemeViewModel = hiltViewModel()
             val biometricViewModel: BiometricViewModel = hiltViewModel()
+            val currentUiState by remember { uiState }
 
-            val dynamicColor by viewModel.dynamicColor.collectAsState()
-            val darkMode by viewModel.darkMode.collectAsState()
+            if (currentUiState is UiState.Ready) {
+                val dynamicColor by viewModel.dynamicColor.collectAsState()
+                val darkMode by viewModel.darkMode.collectAsState()
 
-            val hasAuthenticated by biometricViewModel.hasAuthenticated.collectAsState()
-            val biometricAuthState by biometricViewModel
-                .biometricAuthState
-                .collectAsState(BiometricAuthState.LOADING)
-            val biometricAuthResult by biometricViewModel.authResult.collectAsState()
+                val hasAuthenticated by biometricViewModel.hasAuthenticated.collectAsState()
+                val biometricAuthState by biometricViewModel
+                    .biometricAuthState
+                    .collectAsState(BiometricAuthState.LOADING)
+                val biometricAuthResult by biometricViewModel.authResult.collectAsState()
 
-            LaunchedEffect(biometricAuthState) {
-                if (biometricAuthState == BiometricAuthState.ENABLED) {
-                    biometricViewModel.authenticate(this@MainActivity)
+                LaunchedEffect(biometricAuthState) {
+                    if (biometricAuthState == BiometricAuthState.ENABLED) {
+                        biometricViewModel.authenticate(this@MainActivity)
+                    }
+                }
+
+                biometricViewModel.handleBiometricAuth(biometricAuthResult, this)
+
+                navController = rememberNavController()
+                PropertyManagerTheme(
+                    darkTheme = darkMode,
+                    dynamicColor = dynamicColor
+                ) {
+                    MainNavigation(
+                        navController = navController!!,
+                        initialDestination = (currentUiState as UiState.Ready).destination
+                    )
                 }
             }
-
-            biometricViewModel.handleBiometricAuth(biometricAuthResult, this)
-
-            navController = rememberNavController()
-            PropertyManagerTheme(
-                darkTheme = darkMode,
-                dynamicColor = dynamicColor
-            ) {
-                MainNavigation(
-                    navController = navController!!,
-                    appPreferences = appPreferences
-                )
-            }
         }
 
-        val startTime = System.currentTimeMillis()
-        splashScreen?.setKeepOnScreenCondition {
-            val elapsed = System.currentTimeMillis() - startTime
-            elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
-        }
         setSplashScreenExitAnimation(splashScreen)
     }
 
@@ -109,7 +134,7 @@ class MainActivity : BaseActivity() {
 
                 val activityAnim = ValueAnimator.ofFloat(1F, 0F).apply {
                     interpolator = LinearOutSlowInInterpolator()
-                    duration = SPLASH_EXIT_ANIM_DURATION
+                    duration = SPLASH_EXIT_ANIM_DURATION // animation duration
                     addUpdateListener { va ->
                         val value = va.animatedValue as Float
                         root.translationY = value * 16.dpToPx
@@ -118,7 +143,7 @@ class MainActivity : BaseActivity() {
 
                 val splashAnim = ValueAnimator.ofFloat(1F, 0F).apply {
                     interpolator = FastOutSlowInInterpolator()
-                    duration = SPLASH_EXIT_ANIM_DURATION
+                    duration = SPLASH_EXIT_ANIM_DURATION // animation duration
                     addUpdateListener { va ->
                         val value = va.animatedValue as Float
                         splashProvider.view.alpha = value
@@ -136,16 +161,19 @@ class MainActivity : BaseActivity() {
 
     override fun handleRoleBasedNavigation(role: Role) {
         navController?.let { navController ->
-            when (role) {
-                Role.TENANT -> navController.navigate(SubGraph.Tenant)
-                Role.LANDLORD -> navController.navigate(SubGraph.Landlord)
-                Role.MANAGER -> navController.navigate(SubGraph.Staff)
+            val navOptions = NavOptions.Builder()
+                .setPopUpTo(SubGraph.Auth, true)
+                .build()
+
+            val destination = when (role) {
+                Role.TENANT -> Dest.TenantScreen
+                Role.LANDLORD -> Dest.LandlordScreen
+                Role.MANAGER -> Dest.StaffScreen
             }
+            navController.navigate(destination, navOptions)
         }
     }
 }
 
 // Splash screen
-private const val SPLASH_MIN_DURATION = 500 // ms
-private const val SPLASH_MAX_DURATION = 5000 // ms
-private const val SPLASH_EXIT_ANIM_DURATION = 400L // ms
+private const val SPLASH_EXIT_ANIM_DURATION = 200L // ms

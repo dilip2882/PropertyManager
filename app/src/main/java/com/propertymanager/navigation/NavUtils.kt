@@ -1,13 +1,10 @@
 package com.propertymanager.navigation
 
 import com.propertymanager.domain.model.Property
+import com.propertymanager.domain.model.Role
 import kotlinx.serialization.Serializable
 
 sealed class SubGraph {
-
-    @Serializable
-    data object Home : SubGraph()
-
     @Serializable
     data object Auth : SubGraph()
 
@@ -20,6 +17,12 @@ sealed class SubGraph {
     @Serializable
     data object Staff : SubGraph()
 
+    fun fromRole(role: Role): Dest = when (role) {
+        Role.TENANT -> Dest.TenantScreen
+        Role.MANAGER -> Dest.StaffScreen
+        Role.LANDLORD -> Dest.LandlordScreen
+    }
+
 }
 
 sealed interface Dest {
@@ -31,11 +34,6 @@ sealed interface Dest {
     data class OtpScreen(val phoneNumber: String) : Dest
     @Serializable
     data object OnboardingFormScreen : Dest
-    @Serializable
-    data object HomeScreen : Dest
-
-    @Serializable
-    data object PropertyManagerApp : Dest
 
     /* ----------------- * Role-based destinations * ----------------- */
     @Serializable

@@ -10,6 +10,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.propertymanager.domain.model.Role
 import com.propertymanager.navigation.Dest
 import com.propertymanager.navigation.SubGraph
 import propertymanager.feature.auth.presentation.AuthViewModel
@@ -19,7 +20,6 @@ import propertymanager.feature.onboarding.OnboardingFormScreen
 import propertymanager.feature.onboarding.OnboardingViewModel
 
 fun NavGraphBuilder.authNavGraph(navController: NavController) {
-
     navigation<SubGraph.Auth>(startDestination = Dest.PhoneScreen) {
         composable<Dest.PhoneScreen>(
             enterTransition = {
@@ -101,14 +101,24 @@ fun NavGraphBuilder.authNavGraph(navController: NavController) {
             val viewModel: OnboardingViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
             val effect by viewModel.effect.collectAsState(initial = null)
+            val selectedRole by viewModel.existingRole.collectAsState()
 
             OnboardingFormScreen(
                 state = state,
                 effect = effect,
                 dispatch = { event -> viewModel.event(event) },
-                onComplete = { navController.navigate(Dest.HomeScreen) },
+                onComplete = {
+                    val destination = when (selectedRole) {
+                        Role.TENANT.toString() -> Dest.TenantScreen
+                        Role.LANDLORD.toString() -> Dest.LandlordScreen
+                        Role.MANAGER.toString() -> Dest.StaffScreen
+                        else -> Dest.TenantScreen
+                    }
+                    navController.navigate(destination) {
+                        popUpTo(SubGraph.Auth) { inclusive = true }
+                    }
+                }
             )
         }
-
     }
 }
