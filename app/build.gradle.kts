@@ -125,7 +125,6 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
     implementation(projects.core.presentation)
-    implementation(projects.i18n)
 
     implementation(project(":feature:auth"))
     implementation(project(":feature:onboarding"))

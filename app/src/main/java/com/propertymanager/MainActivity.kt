@@ -56,7 +56,7 @@ class MainActivity : BaseActivity() {
 
         // Keep splash screen until we have initial destination
         splashScreen.setKeepOnScreenCondition { 
-            uiState.value is UiState.Loading 
+            uiState.value is UiState.Loading
         }
 
         // Check role immediately

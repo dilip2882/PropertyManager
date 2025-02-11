@@ -17,9 +17,10 @@ android {
 }
 
 dependencies {
-    api(projects.core.common)
-    api(projects.i18n)
-    implementation(project(":core:presentation"))
+    implementation(projects.core.common)
+    implementation(projects.core.domain)
+    implementation(projects.core.presentation)
+    implementation(projects.core.firebase)
 
     // Hilt
     implementation(libs.hilt.android)

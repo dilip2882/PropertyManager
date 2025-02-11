@@ -43,6 +43,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -247,3 +249,13 @@ fun OnboardingFormScreen(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun OnboardingFormScreenPreview() {
+    OnboardingFormScreen(
+        state = OnboardingContract.OnboardingState.Idle,
+        effect = null,
+        dispatch = {},
+        onComplete = {},
+    )
+}

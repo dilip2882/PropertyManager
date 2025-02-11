@@ -18,9 +18,8 @@ android {
 }
 
 dependencies {
-    api(projects.core.common)
-    api(projects.core.domain)
-    api(projects.i18n)
+    implementation(projects.core.common)
+    implementation(projects.core.domain)
 
     // geolocation
     implementation(libs.play.services.location)

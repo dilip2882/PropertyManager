@@ -18,13 +18,13 @@ android {
 }
 
 dependencies {
-    implementation(projects.i18n)
+    api(projects.i18n)
 
 //    api(kotlinx.coroutines.core)
 //    api(kotlinx.serialization.json)
 //    api(kotlinx.serialization.json.okio)
 
-    api(libs.logcat)
+    implementation(libs.logcat)
 
     // Image loading
     implementation(platform(libs.coil.bom))
